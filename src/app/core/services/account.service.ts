@@ -1,4 +1,4 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { tap } from 'rxjs';
 import {
@@ -23,7 +23,7 @@ export class AccountService {
     this._accounts().reduce((sum, a) => sum + a.balance, 0)
   );
 
-  constructor(private readonly http: HttpClient) {}
+  private readonly http = inject(HttpClient);
 
   loadAccounts(): void {
     this._loading.set(true);
