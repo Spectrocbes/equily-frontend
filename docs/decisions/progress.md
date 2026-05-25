@@ -21,3 +21,13 @@
 - sonar-project.properties: projectKey=spectrocbes_equily-frontend
 - Local pipeline: lint ✅ build ✅ 1 test ✅ lcov coverage written
 - Next: layout (AppShell, Navbar with theme toggle, Sidebar)
+
+## 2026-05-25 — App shell layout (complete)
+- App shell implemented: Navbar + Sidebar + RouterOutlet
+- NavbarComponent: logo Equily, dark/light toggle (ThemeService), user avatar placeholder
+- SidebarComponent: 4 nav items (Accounts, Holdings, Analytics, Rebalance) with router active state
+- 4 lazy-loaded feature components (accounts, holdings, analytics, rebalance)
+- Dark mode working: toggle persisted in localStorage, dark class on `<html>`
+- Tailwind palette extended: `primary-900` added for dark mode active states
+- Build: 0 errors, 4 lazy chunks
+- Next: Accounts page with real data from backend API

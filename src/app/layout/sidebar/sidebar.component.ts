@@ -1,0 +1,72 @@
+import { Component } from '@angular/core';
+import { RouterLink, RouterLinkActive } from '@angular/router';
+
+interface NavItem {
+  label: string;
+  route: string;
+  icon: string;
+}
+
+@Component({
+  selector: 'app-sidebar',
+  standalone: true,
+  imports: [RouterLink, RouterLinkActive],
+  template: `
+    <aside class="fixed left-0 top-16 bottom-0 w-64
+                  bg-white dark:bg-slate-900
+                  border-r border-slate-200 dark:border-slate-700
+                  flex flex-col py-4 px-3">
+
+      <nav class="flex-1 space-y-1">
+        @for (item of navItems; track item.route) {
+          <a
+            [routerLink]="item.route"
+            routerLinkActive="bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400"
+            [routerLinkActiveOptions]="{ exact: item.route === '/' }"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-lg
+                   text-slate-600 dark:text-slate-400
+                   hover:bg-slate-100 dark:hover:bg-slate-800
+                   hover:text-slate-900 dark:hover:text-slate-100
+                   transition-colors duration-150">
+
+            <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24"
+                 stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" [attr.d]="item.icon"/>
+            </svg>
+
+            <span class="text-sm font-medium">{{ item.label }}</span>
+          </a>
+        }
+      </nav>
+
+      <div class="px-3 py-2">
+        <p class="text-xs text-slate-400 dark:text-slate-600">Equily v0.1.0</p>
+      </div>
+
+    </aside>
+  `,
+})
+export class SidebarComponent {
+  protected readonly navItems: NavItem[] = [
+    {
+      label: 'Accounts',
+      route: '/accounts',
+      icon: 'M3 10h18M3 14h18M10 3v18M14 3v18M3 3h18a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z',
+    },
+    {
+      label: 'Holdings',
+      route: '/holdings',
+      icon: 'M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 0 1 5.814-5.519l2.74-1.22m0 0-5.94-2.28m5.94 2.28-2.28 5.941',
+    },
+    {
+      label: 'Analytics',
+      route: '/analytics',
+      icon: 'M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125z',
+    },
+    {
+      label: 'Rebalance',
+      route: '/rebalance',
+      icon: 'M12 3v17.25m0 0c-1.472 0-2.882.265-4.185.75M12 20.25c1.472 0 2.882.265 4.185.75M18.75 4.97A48.416 48.416 0 0 0 12 4.5c-2.291 0-4.545.16-6.75.47m13.5 0c1.01.143 2.01.317 3 .52m-3-.52 2.62 7.854c.168.444-.651 1.176-1.263.92a4.62 4.62 0 0 0-1.857-.387 4.62 4.62 0 0 0-1.857.387c-.612.256-1.43-.476-1.263-.92L18.75 4.97zm-13.5 0-.245.736m0 0-2.375 7.118c-.168.444.651 1.176 1.263.92a4.62 4.62 0 0 1 1.857-.387 4.62 4.62 0 0 1 1.857.387c.612.256 1.43-.476 1.263-.92L5.25 5.706z',
+    },
+  ];
+}
