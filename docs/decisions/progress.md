@@ -31,3 +31,13 @@
 - Tailwind palette extended: `primary-900` added for dark mode active states
 - Build: 0 errors, 4 lazy chunks
 - Next: Accounts page with real data from backend API
+
+## 2026-05-25 — Accounts page (complete)
+- Accounts page implemented with real API integration (AccountService signals)
+- Loading skeleton (animate-pulse), error state, empty state, accounts grid
+- Total balance card (primary indigo gradient) shown when accounts > 0
+- Account cards: name, type label (French), balance (font-mono), transaction count
+- `formatAccountType()` maps AccountType enum to French labels
+- 7 unit tests for AccountsComponent (loading, error, empty, data, format)
+- Build: 0 errors, accounts lazy chunk 7.64 kB
+- Next: test visually with backend running, then Add Account modal
