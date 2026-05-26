@@ -11,40 +11,7 @@ interface NavItem {
   selector: 'app-sidebar',
   standalone: true,
   imports: [RouterLink, RouterLinkActive],
-  template: `
-    <aside class="fixed left-0 top-16 bottom-0 w-64
-                  bg-white dark:bg-slate-900
-                  border-r border-slate-200 dark:border-slate-700
-                  flex flex-col py-4 px-3">
-
-      <nav class="flex-1 space-y-1">
-        @for (item of navItems; track item.route) {
-          <a
-            [routerLink]="item.route"
-            routerLinkActive="bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400"
-            [routerLinkActiveOptions]="{ exact: item.route === '/' }"
-            class="flex items-center gap-3 px-3 py-2.5 rounded-lg
-                   text-slate-600 dark:text-slate-400
-                   hover:bg-slate-100 dark:hover:bg-slate-800
-                   hover:text-slate-900 dark:hover:text-slate-100
-                   transition-colors duration-150">
-
-            <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24"
-                 stroke="currentColor" stroke-width="1.5">
-              <path stroke-linecap="round" stroke-linejoin="round" [attr.d]="item.icon"/>
-            </svg>
-
-            <span class="text-sm font-medium">{{ item.label }}</span>
-          </a>
-        }
-      </nav>
-
-      <div class="px-3 py-2">
-        <p class="text-xs text-slate-400 dark:text-slate-600">Equily v0.1.0</p>
-      </div>
-
-    </aside>
-  `,
+  templateUrl: './sidebar.component.html',
 })
 export class SidebarComponent {
   protected readonly navItems: NavItem[] = [

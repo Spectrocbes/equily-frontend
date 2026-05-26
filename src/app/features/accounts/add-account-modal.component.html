@@ -1,0 +1,238 @@
+<!-- Backdrop -->
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4"
+     role="button"
+     tabindex="0"
+     (click)="onBackdropClick($event)"
+     (keydown.escape)="closed.emit()">
+
+  <!-- Overlay -->
+  <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+
+  <!-- Modal -->
+  <div class="relative w-full max-w-md rounded-2xl
+              bg-white dark:bg-slate-800
+              shadow-2xl border border-slate-200 dark:border-slate-700
+              p-6 space-y-5">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+      <h2 class="text-lg font-semibold text-slate-900 dark:text-white">
+        {{ step() === 1 ? 'Add Account' : 'Confirm Account' }}
+      </h2>
+      <button type="button" (click)="closed.emit()"
+              class="w-8 h-8 rounded-lg flex items-center justify-center
+                     text-slate-400 hover:text-slate-600 dark:hover:text-slate-200
+                     hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Step indicator -->
+    <div class="flex items-center gap-2">
+      <span class="w-6 h-6 rounded-full text-xs flex items-center justify-center font-medium"
+            [class]="step() === 1
+              ? 'bg-primary-500 text-white'
+              : 'bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-300'">
+        1
+      </span>
+      <div class="flex-1 h-px bg-slate-200 dark:bg-slate-700"></div>
+      <span class="w-6 h-6 rounded-full text-xs flex items-center justify-center font-medium"
+            [class]="step() === 2
+              ? 'bg-primary-500 text-white'
+              : 'bg-slate-200 dark:bg-slate-700 text-slate-400'">
+        2
+      </span>
+    </div>
+
+    <!-- Form -->
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
+
+      <!-- Step 1: fields -->
+      @if (step() === 1) {
+
+        <!-- Name -->
+        <div>
+          <label for="account-name" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+            Account name
+          </label>
+          <input
+            id="account-name"
+            formControlName="name"
+            type="text"
+            placeholder="e.g. Mon PEA Fortuneo"
+            class="w-full px-3 py-2 rounded-lg text-sm
+                   bg-slate-50 dark:bg-slate-900
+                   border border-slate-200 dark:border-slate-600
+                   text-slate-900 dark:text-white
+                   placeholder:text-slate-400
+                   focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
+                   transition-colors"/>
+          @if (form.get('name')?.invalid && form.get('name')?.touched) {
+            <p class="text-rose-500 text-xs mt-1">Account name is required</p>
+          }
+        </div>
+
+        <!-- Account type -->
+        <div>
+          <label for="account-type" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+            Account type
+          </label>
+          <select
+            id="account-type"
+            formControlName="accountType"
+            class="w-full px-3 py-2 rounded-lg text-sm
+                   bg-slate-50 dark:bg-slate-900
+                   border border-slate-200 dark:border-slate-600
+                   text-slate-900 dark:text-white
+                   focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
+                   transition-colors">
+            <option value="">Select a type</option>
+            @for (type of accountTypes; track type.value) {
+              <option [value]="type.value">{{ type.label }}</option>
+            }
+          </select>
+          @if (form.get('accountType')?.invalid && form.get('accountType')?.touched) {
+            <p class="text-rose-500 text-xs mt-1">Account type is required</p>
+          }
+        </div>
+
+        <!-- Broker -->
+        <div>
+          <label for="broker" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+            Broker / Platform
+          </label>
+          <input
+            id="broker"
+            formControlName="broker"
+            type="text"
+            list="broker-suggestions"
+            placeholder="e.g. Fortuneo"
+            class="w-full px-3 py-2 rounded-lg text-sm
+                   bg-slate-50 dark:bg-slate-900
+                   border border-slate-200 dark:border-slate-600
+                   text-slate-900 dark:text-white
+                   placeholder:text-slate-400
+                   focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
+                   transition-colors"/>
+          <datalist id="broker-suggestions">
+            @for (b of brokerSuggestions; track b) {
+              <option [value]="b"></option>
+            }
+          </datalist>
+          @if (form.get('broker')?.invalid && form.get('broker')?.touched) {
+            <p class="text-rose-500 text-xs mt-1">Broker is required</p>
+          }
+        </div>
+
+        <!-- Initial balance -->
+        <div>
+          <label for="initial-balance" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+            Initial balance
+          </label>
+          <div class="relative">
+            <input
+              id="initial-balance"
+              formControlName="initialBalance"
+              type="number"
+              step="0.01"
+              min="0"
+              placeholder="0.00"
+              class="w-full pl-3 pr-12 py-2 rounded-lg text-sm font-mono
+                     bg-slate-50 dark:bg-slate-900
+                     border border-slate-200 dark:border-slate-600
+                     text-slate-900 dark:text-white
+                     placeholder:text-slate-400 placeholder:font-sans
+                     focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
+                     transition-colors"/>
+            <span class="absolute right-3 top-1/2 -translate-y-1/2
+                         text-slate-400 text-sm font-medium">EUR</span>
+          </div>
+        </div>
+
+        <!-- Step 1 actions -->
+        <div class="flex gap-3 pt-1">
+          <button type="button" (click)="closed.emit()"
+                  class="flex-1 px-4 py-2 rounded-lg text-sm font-medium
+                         border border-slate-200 dark:border-slate-600
+                         text-slate-700 dark:text-slate-300
+                         hover:bg-slate-50 dark:hover:bg-slate-700
+                         transition-colors">
+            Cancel
+          </button>
+          <button type="button" (click)="nextStep()"
+                  class="flex-1 px-4 py-2 rounded-lg text-sm font-medium
+                         bg-primary-500 hover:bg-primary-600
+                         text-white transition-colors">
+            Next →
+          </button>
+        </div>
+
+      }
+
+      <!-- Step 2: confirmation -->
+      @if (step() === 2) {
+
+        <div class="rounded-lg bg-slate-50 dark:bg-slate-900
+                    border border-slate-200 dark:border-slate-700 p-4 space-y-3">
+
+          <div class="flex justify-between text-sm">
+            <span class="text-slate-500 dark:text-slate-400">Name</span>
+            <span class="font-medium text-slate-900 dark:text-white">{{ form.value.name }}</span>
+          </div>
+
+          <div class="flex justify-between text-sm">
+            <span class="text-slate-500 dark:text-slate-400">Type</span>
+            <span class="font-medium text-slate-900 dark:text-white">{{ form.value.accountType }}</span>
+          </div>
+
+          @if (form.value.broker) {
+            <div class="flex justify-between text-sm">
+              <span class="text-slate-500 dark:text-slate-400">Broker</span>
+              <span class="font-medium text-slate-900 dark:text-white">{{ form.value.broker }}</span>
+            </div>
+          }
+
+          <div class="flex justify-between text-sm">
+            <span class="text-slate-500 dark:text-slate-400">Initial balance</span>
+            <span class="font-medium font-mono text-slate-900 dark:text-white">
+              {{ form.value.initialBalance | number:'1.2-2' }} EUR
+            </span>
+          </div>
+
+        </div>
+
+        @if (error()) {
+          <p class="text-rose-500 text-sm">{{ error() }}</p>
+        }
+
+        <!-- Step 2 actions -->
+        <div class="flex gap-3 pt-1">
+          <button type="button" (click)="step.set(1)"
+                  class="flex-1 px-4 py-2 rounded-lg text-sm font-medium
+                         border border-slate-200 dark:border-slate-600
+                         text-slate-700 dark:text-slate-300
+                         hover:bg-slate-50 dark:hover:bg-slate-700
+                         transition-colors">
+            ← Back
+          </button>
+          <button type="submit"
+                  [disabled]="loading()"
+                  class="flex-1 px-4 py-2 rounded-lg text-sm font-medium
+                         bg-primary-500 hover:bg-primary-600
+                         disabled:bg-primary-300 dark:disabled:bg-primary-800
+                         text-white transition-colors">
+            @if (loading()) {
+              <span>Creating...</span>
+            } @else {
+              <span>Confirm & Create</span>
+            }
+          </button>
+        </div>
+
+      }
+
+    </form>
+  </div>
+</div>

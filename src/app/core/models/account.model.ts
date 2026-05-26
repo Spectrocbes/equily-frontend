@@ -5,6 +5,7 @@ export interface FinancialAccount {
   balance: number;
   currency: string;
   transactionCount: number;
+  broker: string;
 }
 
 export type AccountType =
@@ -41,6 +42,7 @@ export interface CreateAccountRequest {
   accountType: AccountType;
   initialBalance: number;
   currency: string;
+  broker: string;
 }
 
 export interface RecordTransactionRequest {
