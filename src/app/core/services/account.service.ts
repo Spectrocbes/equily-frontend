@@ -1,6 +1,6 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { tap } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import {
   FinancialAccount,
   Transaction,
@@ -15,10 +15,14 @@ export class AccountService {
   private readonly _accounts = signal<FinancialAccount[]>([]);
   private readonly _loading = signal(false);
   private readonly _error = signal<string | null>(null);
+  private readonly _modalLoading = signal(false);
+  private readonly _modalError = signal<string | null>(null);
 
   readonly accounts = this._accounts.asReadonly();
   readonly loading = this._loading.asReadonly();
   readonly error = this._error.asReadonly();
+  readonly modalLoading = this._modalLoading.asReadonly();
+  readonly modalError = this._modalError.asReadonly();
   readonly totalBalance = computed(() =>
     this._accounts().reduce((sum, a) => sum + a.balance, 0)
   );
@@ -42,9 +46,22 @@ export class AccountService {
     ).subscribe();
   }
 
-  createAccount(request: CreateAccountRequest) {
-    return this.http.post<string>(this.apiUrl, request).pipe(
-      tap(() => this.loadAccounts())
+  createAccount(request: CreateAccountRequest): Observable<{ id: string }> {
+    this._modalLoading.set(true);
+    this._modalError.set(null);
+    return this.http.post<{ id: string }>(this.apiUrl, request).pipe(
+      tap({
+        next: () => {
+          this._modalLoading.set(false);
+          this.loadAccounts();
+        },
+        error: (err) => {
+          this._modalLoading.set(false);
+          this._modalError.set(
+            err.error?.message ?? err.message ?? 'Failed to create account'
+          );
+        }
+      })
     );
   }
 

@@ -12,6 +12,13 @@ export const routes: Routes = [
       import('./features/accounts/accounts.component').then(m => m.AccountsComponent),
   },
   {
+    path: 'accounts/:id',
+    loadComponent: () =>
+      import('./features/accounts/account-detail.component').then(
+        m => m.AccountDetailComponent
+      ),
+  },
+  {
     path: 'holdings',
     loadComponent: () =>
       import('./features/holdings/holdings.component').then(m => m.HoldingsComponent),

@@ -59,6 +59,8 @@ All API types are defined in `src/app/core/models/`.
 - Component files: `kebab-case.component.ts`
 - Services: `kebab-case.service.ts`
 - Always handle loading and error states in components
+- **Component files are always separated**: `templateUrl` + `.html` file, never inline `template`.
+  Same for styles: use `styleUrl` + `.scss` only if the component has styles. No inline `styles`.
 
 ## Testing
 - Unit tests: Jest (replaces Karma/Jasmine)

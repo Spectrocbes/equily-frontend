@@ -1,0 +1,107 @@
+<div class="space-y-6">
+
+  <!-- Back button -->
+  <a routerLink="/accounts"
+     class="inline-flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400
+            hover:text-slate-900 dark:hover:text-white transition-colors">
+    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+    </svg>
+    Back to accounts
+  </a>
+
+  @if (loading()) {
+    <div class="animate-pulse space-y-4">
+      <div class="h-8 bg-slate-200 dark:bg-slate-700 rounded w-1/3"></div>
+      <div class="h-32 bg-slate-200 dark:bg-slate-700 rounded-xl"></div>
+    </div>
+  }
+
+  @if (error()) {
+    <div class="rounded-xl border border-rose-200 dark:border-rose-800
+                bg-rose-50 dark:bg-rose-900/20 p-4">
+      <p class="text-rose-700 dark:text-rose-400 text-sm">{{ error() }}</p>
+    </div>
+  }
+
+  @if (account()) {
+    <!-- Account header -->
+    <div class="flex items-start justify-between">
+      <div>
+        <p class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1">
+          {{ account()!.accountType }}
+        </p>
+        <h1 class="text-2xl font-semibold text-slate-900 dark:text-white">
+          {{ account()!.name }}
+        </h1>
+      </div>
+      <div class="text-right">
+        <p class="text-xs text-slate-500 dark:text-slate-400 mb-1">Balance</p>
+        <p class="text-2xl font-bold font-mono text-slate-900 dark:text-white">
+          {{ account()!.balance | currency:account()!.currency:'symbol':'1.2-2' }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Transactions -->
+    <div class="rounded-xl border border-slate-200 dark:border-slate-700
+                bg-white dark:bg-slate-800 overflow-hidden">
+
+      <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-700
+                  flex items-center justify-between">
+        <h2 class="font-medium text-slate-900 dark:text-white">Transactions</h2>
+        <span class="text-xs text-slate-500 dark:text-slate-400">
+          {{ transactions().length }} total
+        </span>
+      </div>
+
+      @if (transactions().length === 0) {
+        <div class="p-8 text-center">
+          <p class="text-slate-400 dark:text-slate-500 text-sm">No transactions yet</p>
+        </div>
+      } @else {
+        <div class="divide-y divide-slate-100 dark:divide-slate-700">
+          @for (tx of transactions(); track tx.id) {
+            <div class="px-5 py-3.5 flex items-center justify-between
+                        hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+
+              <div class="flex items-center gap-3">
+                <!-- Type badge -->
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
+                      [class]="getBadgeClass(tx.type)">
+                  {{ tx.type }}
+                </span>
+
+                <div>
+                  @if (tx.ticker) {
+                    <p class="text-sm font-medium text-slate-900 dark:text-white font-mono">
+                      {{ tx.ticker }}
+                    </p>
+                  }
+                  <p class="text-xs text-slate-500 dark:text-slate-400">
+                    {{ tx.date | date:'dd MMM yyyy' }}
+                  </p>
+                </div>
+              </div>
+
+              <div class="text-right">
+                <p class="text-sm font-medium font-mono"
+                   [class]="tx.type === 'BUY' || tx.type === 'WITHDRAWAL'
+                            ? 'text-rose-500' : 'text-emerald-500'">
+                  {{ tx.type === 'BUY' || tx.type === 'WITHDRAWAL' ? '-' : '+' }}{{ tx.totalAmount | currency:tx.currency:'symbol':'1.2-2' }}
+                </p>
+                @if (tx.quantity && tx.pricePerUnit) {
+                  <p class="text-xs text-slate-400 dark:text-slate-500">
+                    {{ tx.quantity }} × {{ tx.pricePerUnit | currency:tx.currency:'symbol':'1.2-2' }}
+                  </p>
+                }
+              </div>
+
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+</div>
