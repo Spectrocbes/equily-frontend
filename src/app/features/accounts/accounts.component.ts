@@ -13,11 +13,18 @@ import { AddAccountModalComponent } from './add-account-modal.component';
 })
 export class AccountsComponent implements OnInit {
   protected readonly accountService = inject(AccountService);
+  private readonly router = inject(Router);
+
+  protected readonly showModal = signal(false);
 
   protected readonly showModal = signal(false);
 
   ngOnInit(): void {
     this.accountService.loadAccounts();
+  }
+
+  protected goToDetail(id: string): void {
+    this.router.navigate(['/accounts', id]);
   }
 
   protected formatAccountType(type: AccountType): string {
