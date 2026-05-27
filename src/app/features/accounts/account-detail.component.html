@@ -113,6 +113,9 @@
                   <p class="text-xs text-slate-500 dark:text-slate-400">
                     {{ tx.date | date:'dd MMM yyyy' }}
                   </p>
+                  <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+                    Fees: {{ tx.fees | currency:tx.currency:'symbol':'1.2-2' }}
+                  </p>
                   @if (tx.description) {
                     <p class="text-xs text-slate-400 dark:text-slate-500 italic mt-0.5">
                       {{ tx.description }}

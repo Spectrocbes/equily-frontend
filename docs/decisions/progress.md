@@ -42,6 +42,16 @@
 - Build: 0 errors, accounts lazy chunk 7.64 kB
 - Next: test visually with backend running, then Add Account modal
 
+## 2026-05-27 — Transaction form fix + fees + UI polish (complete)
+- Transaction form rewritten: `selectedType` signal replaces `type` form control
+- `isFormValid` computed uses `toSignal(form.valueChanges)` for reactive validation
+- `computedTotal` includes fees: qty × price + fees
+- Fees field added (optional, default 0) for BUY/SELL transactions
+- Fees always displayed in transaction list
+- Balance delta animation: smoother fade-in, arrow icon (↑/↓), 4s duration
+- Account cards: full card clickable via `<a [routerLink]>`, hover arrow
+- 23 tests across 5 suites, lint clean, build 0 errors
+
 ## 2026-05-26 — Add Account modal + Account detail page (complete)
 - All components refactored to `templateUrl` + `.html` file — no inline templates anywhere (CLAUDE.md updated)
 - `broker` field mandatory in `FinancialAccount`, `CreateAccountRequest`, form, and API request

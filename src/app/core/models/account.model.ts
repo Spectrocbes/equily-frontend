@@ -28,6 +28,7 @@ export interface Transaction {
   totalAmount: number;
   currency: string;
   date: string;
+  fees: number;
   description: string | null;
 }
 
@@ -67,5 +68,6 @@ export interface RecordTransactionRequest {
   totalAmount: number;
   totalCurrency: string;
   date: string;
+  fees?: number;
   description?: string;
 }

@@ -25,6 +25,7 @@ const mockTransaction: Transaction = {
   totalAmount: 5000,
   currency: 'EUR',
   date: '2026-01-15',
+  fees: 0,
   description: null,
 };
 

@@ -59,11 +59,8 @@ describe('AddTransactionModalComponent', () => {
     const createdSpy = jest.fn();
     fixture.componentInstance.created.subscribe(createdSpy);
 
-    fixture.componentInstance['form'].setValue({
-      type: 'DEPOSIT',
-      ticker: '',
-      quantity: null,
-      pricePerUnit: null,
+    fixture.componentInstance.onTypeChange('DEPOSIT');
+    fixture.componentInstance['form'].patchValue({
       totalAmount: 1000,
       date: '2026-01-15',
       description: '',
@@ -73,5 +70,25 @@ describe('AddTransactionModalComponent', () => {
     fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
     expect(mockService.recordTransaction).toHaveBeenCalled();
     expect(createdSpy).toHaveBeenCalled();
+  });
+
+  it('isFormValid returns false when no type selected', () => {
+    expect(fixture.componentInstance.isFormValid()).toBe(false);
+  });
+
+  it('isFormValid returns true for valid DEPOSIT', () => {
+    fixture.componentInstance.onTypeChange('DEPOSIT');
+    fixture.componentInstance['form'].patchValue({ totalAmount: 1000, date: '2026-01-15' });
+    fixture.detectChanges();
+    expect(fixture.componentInstance.isFormValid()).toBe(true);
+  });
+
+  it('isFormValid returns true for valid BUY', () => {
+    fixture.componentInstance.onTypeChange('BUY');
+    fixture.componentInstance['form'].patchValue({
+      ticker: 'AAPL', quantity: 10, pricePerUnit: 150, date: '2026-01-15'
+    });
+    fixture.detectChanges();
+    expect(fixture.componentInstance.isFormValid()).toBe(true);
   });
 });

@@ -1,6 +1,7 @@
-import { Component, input, output, inject, computed } from '@angular/core';
+import { Component, input, output, inject, computed, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { AccountService } from '../../core/services/account.service';
 import {
   AccountType, TransactionType,
@@ -30,84 +31,72 @@ export class AddTransactionModalComponent {
     ALLOWED_TRANSACTION_TYPES[this.accountType()]
   );
 
-  protected readonly requiresAsset = computed(() => {
-    const t = this.form.get('type')?.value as TransactionType;
-    return t === 'BUY' || t === 'SELL';
-  });
+  protected readonly step = signal<'form' | 'confirm'>('form');
+  protected readonly selectedType = signal<TransactionType | ''>('');
 
-  protected readonly isDividend = computed(() =>
-    this.form.get('type')?.value === 'DIVIDEND'
+  protected readonly requiresAsset = computed(() =>
+    ['BUY', 'SELL'].includes(this.selectedType())
   );
 
-  protected readonly computedTotal = computed(() => {
-    const qty = this.form.get('quantity')?.value;
-    const price = this.form.get('pricePerUnit')?.value;
-    if (qty && price && qty > 0 && price > 0) {
-      return qty * price;
-    }
-    return null;
-  });
+  protected readonly requiresTicker = computed(() =>
+    ['BUY', 'SELL', 'DIVIDEND'].includes(this.selectedType())
+  );
 
   protected readonly form = this.fb.group({
-    type:         ['', Validators.required],
     ticker:       [''],
     quantity:     [null as number | null],
     pricePerUnit: [null as number | null],
-    totalAmount:  [null as number | null, [Validators.required, Validators.min(0.01)]],
+    totalAmount:  [null as number | null],
+    fees:         [0],
     date:         [new Date().toISOString().split('T')[0], Validators.required],
     description:  [''],
   });
 
-  constructor() {
-    this.form.get('quantity')?.valueChanges.subscribe(() => this.updateTotal());
-    this.form.get('pricePerUnit')?.valueChanges.subscribe(() => this.updateTotal());
-  }
+  private readonly formValue = toSignal(this.form.valueChanges, {
+    initialValue: this.form.getRawValue(),
+  });
 
-  private updateTotal(): void {
-    const qty = this.form.get('quantity')?.value;
-    const price = this.form.get('pricePerUnit')?.value;
-    if (qty && price) {
-      this.form.get('totalAmount')?.setValue(
-        Math.round(qty * price * 100) / 100,
-        { emitEvent: false }
-      );
+  protected readonly computedTotal = computed(() => {
+    const v = this.formValue();
+    const qty = v.quantity;
+    const price = v.pricePerUnit;
+    const fees = v.fees ?? 0;
+    if (qty && price && qty > 0 && price > 0) {
+      return Math.round((qty * price + fees) * 100) / 100;
     }
-  }
+    return null;
+  });
 
-  private updateValidators(type: TransactionType): void {
-    const ticker = this.form.get('ticker')!;
-    const quantity = this.form.get('quantity')!;
-    const pricePerUnit = this.form.get('pricePerUnit')!;
-    const totalAmount = this.form.get('totalAmount')!;
+  protected readonly isFormValid = computed(() => {
+    const type = this.selectedType();
+    if (!type) return false;
 
-    ticker.clearValidators();
-    quantity.clearValidators();
-    pricePerUnit.clearValidators();
-    totalAmount.setValidators([Validators.required, Validators.min(0.01)]);
+    const v = this.formValue();
+    const dateValid = !!v.date;
 
     if (type === 'BUY' || type === 'SELL') {
-      ticker.setValidators([Validators.required, Validators.minLength(1)]);
-      quantity.setValidators([Validators.required, Validators.min(0.00000001)]);
-      pricePerUnit.setValidators([Validators.required, Validators.min(0.01)]);
-    } else if (type === 'DIVIDEND') {
-      ticker.setValidators([Validators.required, Validators.minLength(1)]);
+      return !!(v.ticker?.trim()) &&
+             (v.quantity ?? 0) > 0 &&
+             (v.pricePerUnit ?? 0) > 0 &&
+             dateValid;
     }
+    if (type === 'DIVIDEND') {
+      return !!(v.ticker?.trim()) &&
+             (v.totalAmount ?? 0) > 0 &&
+             dateValid;
+    }
+    return (v.totalAmount ?? 0) > 0 && dateValid;
+  });
 
-    ticker.updateValueAndValidity();
-    quantity.updateValueAndValidity();
-    pricePerUnit.updateValueAndValidity();
-    totalAmount.updateValueAndValidity();
-  }
-
-  protected onTypeChange(type: string): void {
-    this.form.get('type')?.setValue(type);
+  protected onTypeChange(type: TransactionType): void {
+    this.selectedType.set(type);
     this.form.patchValue({
       ticker: '',
       quantity: null,
       pricePerUnit: null,
       totalAmount: null,
+      fees: 0,
     });
-    this.updateValidators(type as TransactionType);
   }
 
   protected onBackdropClick(event: MouseEvent): void {
@@ -115,11 +104,15 @@ export class AddTransactionModalComponent {
   }
 
   protected onSubmit(): void {
-    if (this.form.invalid) return;
+    if (!this.isFormValid()) return;
     const v = this.form.getRawValue();
-    const type = v.type as TransactionType;
+    const type = this.selectedType() as TransactionType;
     const needsAsset = type === 'BUY' || type === 'SELL';
     const needsTicker = needsAsset || type === 'DIVIDEND';
+
+    const totalAmount = needsAsset
+      ? Math.round(((v.quantity! * v.pricePerUnit!) + (v.fees ?? 0)) * 100) / 100
+      : v.totalAmount!;
 
     this.accountService.recordTransaction(this.accountId(), {
       type,
@@ -127,10 +120,11 @@ export class AddTransactionModalComponent {
       quantity:      needsAsset  ? v.quantity ?? undefined : undefined,
       pricePerUnit:  needsAsset  ? v.pricePerUnit ?? undefined : undefined,
       priceCurrency: needsAsset  ? 'EUR' : undefined,
-      totalAmount:   v.totalAmount!,
+      totalAmount,
       totalCurrency: 'EUR',
-      date: v.date!,
-      description: v.description || undefined,
+      fees:          v.fees ?? 0,
+      date:          v.date!,
+      description:   v.description || undefined,
     }).subscribe({
       next: () => {
         this.created.emit();
