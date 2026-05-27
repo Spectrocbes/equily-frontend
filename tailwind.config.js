@@ -21,6 +21,20 @@ module.exports = {
         sans: ['Inter', 'system-ui', 'sans-serif'],
         mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
       },
+      animation: {
+        'fade-in':  'fadeIn 0.4s ease-out forwards',
+        'fade-out': 'fadeOut 0.6s ease-in forwards',
+      },
+      keyframes: {
+        fadeIn: {
+          '0%':   { opacity: '0', transform: 'translateY(6px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        fadeOut: {
+          '0%':   { opacity: '1', transform: 'translateY(0)' },
+          '100%': { opacity: '0', transform: 'translateY(-4px)' },
+        },
+      },
     },
   },
   plugins: [],

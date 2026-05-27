@@ -1,0 +1,203 @@
+<!-- Backdrop -->
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4"
+     role="presentation"
+     tabindex="0"
+     (click)="onBackdropClick($event)"
+     (keydown.escape)="closed.emit()">
+  <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+
+  <!-- Modal -->
+  <div class="relative w-full max-w-md rounded-2xl
+              bg-white dark:bg-slate-800
+              shadow-2xl border border-slate-200 dark:border-slate-700
+              p-6 space-y-5">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+      <h2 class="text-lg font-semibold text-slate-900 dark:text-white">
+        Add Transaction
+      </h2>
+      <button type="button" (click)="closed.emit()"
+              class="w-8 h-8 rounded-lg flex items-center justify-center
+                     text-slate-400 hover:text-slate-600 dark:hover:text-slate-200
+                     hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
+
+      <!-- Transaction type buttons -->
+      <div>
+        <span class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+          Transaction type
+        </span>
+        <div class="flex flex-wrap gap-2">
+          @for (type of allowedTypes(); track type) {
+            <button type="button"
+                    (click)="onTypeChange(type)"
+                    [class]="selectedType() === type
+                      ? 'px-3 py-1.5 rounded-lg text-xs font-medium bg-primary-500 text-white'
+                      : 'px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors'">
+              {{ type }}
+            </button>
+          }
+        </div>
+        @if (!selectedType()) {
+          <p class="text-slate-400 dark:text-slate-500 text-xs mt-1">Please select a transaction type</p>
+        }
+      </div>
+
+      <!-- Ticker (BUY, SELL, DIVIDEND) -->
+      @if (requiresTicker()) {
+        <div>
+          <label for="ticker" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+            Ticker symbol
+          </label>
+          <input id="ticker" formControlName="ticker" type="text"
+                 placeholder="e.g. AAPL, MC.PA, BTC"
+                 class="w-full px-3 py-2 rounded-lg text-sm font-mono
+                        bg-slate-50 dark:bg-slate-900
+                        border border-slate-200 dark:border-slate-600
+                        text-slate-900 dark:text-white placeholder:text-slate-400 placeholder:font-sans
+                        focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors"/>
+        </div>
+      }
+
+      <!-- Quantity + Price (BUY, SELL only) -->
+      @if (requiresAsset()) {
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="quantity" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+              Quantity
+            </label>
+            <input id="quantity" formControlName="quantity" type="number" step="0.00000001" min="0"
+                   placeholder="0"
+                   class="w-full px-3 py-2 rounded-lg text-sm font-mono
+                          bg-slate-50 dark:bg-slate-900
+                          border border-slate-200 dark:border-slate-600
+                          text-slate-900 dark:text-white placeholder:text-slate-400 placeholder:font-sans
+                          focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors"/>
+          </div>
+          <div>
+            <label for="pricePerUnit" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+              Price per unit
+            </label>
+            <div class="relative">
+              <input id="pricePerUnit" formControlName="pricePerUnit" type="number" step="0.01" min="0"
+                     placeholder="0.00"
+                     class="w-full pl-3 pr-10 py-2 rounded-lg text-sm font-mono
+                            bg-slate-50 dark:bg-slate-900
+                            border border-slate-200 dark:border-slate-600
+                            text-slate-900 dark:text-white placeholder:text-slate-400 placeholder:font-sans
+                            focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors"/>
+              <span class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">EUR</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fees -->
+        <div>
+          <label for="fees" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+            Brokerage fees <span class="text-slate-400 font-normal">(optional)</span>
+          </label>
+          <div class="relative">
+            <input id="fees" formControlName="fees"
+                   type="number" step="0.01" min="0"
+                   placeholder="0.00"
+                   class="w-full pl-3 pr-10 py-2 rounded-lg text-sm font-mono
+                          bg-slate-50 dark:bg-slate-900
+                          border border-slate-200 dark:border-slate-600
+                          text-slate-900 dark:text-white placeholder:text-slate-400 placeholder:font-sans
+                          focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors"/>
+            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">EUR</span>
+          </div>
+        </div>
+
+        <!-- Auto-computed total including fees -->
+        @if (computedTotal()) {
+          <div class="rounded-lg bg-slate-50 dark:bg-slate-900
+                      border border-slate-200 dark:border-slate-700 px-3 py-2
+                      flex items-center justify-between">
+            <span class="text-xs text-slate-500 dark:text-slate-400">Total (incl. fees)</span>
+            <span class="text-sm font-medium font-mono text-slate-900 dark:text-white">
+              {{ computedTotal() | number:'1.2-2' }} EUR
+            </span>
+          </div>
+        }
+      }
+
+      <!-- Total amount (DEPOSIT, WITHDRAWAL, DIVIDEND) -->
+      @if (!requiresAsset()) {
+        <div>
+          <label for="totalAmount" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+            Amount
+          </label>
+          <div class="relative">
+            <input id="totalAmount" formControlName="totalAmount" type="number" step="0.01" min="0"
+                   placeholder="0.00"
+                   class="w-full pl-3 pr-10 py-2 rounded-lg text-sm font-mono
+                          bg-slate-50 dark:bg-slate-900
+                          border border-slate-200 dark:border-slate-600
+                          text-slate-900 dark:text-white placeholder:text-slate-400 placeholder:font-sans
+                          focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors"/>
+            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">EUR</span>
+          </div>
+        </div>
+      }
+
+      <!-- Date -->
+      <div>
+        <label for="date" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+          Date
+        </label>
+        <input id="date" formControlName="date" type="date"
+               class="w-full px-3 py-2 rounded-lg text-sm
+                      bg-slate-50 dark:bg-slate-900
+                      border border-slate-200 dark:border-slate-600
+                      text-slate-900 dark:text-white
+                      focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors"/>
+      </div>
+
+      <!-- Description (optional) -->
+      <div>
+        <label for="description" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+          Description <span class="text-slate-400 font-normal">(optional)</span>
+        </label>
+        <input id="description" formControlName="description"
+               type="text"
+               placeholder="e.g. DCA janvier, Renforcement mensuel"
+               class="w-full px-3 py-2 rounded-lg text-sm
+                      bg-slate-50 dark:bg-slate-900
+                      border border-slate-200 dark:border-slate-600
+                      text-slate-900 dark:text-white placeholder:text-slate-400
+                      focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors"/>
+      </div>
+
+      <!-- Error -->
+      @if (error()) {
+        <p class="text-rose-500 text-sm">{{ error() }}</p>
+      }
+
+      <!-- Actions -->
+      <div class="flex gap-3 pt-1">
+        <button type="button" (click)="closed.emit()"
+                class="flex-1 px-4 py-2 rounded-lg text-sm font-medium
+                       border border-slate-200 dark:border-slate-600
+                       text-slate-700 dark:text-slate-300
+                       hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+          Cancel
+        </button>
+        <button type="submit" [disabled]="!isFormValid() || loading()"
+                class="flex-1 px-4 py-2 rounded-lg text-sm font-medium
+                       bg-primary-500 hover:bg-primary-600
+                       disabled:opacity-50 text-white transition-colors">
+          @if (loading()) { Adding... } @else { Add Transaction }
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>

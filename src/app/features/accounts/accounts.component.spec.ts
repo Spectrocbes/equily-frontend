@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { ComponentFixture } from '@angular/core/testing';
 import { AccountsComponent } from './accounts.component';
 import { AccountService } from '../../core/services/account.service';
+import { provideRouter } from '@angular/router';
 import { signal } from '@angular/core';
 import { FinancialAccount } from '../../core/models/account.model';
 
@@ -31,6 +32,7 @@ describe('AccountsComponent', () => {
     TestBed.configureTestingModule({
       imports: [AccountsComponent],
       providers: [
+        provideRouter([]),
         { provide: AccountService, useValue: mockAccountService },
       ],
     });

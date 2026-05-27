@@ -28,6 +28,8 @@ export interface Transaction {
   totalAmount: number;
   currency: string;
   date: string;
+  fees: number;
+  description: string | null;
 }
 
 export type TransactionType =
@@ -45,6 +47,18 @@ export interface CreateAccountRequest {
   broker: string;
 }
 
+export const ALLOWED_TRANSACTION_TYPES: Record<AccountType, TransactionType[]> = {
+  PEA:             ['BUY', 'SELL', 'DIVIDEND', 'DEPOSIT', 'WITHDRAWAL'],
+  PEA_PME:         ['BUY', 'SELL', 'DIVIDEND', 'DEPOSIT', 'WITHDRAWAL'],
+  COMPTE_TITRES:   ['BUY', 'SELL', 'DIVIDEND', 'DEPOSIT', 'WITHDRAWAL'],
+  PER:             ['BUY', 'SELL', 'DIVIDEND', 'DEPOSIT', 'WITHDRAWAL'],
+  ASSURANCE_VIE:   ['BUY', 'SELL', 'DIVIDEND', 'DEPOSIT', 'WITHDRAWAL'],
+  SAVINGS_ACCOUNT: ['DEPOSIT', 'WITHDRAWAL'],
+  CASH_ACCOUNT:    ['DEPOSIT', 'WITHDRAWAL'],
+  CRYPTO_WALLET:   ['BUY', 'SELL', 'DEPOSIT', 'WITHDRAWAL'],
+  REAL_ESTATE:     ['DEPOSIT', 'WITHDRAWAL'],
+};
+
 export interface RecordTransactionRequest {
   type: TransactionType;
   ticker?: string;
@@ -54,4 +68,6 @@ export interface RecordTransactionRequest {
   totalAmount: number;
   totalCurrency: string;
   date: string;
+  fees?: number;
+  description?: string;
 }
