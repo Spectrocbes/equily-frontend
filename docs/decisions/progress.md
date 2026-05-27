@@ -42,6 +42,18 @@
 - Build: 0 errors, accounts lazy chunk 7.64 kB
 - Next: test visually with backend running, then Add Account modal
 
+## 2026-05-26 — Add Account modal + Account detail page (complete)
+- All components refactored to `templateUrl` + `.html` file — no inline templates anywhere (CLAUDE.md updated)
+- `broker` field mandatory in `FinancialAccount`, `CreateAccountRequest`, form, and API request
+- `REAL_ESTATE` removed from modal account type list
+- Add Account modal is a 2-step flow: step 1 collects fields (name, type, broker, initial balance), step 2 shows confirmation summary before POST
+- `AccountService` has dedicated `modalLoading`/`modalError` signals, separate from list `loading`/`error`; `createAccount` manages its own loading state and reloads the list on success
+- `onSubmit` has an `error:` handler — modal closes correctly on success, stays open with error message on failure
+- Broker displayed on account cards below account name
+- Account detail page (`/accounts/:id`): shows account header (type, name, balance) + transactions list with type badges, signed amounts, quantity × price breakdown
+- `accounts/:id` lazy route added
+- 14/14 tests pass, lint clean, build 0 errors
+
 ## 2026-05-27 — Transaction form fix + fees + UI polish (complete)
 - Transaction form rewritten: `selectedType` signal replaces `type` form control
 - `isFormValid` computed uses `toSignal(form.valueChanges)` for reactive validation
@@ -71,15 +83,3 @@
 - `totalFeesPaid` and `totalCashOut` computed signals added to `AccountDetailComponent`
 - Subtitle updated: "Average cost excludes fees"
 - 27 tests, lint clean, build 0 errors
-
-## 2026-05-26 — Add Account modal + Account detail page (complete)
-- All components refactored to `templateUrl` + `.html` file — no inline templates anywhere (CLAUDE.md updated)
-- `broker` field mandatory in `FinancialAccount`, `CreateAccountRequest`, form, and API request
-- `REAL_ESTATE` removed from modal account type list
-- Add Account modal is a 2-step flow: step 1 collects fields (name, type, broker, initial balance), step 2 shows confirmation summary before POST
-- `AccountService` has dedicated `modalLoading`/`modalError` signals, separate from list `loading`/`error`; `createAccount` manages its own loading state and reloads the list on success
-- `onSubmit` has an `error:` handler — modal closes correctly on success, stays open with error message on failure
-- Broker displayed on account cards below account name
-- Account detail page (`/accounts/:id`): shows account header (type, name, balance) + transactions list with type badges, signed amounts, quantity × price breakdown
-- `accounts/:id` lazy route added
-- 14/14 tests pass, lint clean, build 0 errors
