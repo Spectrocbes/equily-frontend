@@ -4,6 +4,7 @@ import { Observable, tap } from 'rxjs';
 import {
   FinancialAccount,
   Transaction,
+  Holding,
   CreateAccountRequest,
   RecordTransactionRequest
 } from '../models/account.model';
@@ -92,5 +93,9 @@ export class AccountService {
     return this.http.get<Transaction[]>(
       `${this.apiUrl}/${accountId}/transactions`
     );
+  }
+
+  getHoldings(accountId: string): Observable<Holding[]> {
+    return this.http.get<Holding[]>(`${this.apiUrl}/${accountId}/holdings`);
   }
 }

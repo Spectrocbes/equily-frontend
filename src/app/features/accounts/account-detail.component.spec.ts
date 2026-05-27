@@ -43,6 +43,7 @@ describe('AccountDetailComponent', () => {
             accounts: signal([mockAccount]),
             getAccountById: jest.fn().mockReturnValue(of(mockAccount)),
             getTransactions: jest.fn().mockReturnValue(of([mockTransaction])),
+            getHoldings: jest.fn().mockReturnValue(of([])),
           },
         },
         {
@@ -91,5 +92,24 @@ describe('AccountDetailComponent', () => {
     (route.snapshot.paramMap.get as jest.Mock).mockReturnValue(null);
     fixture.componentInstance.ngOnInit();
     expect(navigateSpy).toHaveBeenCalledWith(['/accounts']);
+  });
+
+  it('shows transactions tab by default', () => {
+    expect(fixture.componentInstance.activeTab()).toBe('transactions');
+  });
+
+  it('switches to holdings tab on click', () => {
+    const holdingsBtn = fixture.nativeElement
+      .querySelectorAll('button[type="button"]')[1];
+    holdingsBtn.click();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.activeTab()).toBe('holdings');
+  });
+
+  it('shows empty holdings message when no holdings', () => {
+    fixture.componentInstance.activeTab.set('holdings');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent)
+      .toContain('No open positions');
   });
 });

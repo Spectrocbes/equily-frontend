@@ -59,6 +59,14 @@ export const ALLOWED_TRANSACTION_TYPES: Record<AccountType, TransactionType[]> =
   REAL_ESTATE:     ['DEPOSIT', 'WITHDRAWAL'],
 };
 
+export interface Holding {
+  ticker: string;
+  quantity: number;
+  averageCostPrice: number;
+  currency: string;
+  totalInvested: number;
+}
+
 export interface RecordTransactionRequest {
   type: TransactionType;
   ticker?: string;
