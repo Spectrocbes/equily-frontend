@@ -31,6 +31,14 @@ export class AccountDetailComponent implements OnInit, OnDestroy {
     this.holdings().reduce((sum, h) => sum + h.totalInvested, 0)
   );
 
+  protected readonly totalFeesPaid = computed(() =>
+    this.holdings().reduce((sum, h) => sum + h.totalFeesPaid, 0)
+  );
+
+  protected readonly totalCashOut = computed(() =>
+    this.totalInvested() + this.totalFeesPaid()
+  );
+
   private previousBalance: number | null = null;
   private deltaTimeout: ReturnType<typeof setTimeout> | null = null;
 

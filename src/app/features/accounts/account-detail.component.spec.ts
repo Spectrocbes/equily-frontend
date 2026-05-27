@@ -4,7 +4,7 @@ import { AccountService } from '../../core/services/account.service';
 import { ActivatedRoute, Router, provideRouter } from '@angular/router';
 import { signal } from '@angular/core';
 import { of } from 'rxjs';
-import { FinancialAccount, Transaction } from '../../core/models/account.model';
+import { FinancialAccount, Transaction, Holding } from '../../core/models/account.model';
 
 const mockAccount: FinancialAccount = {
   id: 'abc-123',
@@ -111,5 +111,20 @@ describe('AccountDetailComponent', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent)
       .toContain('No open positions');
+  });
+
+  it('computes totalCashOut as totalInvested + totalFeesPaid', () => {
+    const holding: Holding = {
+      ticker: 'AAPL',
+      quantity: 10,
+      averageCostPrice: 150,
+      currency: 'EUR',
+      totalInvested: 1500,
+      totalFeesPaid: 5,
+    };
+    fixture.componentInstance.holdings.set([holding]);
+    fixture.detectChanges();
+    expect(fixture.componentInstance.totalCashOut()).toBe(1505);
+    expect(fixture.componentInstance.totalFeesPaid()).toBe(5);
   });
 });

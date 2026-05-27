@@ -63,6 +63,15 @@
 - 26 tests, 0 failures (+3 new: default tab, tab switch, empty holdings message)
 - Build 0 errors, lint clean
 
+## 2026-05-27 — Holdings fees separation (complete)
+- `Holding` interface: `totalFeesPaid` added (cumulative brokerage fees on BUY transactions); `averageCostPrice` is now pure fiscal (excludes fees)
+- Holdings table expanded to 5 columns: Ticker, Quantity, Avg Cost, Position Value, Fees Paid
+- Fees Paid column shown in amber when `> 0`, slate when zero
+- Footer replaced with 3-line breakdown: Position value / Total fees paid / Total cash out
+- `totalFeesPaid` and `totalCashOut` computed signals added to `AccountDetailComponent`
+- Subtitle updated: "Average cost excludes fees"
+- 27 tests, lint clean, build 0 errors
+
 ## 2026-05-26 — Add Account modal + Account detail page (complete)
 - All components refactored to `templateUrl` + `.html` file — no inline templates anywhere (CLAUDE.md updated)
 - `broker` field mandatory in `FinancialAccount`, `CreateAccountRequest`, form, and API request
