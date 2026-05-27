@@ -1,4 +1,4 @@
-import { TestBed, ComponentFixture } from '@angular/core/testing';
+import { TestBed, ComponentFixture, fakeAsync, tick, discardPeriodicTasks } from '@angular/core/testing';
 import { AccountDetailComponent } from './account-detail.component';
 import { AccountService } from '../../core/services/account.service';
 import { ActivatedRoute, Router, provideRouter } from '@angular/router';
@@ -25,6 +25,7 @@ const mockTransaction: Transaction = {
   totalAmount: 5000,
   currency: 'EUR',
   date: '2026-01-15',
+  description: null,
 };
 
 describe('AccountDetailComponent', () => {
@@ -39,6 +40,7 @@ describe('AccountDetailComponent', () => {
           provide: AccountService,
           useValue: {
             accounts: signal([mockAccount]),
+            getAccountById: jest.fn().mockReturnValue(of(mockAccount)),
             getTransactions: jest.fn().mockReturnValue(of([mockTransaction])),
           },
         },
@@ -60,6 +62,26 @@ describe('AccountDetailComponent', () => {
   it('displays transaction type badge', () => {
     expect(fixture.nativeElement.textContent).toContain('DEPOSIT');
   });
+
+  it('shows balance delta after transaction created', fakeAsync(() => {
+    fixture.detectChanges();
+
+    const accountService = TestBed.inject(AccountService);
+    (accountService.getAccountById as jest.Mock).mockReturnValue(
+      of({ ...mockAccount, balance: 6000 })
+    );
+
+    fixture.componentInstance['loadAccount']('abc-123');
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.balanceDelta()).toBe(1000);
+    expect(fixture.componentInstance.balanceFlash()).toBe('gain');
+
+    tick(4000);
+    expect(fixture.componentInstance.balanceDelta()).toBeNull();
+
+    discardPeriodicTasks();
+  }));
 
   it('redirects if no id in route', () => {
     const router = TestBed.inject(Router);

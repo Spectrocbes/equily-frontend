@@ -1,16 +1,17 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { AccountService } from '../../core/services/account.service';
 import { FinancialAccount, Transaction } from '../../core/models/account.model';
+import { AddTransactionModalComponent } from './add-transaction-modal.component';
 
 @Component({
   selector: 'app-account-detail',
   standalone: true,
-  imports: [CurrencyPipe, DatePipe, RouterLink],
+  imports: [CurrencyPipe, DatePipe, RouterLink, AddTransactionModalComponent],
   templateUrl: './account-detail.component.html',
 })
-export class AccountDetailComponent implements OnInit {
+export class AccountDetailComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly accountService = inject(AccountService);
@@ -19,6 +20,12 @@ export class AccountDetailComponent implements OnInit {
   protected readonly transactions = signal<Transaction[]>([]);
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
+  protected readonly showTransactionModal = signal(false);
+  protected readonly balanceDelta = signal<number | null>(null);
+  protected readonly balanceFlash = signal<'gain' | 'loss' | null>(null);
+
+  private previousBalance: number | null = null;
+  private deltaTimeout: ReturnType<typeof setTimeout> | null = null;
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -33,21 +40,42 @@ export class AccountDetailComponent implements OnInit {
     this.loading.set(true);
     this.error.set(null);
 
-    const existing = this.accountService.accounts().find(a => a.id === id);
-    if (existing) {
-      this.account.set(existing);
-    }
+    this.accountService.getAccountById(id).subscribe({
+      next: (account) => {
+        if (this.previousBalance !== null && this.previousBalance !== account.balance) {
+          const delta = account.balance - this.previousBalance;
+          this.balanceDelta.set(delta);
+          this.balanceFlash.set(delta > 0 ? 'gain' : 'loss');
 
-    this.accountService.getTransactions(id).subscribe({
-      next: (txs) => {
-        this.transactions.set(txs);
+          if (this.deltaTimeout) clearTimeout(this.deltaTimeout);
+          this.deltaTimeout = setTimeout(() => {
+            this.balanceDelta.set(null);
+            this.balanceFlash.set(null);
+          }, 4000);
+        }
+        this.previousBalance = account.balance;
+        this.account.set(account);
         this.loading.set(false);
       },
       error: (err) => {
-        this.error.set(err.message ?? 'Failed to load transactions');
+        this.error.set(err.message ?? 'Failed to load account');
         this.loading.set(false);
       },
     });
+
+    this.accountService.getTransactions(id).subscribe({
+      next: (txs) => this.transactions.set(txs),
+      error: (err) => this.error.set(err.message ?? 'Failed to load transactions'),
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (this.deltaTimeout) clearTimeout(this.deltaTimeout);
+  }
+
+  protected onTransactionCreated(): void {
+    const id = this.route.snapshot.paramMap.get('id')!;
+    this.loadAccount(id);
   }
 
   protected getBadgeClass(type: string): string {

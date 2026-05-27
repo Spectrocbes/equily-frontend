@@ -65,10 +65,27 @@ export class AccountService {
     );
   }
 
-  recordTransaction(accountId: string, request: RecordTransactionRequest) {
-    return this.http
-      .post<void>(`${this.apiUrl}/${accountId}/transactions`, request)
-      .pipe(tap(() => this.loadAccounts()));
+  recordTransaction(accountId: string, request: RecordTransactionRequest): Observable<void> {
+    this._modalLoading.set(true);
+    this._modalError.set(null);
+    return this.http.post<void>(`${this.apiUrl}/${accountId}/transactions`, request).pipe(
+      tap({
+        next: () => {
+          this._modalLoading.set(false);
+          this.loadAccounts();
+        },
+        error: (err) => {
+          this._modalLoading.set(false);
+          this._modalError.set(
+            err.error?.message ?? err.message ?? 'Failed to record transaction'
+          );
+        }
+      })
+    );
+  }
+
+  getAccountById(id: string): Observable<FinancialAccount> {
+    return this.http.get<FinancialAccount>(`${this.apiUrl}/${id}`);
   }
 
   getTransactions(accountId: string) {

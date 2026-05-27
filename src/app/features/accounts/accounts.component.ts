@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
-import { Router } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { AccountService } from '../../core/services/account.service';
 import { AccountType } from '../../core/models/account.model';
 import { AddAccountModalComponent } from './add-account-modal.component';
@@ -8,21 +8,16 @@ import { AddAccountModalComponent } from './add-account-modal.component';
 @Component({
   selector: 'app-accounts',
   standalone: true,
-  imports: [CurrencyPipe, AddAccountModalComponent],
+  imports: [CurrencyPipe, RouterLink, AddAccountModalComponent],
   templateUrl: './accounts.component.html',
 })
 export class AccountsComponent implements OnInit {
   protected readonly accountService = inject(AccountService);
-  private readonly router = inject(Router);
 
   protected readonly showModal = signal(false);
 
   ngOnInit(): void {
     this.accountService.loadAccounts();
-  }
-
-  protected goToDetail(id: string): void {
-    this.router.navigate(['/accounts', id]);
   }
 
   protected formatAccountType(type: AccountType): string {
