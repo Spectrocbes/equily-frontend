@@ -62,9 +62,10 @@ export const ALLOWED_TRANSACTION_TYPES: Record<AccountType, TransactionType[]> =
 export interface Holding {
   ticker: string;
   quantity: number;
-  averageCostPrice: number;
+  averageCostPrice: number;    // pure fiscal price — excludes fees
   currency: string;
-  totalInvested: number;
+  totalInvested: number;       // quantity × averageCostPrice (no fees)
+  totalFeesPaid: number;       // cumulative brokerage fees on BUY transactions
 }
 
 export interface RecordTransactionRequest {
