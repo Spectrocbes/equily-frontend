@@ -1,14 +1,14 @@
-import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, computed } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { AccountService } from '../../core/services/account.service';
-import { FinancialAccount, Transaction } from '../../core/models/account.model';
+import { FinancialAccount, Transaction, Holding } from '../../core/models/account.model';
 import { AddTransactionModalComponent } from './add-transaction-modal.component';
 
 @Component({
   selector: 'app-account-detail',
   standalone: true,
-  imports: [CurrencyPipe, DatePipe, RouterLink, AddTransactionModalComponent],
+  imports: [CurrencyPipe, DatePipe, DecimalPipe, RouterLink, AddTransactionModalComponent],
   templateUrl: './account-detail.component.html',
 })
 export class AccountDetailComponent implements OnInit, OnDestroy {
@@ -18,11 +18,18 @@ export class AccountDetailComponent implements OnInit, OnDestroy {
 
   protected readonly account = signal<FinancialAccount | null>(null);
   protected readonly transactions = signal<Transaction[]>([]);
+  protected readonly holdings = signal<Holding[]>([]);
   protected readonly loading = signal(false);
+  protected readonly holdingsLoading = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly showTransactionModal = signal(false);
   protected readonly balanceDelta = signal<number | null>(null);
   protected readonly balanceFlash = signal<'gain' | 'loss' | null>(null);
+  protected readonly activeTab = signal<'transactions' | 'holdings'>('transactions');
+
+  protected readonly totalInvested = computed(() =>
+    this.holdings().reduce((sum, h) => sum + h.totalInvested, 0)
+  );
 
   private previousBalance: number | null = null;
   private deltaTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -66,6 +73,15 @@ export class AccountDetailComponent implements OnInit, OnDestroy {
     this.accountService.getTransactions(id).subscribe({
       next: (txs) => this.transactions.set(txs),
       error: (err) => this.error.set(err.message ?? 'Failed to load transactions'),
+    });
+
+    this.holdingsLoading.set(true);
+    this.accountService.getHoldings(id).subscribe({
+      next: (h) => {
+        this.holdings.set(h);
+        this.holdingsLoading.set(false);
+      },
+      error: () => this.holdingsLoading.set(false),
     });
   }
 

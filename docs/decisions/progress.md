@@ -52,6 +52,17 @@
 - Account cards: full card clickable via `<a [routerLink]>`, hover arrow
 - 23 tests across 5 suites, lint clean, build 0 errors
 
+## 2026-05-27 — Holdings tab in account detail (complete)
+- `Holding` interface added to `account.model.ts` (ticker, quantity, averageCostPrice, currency, totalInvested)
+- `AccountService.getHoldings(accountId)` added — GET `/accounts/:id/holdings`
+- `AccountDetailComponent`: `activeTab` signal (`'transactions' | 'holdings'`), `holdings`/`holdingsLoading` signals, `totalInvested` computed
+- Tab switcher with count badges sits between account header and content panel
+- Holdings table: ticker (font-mono), quantity (8 decimal places), avg cost (includes fees), total invested; footer row shows sum of all positions
+- Skeleton loader (animate-pulse) and empty state ("No open positions") handled
+- Holdings reloaded alongside transactions on `onTransactionCreated()`
+- 26 tests, 0 failures (+3 new: default tab, tab switch, empty holdings message)
+- Build 0 errors, lint clean
+
 ## 2026-05-26 — Add Account modal + Account detail page (complete)
 - All components refactored to `templateUrl` + `.html` file — no inline templates anywhere (CLAUDE.md updated)
 - `broker` field mandatory in `FinancialAccount`, `CreateAccountRequest`, form, and API request
