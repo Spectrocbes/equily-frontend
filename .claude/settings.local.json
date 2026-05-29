@@ -5,7 +5,9 @@
       "Bash(npx jest *)",
       "Bash(git -C \"C:\\\\Users\\\\Kevin\\\\Projects\\\\equily-frontend\" log --oneline -5)",
       "Bash(git -C \"C:\\\\Users\\\\Kevin\\\\Projects\\\\equily-frontend\" status)",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "Bash(git checkout *)",
+      "Bash(git pull *)"
     ]
   }
 }

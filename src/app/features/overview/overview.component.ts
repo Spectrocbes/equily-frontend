@@ -16,59 +16,48 @@ export class OverviewComponent implements OnInit {
   protected readonly accountService = inject(AccountService);
   protected readonly showModal = signal(false);
 
-  protected readonly investmentAccounts = computed(() =>
-    this.accountService.accounts().filter(
-      a => ACCOUNT_CATEGORY[a.accountType] === 'investments'
-    )
-  );
-  protected readonly cryptoAccounts = computed(() =>
-    this.accountService.accounts().filter(
-      a => ACCOUNT_CATEGORY[a.accountType] === 'crypto'
-    )
-  );
-  protected readonly savingsAccounts = computed(() =>
-    this.accountService.accounts().filter(
-      a => ACCOUNT_CATEGORY[a.accountType] === 'savings'
-    )
-  );
-  protected readonly cashAccounts = computed(() =>
-    this.accountService.accounts().filter(
-      a => ACCOUNT_CATEGORY[a.accountType] === 'cash'
-    )
+  protected readonly investmentTotal = computed(() =>
+    this.accountService.summaries()
+      .filter(s => ACCOUNT_CATEGORY[s.account.accountType] === 'investments')
+      .reduce((sum, s) => sum + s.totalInvested + s.account.balance, 0)
   );
 
-  protected readonly totalInvestments = computed(() =>
-    this.investmentAccounts().reduce((s, a) => s + a.balance, 0)
+  protected readonly cryptoTotal = computed(() =>
+    this.accountService.summaries()
+      .filter(s => ACCOUNT_CATEGORY[s.account.accountType] === 'crypto')
+      .reduce((sum, s) => sum + s.totalInvested + s.account.balance, 0)
   );
-  protected readonly totalCrypto = computed(() =>
-    this.cryptoAccounts().reduce((s, a) => s + a.balance, 0)
+
+  protected readonly savingsTotal = computed(() =>
+    this.accountService.summaries()
+      .filter(s => ACCOUNT_CATEGORY[s.account.accountType] === 'savings')
+      .reduce((sum, s) => sum + s.account.balance, 0)
   );
-  protected readonly totalSavings = computed(() =>
-    this.savingsAccounts().reduce((s, a) => s + a.balance, 0)
+
+  protected readonly cashTotal = computed(() =>
+    this.accountService.summaries()
+      .filter(s => ACCOUNT_CATEGORY[s.account.accountType] === 'cash')
+      .reduce((sum, s) => sum + s.account.balance, 0)
   );
-  protected readonly totalCash = computed(() =>
-    this.cashAccounts().reduce((s, a) => s + a.balance, 0)
-  );
+
   protected readonly totalWealth = computed(() =>
-    this.totalInvestments() +
-    this.totalCrypto() +
-    this.totalSavings() +
-    this.totalCash()
+    this.investmentTotal() + this.cryptoTotal() +
+    this.savingsTotal() + this.cashTotal()
   );
 
   protected readonly allocationData = computed(() => [
-    { label: 'Investments', value: this.totalInvestments(), color: '#6366f1' },
-    { label: 'Crypto',      value: this.totalCrypto(),      color: '#f59e0b' },
-    { label: 'Savings',     value: this.totalSavings(),     color: '#10b981' },
-    { label: 'Cash',        value: this.totalCash(),        color: '#64748b' },
+    { label: 'Investments', value: this.investmentTotal(), color: '#6366f1' },
+    { label: 'Crypto',      value: this.cryptoTotal(),     color: '#f59e0b' },
+    { label: 'Savings',     value: this.savingsTotal(),    color: '#10b981' },
+    { label: 'Cash',        value: this.cashTotal(),       color: '#64748b' },
   ].filter(d => d.value > 0));
 
   ngOnInit(): void {
-    this.accountService.loadAccounts();
+    this.accountService.loadSummaries();
   }
 
   protected onAccountCreated(): void {
-    this.accountService.loadAccounts();
+    this.accountService.loadSummaries();
     this.showModal.set(false);
   }
 }

@@ -106,3 +106,15 @@
 - Balance delta animation carried over (flash + arrow, 4 s timeout)
 - 19/19 tests, lint clean, build 0 errors, 13 lazy chunks
 - Next: Session 3 — savings/cash pages + overview polish
+
+## 2026-05-29 — Phase 1.5 Session 3: savings/cash/crypto pages + overview polish (complete)
+- `AccountSummary` interface added to `account.model.ts`; `loadSummaries()` added to `AccountService` — forkJoin parallel holdings fetch for investment/crypto accounts
+- Overview: `totalWealth = totalInvested + cashBalance` (investments/crypto) + `balance` (savings/cash); loading skeleton on total wealth card; `summaries().length` for account count
+- Investment/Crypto detail header: "Portfolio Value" (totalInvested, primary large) + "Cash Available" (account.balance, secondary with left-border divider)
+- Savings page: balance list with broker + accountType + transaction count per row, total footer
+- Cash page: same structure as Savings
+- Crypto page: full-row clickable `<a [routerLink]>` → detail, chevron, evolution placeholder; matches Investments layout
+- `CryptoAccountDetailComponent`: full implementation mirroring investment detail (holdings table, donut, transactions, delta animation, Add Transaction modal)
+- Navbar logo wrapped in `<a routerLink="/overview">` (`RouterLink` added to `NavbarComponent`)
+- 22/22 tests, lint clean, build 0 errors, 14 lazy chunks
+- Next: Phase 2 — Market Data (live prices via Yahoo Finance + CoinGecko)

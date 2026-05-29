@@ -29,12 +29,16 @@
   <!-- Total wealth card -->
   <div class="rounded-2xl bg-primary-500 dark:bg-primary-600 p-6 text-white">
     <p class="text-primary-100 text-sm font-medium">Total Wealth</p>
-    <p class="text-4xl font-bold mt-1 font-mono">
-      {{ totalWealth() | currency:'EUR':'symbol':'1.2-2' }}
-    </p>
+    @if (accountService.summariesLoading()) {
+      <div class="h-9 w-48 bg-white/20 rounded animate-pulse mt-1"></div>
+    } @else {
+      <p class="text-4xl font-bold mt-1 font-mono">
+        {{ totalWealth() | currency:'EUR':'symbol':'1.2-2' }}
+      </p>
+    }
     <p class="text-primary-200 text-xs mt-2">
-      {{ accountService.accounts().length }}
-      account{{ accountService.accounts().length !== 1 ? 's' : '' }}
+      {{ accountService.summaries().length }}
+      account{{ accountService.summaries().length !== 1 ? 's' : '' }}
     </p>
   </div>
 

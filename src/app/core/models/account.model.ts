@@ -91,6 +91,12 @@ export const ALLOWED_TRANSACTION_TYPES: Record<AccountType, TransactionType[]> =
   REAL_ESTATE:     ['DEPOSIT', 'WITHDRAWAL'],
 };
 
+export interface AccountSummary {
+  account: FinancialAccount;
+  totalInvested: number;
+  totalFeesPaid: number;
+}
+
 export interface Holding {
   ticker: string;
   quantity: number;
