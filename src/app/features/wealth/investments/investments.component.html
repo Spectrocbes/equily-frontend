@@ -1,0 +1,126 @@
+<div class="space-y-6">
+
+  <!-- Header -->
+  <div class="flex items-start justify-between">
+    <div>
+      <h1 class="text-2xl font-semibold text-slate-900 dark:text-white">
+        Investments
+      </h1>
+      <p class="text-slate-500 dark:text-slate-400 mt-1 text-sm">
+        PEA, CTO, Assurance Vie, PER
+      </p>
+    </div>
+    <div class="flex items-center gap-3">
+      <div class="text-right">
+        <p class="text-xs text-slate-500 dark:text-slate-400 mb-1">Total</p>
+        <p class="text-2xl font-bold font-mono text-slate-900 dark:text-white">
+          {{ total() | currency:'EUR':'symbol':'1.2-2' }}
+        </p>
+      </div>
+      <button (click)="showModal.set(true)"
+              class="flex items-center gap-2 px-4 py-2 rounded-lg
+                     bg-primary-500 hover:bg-primary-600
+                     text-white text-sm font-medium transition-colors">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24"
+             stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+        </svg>
+        Add Account
+      </button>
+    </div>
+  </div>
+
+  @if (showModal()) {
+    <app-add-account-modal
+      [allowedTypes]="allowedTypes"
+      (closed)="showModal.set(false)"
+      (created)="onAccountCreated()" />
+  }
+
+  <!-- Placeholder chart -->
+  <div class="rounded-xl border border-slate-200 dark:border-slate-700
+              bg-white dark:bg-slate-800 p-6">
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="font-medium text-slate-900 dark:text-white">Evolution</h2>
+    </div>
+    <div class="h-24 flex items-center justify-center
+                border border-dashed border-slate-200 dark:border-slate-700 rounded-lg">
+      <p class="text-slate-400 text-xs">Coming soon — live prices required</p>
+    </div>
+  </div>
+
+  <!-- Accounts accordion -->
+  <div class="rounded-xl border border-slate-200 dark:border-slate-700
+              bg-white dark:bg-slate-800 overflow-hidden">
+
+    <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-700">
+      <h2 class="font-medium text-slate-900 dark:text-white">Accounts</h2>
+    </div>
+
+    @if (accounts().length === 0) {
+      <div class="p-8 text-center">
+        <p class="text-slate-400 text-sm">No investment accounts yet</p>
+      </div>
+    } @else {
+      <div class="divide-y divide-slate-100 dark:divide-slate-700">
+        @for (account of accounts(); track account.id) {
+          <div>
+            <button type="button"
+                    (click)="toggle(account.id)"
+                    class="w-full px-5 py-4 flex items-center justify-between
+                           hover:bg-slate-50 dark:hover:bg-slate-700/50
+                           transition-colors text-left">
+
+              <div class="flex items-center gap-3">
+                <svg class="w-4 h-4 text-slate-400 transition-transform duration-200 flex-shrink-0"
+                     [class.rotate-90]="isExpanded(account.id)"
+                     fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                </svg>
+
+                <div>
+                  <a [routerLink]="['/wealth/investments', account.id]"
+                     (click)="$event.stopPropagation()"
+                     class="text-sm font-semibold text-slate-900 dark:text-white
+                            hover:text-primary-600 dark:hover:text-primary-400
+                            transition-colors">
+                    {{ account.name }}
+                  </a>
+                  <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+                    {{ account.broker }} · {{ account.accountType }}
+                  </p>
+                </div>
+              </div>
+
+              <div class="text-right flex-shrink-0">
+                <p class="text-sm font-semibold font-mono text-slate-900 dark:text-white">
+                  {{ account.balance | currency:'EUR':'symbol':'1.2-2' }}
+                </p>
+                <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+                  P&L: — (live prices required)
+                </p>
+              </div>
+
+            </button>
+
+            @if (isExpanded(account.id)) {
+              <div class="px-5 pb-4 border-t border-slate-100 dark:border-slate-700
+                          bg-slate-50/50 dark:bg-slate-800/50">
+                <div class="py-3 text-center">
+                  <p class="text-xs text-slate-400 dark:text-slate-500">
+                    Holdings details available in the
+                    <a [routerLink]="['/wealth/investments', account.id]"
+                       class="text-primary-500 hover:text-primary-600 font-medium">
+                      account detail page →
+                    </a>
+                  </p>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+</div>

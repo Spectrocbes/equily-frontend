@@ -1,6 +1,6 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { AddTransactionModalComponent } from './add-transaction-modal.component';
-import { AccountService } from '../../core/services/account.service';
+import { AccountService } from '../../../core/services/account.service';
 import { Signal, signal } from '@angular/core';
 import { of } from 'rxjs';
 

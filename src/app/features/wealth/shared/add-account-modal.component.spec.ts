@@ -1,6 +1,6 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { AddAccountModalComponent } from './add-account-modal.component';
-import { AccountService } from '../../core/services/account.service';
+import { AccountService } from '../../../core/services/account.service';
 import { signal, WritableSignal } from '@angular/core';
 import { of } from 'rxjs';
 

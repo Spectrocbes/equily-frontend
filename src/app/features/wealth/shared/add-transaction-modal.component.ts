@@ -2,11 +2,11 @@ import { Component, input, output, inject, computed, signal } from '@angular/cor
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { AccountService } from '../../core/services/account.service';
+import { AccountService } from '../../../core/services/account.service';
 import {
   AccountType, TransactionType,
   ALLOWED_TRANSACTION_TYPES
-} from '../../core/models/account.model';
+} from '../../../core/models/account.model';
 
 @Component({
   selector: 'app-add-transaction-modal',

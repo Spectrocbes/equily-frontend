@@ -89,7 +89,7 @@
                    focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
                    transition-colors">
             <option value="">Select a type</option>
-            @for (type of accountTypes; track type.value) {
+            @for (type of filteredAccountTypes(); track type.value) {
               <option [value]="type.value">{{ type.label }}</option>
             }
           </select>
