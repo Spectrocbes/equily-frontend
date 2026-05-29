@@ -10,6 +10,9 @@ import {
   AccountSummary,
   WealthCategory,
   ACCOUNT_CATEGORY,
+  CsvBroker,
+  CsvMode,
+  CsvImportResponse,
 } from '../models/account.model';
 
 @Injectable({ providedIn: 'root' })
@@ -158,5 +161,21 @@ export class AccountService {
 
   getHoldings(accountId: string): Observable<Holding[]> {
     return this.http.get<Holding[]>(`${this.apiUrl}/${accountId}/holdings`);
+  }
+
+  importCsv(
+    accountId: string,
+    file: File,
+    broker: CsvBroker,
+    mode: CsvMode
+  ): Observable<CsvImportResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('broker', broker);
+    formData.append('mode', mode);
+    return this.http.post<CsvImportResponse>(
+      `${this.apiUrl}/${accountId}/import/csv`,
+      formData
+    );
   }
 }

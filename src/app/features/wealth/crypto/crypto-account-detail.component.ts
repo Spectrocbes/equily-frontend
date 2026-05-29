@@ -7,6 +7,7 @@ import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { AccountService } from '../../../core/services/account.service';
 import { FinancialAccount, Holding, Transaction } from '../../../core/models/account.model';
 import { AddTransactionModalComponent } from '../shared/add-transaction-modal.component';
+import { CsvImportModalComponent } from '../shared/csv-import-modal.component';
 import { DonutChartComponent, DonutSlice } from '../../../shared/components/donut-chart/donut-chart.component';
 
 @Component({
@@ -14,7 +15,7 @@ import { DonutChartComponent, DonutSlice } from '../../../shared/components/donu
   standalone: true,
   imports: [
     CurrencyPipe, DecimalPipe, RouterLink,
-    AddTransactionModalComponent, DonutChartComponent
+    AddTransactionModalComponent, CsvImportModalComponent, DonutChartComponent
   ],
   templateUrl: './crypto-account-detail.component.html',
 })
@@ -30,6 +31,7 @@ export class CryptoAccountDetailComponent implements OnInit, OnDestroy {
   protected readonly error        = signal<string | null>(null);
 
   protected readonly showTransactionModal = signal(false);
+  protected readonly showCsvModal        = signal(false);
   protected readonly activeTab           = signal<'holdings' | 'transactions'>('holdings');
   protected readonly plMode              = signal<'euro' | 'percent'>('euro');
 
@@ -108,6 +110,11 @@ export class CryptoAccountDetailComponent implements OnInit, OnDestroy {
   }
 
   protected onTransactionCreated(): void {
+    const id = this.route.snapshot.paramMap.get('id')!;
+    this.loadAll(id);
+  }
+
+  protected onCsvImported(): void {
     const id = this.route.snapshot.paramMap.get('id')!;
     this.loadAll(id);
   }
