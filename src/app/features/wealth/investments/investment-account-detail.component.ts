@@ -3,14 +3,20 @@ import {
   signal, computed
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { AccountService } from '../../../core/services/account.service';
 import { FinancialAccount, Holding, Transaction } from '../../../core/models/account.model';
-import { DonutSlice } from '../../../shared/components/donut-chart/donut-chart.component';
+import { AddTransactionModalComponent } from '../shared/add-transaction-modal.component';
+import { CsvImportModalComponent } from '../shared/csv-import-modal.component';
+import { DonutChartComponent, DonutSlice } from '../../../shared/components/donut-chart/donut-chart.component';
 
 @Component({
   selector: 'app-investment-account-detail',
   standalone: true,
-  imports: [RouterLink],
+  imports: [
+    CurrencyPipe, DecimalPipe, RouterLink,
+    AddTransactionModalComponent, CsvImportModalComponent, DonutChartComponent
+  ],
   templateUrl: './investment-account-detail.component.html',
 })
 export class InvestmentAccountDetailComponent implements OnInit, OnDestroy {
