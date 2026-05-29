@@ -29,24 +29,6 @@ export class InvestmentsComponent implements OnInit {
     this.accounts().reduce((s, a) => s + a.balance, 0)
   );
 
-  protected readonly expandedIds = signal<Set<string>>(new Set());
-
-  protected toggle(id: string): void {
-    this.expandedIds.update(set => {
-      const next = new Set(set);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
-  }
-
-  protected isExpanded(id: string): boolean {
-    return this.expandedIds().has(id);
-  }
-
   protected onAccountCreated(): void {
     this.accountService.loadAccounts();
     this.showModal.set(false);

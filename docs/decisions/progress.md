@@ -97,3 +97,12 @@
 - `features/accounts/` folder deleted; modals preserved in `wealth/shared/`
 - 13/13 tests, lint clean, build 0 errors, 11 lazy chunks
 - Next: Session 2 — investment account detail page (`/wealth/investments/:id`)
+
+## 2026-05-29 — Phase 1.5 Session 2: investment account detail page (complete)
+- `/wealth/investments/:id`: account header (name, broker, type, balance + delta animation), evolution placeholder, donut allocation by holding, geographical exposure placeholder
+- Holdings: flat table rows (no accordion) — ticker, quantity, avg cost, invested, market value placeholder
+- `plMode` signal (`'euro' | 'percent'`) — P&L toggle placeholder until Phase 2 live prices
+- Investments list: accordion removed; full row is a clickable `<a [routerLink]>` → detail page
+- Balance delta animation carried over (flash + arrow, 4 s timeout)
+- 19/19 tests, lint clean, build 0 errors, 13 lazy chunks
+- Next: Session 3 — savings/cash pages + overview polish

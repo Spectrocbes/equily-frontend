@@ -1,24 +1,391 @@
 <div class="space-y-6">
 
-  <div>
-    <a routerLink="/wealth/investments"
-       class="text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300
-              transition-colors inline-flex items-center gap-1">
-      ← Back to Investments
-    </a>
-  </div>
+  <!-- Back -->
+  <a routerLink="/wealth/investments"
+     class="inline-flex items-center gap-2 text-sm
+            text-slate-500 dark:text-slate-400
+            hover:text-slate-900 dark:hover:text-white transition-colors">
+    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24"
+         stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+    </svg>
+    Investments
+  </a>
 
-  <div class="rounded-xl border border-slate-200 dark:border-slate-700
-              bg-white dark:bg-slate-800 p-8 text-center">
-    <p class="text-xs text-slate-400 dark:text-slate-500 font-mono mb-2">
-      {{ accountId() }}
-    </p>
-    <p class="text-slate-500 dark:text-slate-400 text-sm font-medium">
-      Full account detail view
-    </p>
-    <p class="text-slate-400 dark:text-slate-500 text-xs mt-1">
-      Coming in Session 2 — holdings, transactions, P&L
-    </p>
-  </div>
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="animate-pulse space-y-4">
+      <div class="h-8 bg-slate-200 dark:bg-slate-700 rounded w-1/3"></div>
+      <div class="h-32 bg-slate-200 dark:bg-slate-700 rounded-xl"></div>
+    </div>
+  }
+
+  <!-- Error -->
+  @if (error()) {
+    <div class="rounded-xl border border-rose-200 dark:border-rose-800
+                bg-rose-50 dark:bg-rose-900/20 p-4">
+      <p class="text-rose-700 dark:text-rose-400 text-sm">{{ error() }}</p>
+    </div>
+  }
+
+  @if (account()) {
+
+    <!-- Account header -->
+    <div class="flex items-start justify-between">
+      <div>
+        <div class="flex items-center gap-2 mb-1">
+          <span class="text-xs font-medium px-2 py-0.5 rounded-full
+                       bg-primary-50 dark:bg-primary-900/30
+                       text-primary-700 dark:text-primary-300">
+            {{ account()!.accountType }}
+          </span>
+          <span class="text-xs text-slate-400 dark:text-slate-500">
+            {{ account()!.broker }}
+          </span>
+        </div>
+        <h1 class="text-2xl font-semibold text-slate-900 dark:text-white">
+          {{ account()!.name }}
+        </h1>
+      </div>
+
+      <!-- Balance + delta -->
+      <div class="text-right">
+        <p class="text-xs text-slate-500 dark:text-slate-400 mb-1">Cash balance</p>
+        <p class="text-2xl font-bold font-mono transition-colors duration-300"
+           [class]="balanceFlash() === 'gain' ? 'text-emerald-500'
+                  : balanceFlash() === 'loss' ? 'text-rose-500'
+                  : 'text-slate-900 dark:text-white'">
+          {{ account()!.balance | currency:account()!.currency:'symbol':'1.2-2' }}
+        </p>
+        @if (balanceDelta() !== null) {
+          <div class="flex items-center justify-end gap-1 mt-1 animate-fade-in">
+            <svg class="w-3 h-3"
+                 [class]="balanceDelta()! > 0 ? 'text-emerald-500' : 'text-rose-500'"
+                 fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              @if (balanceDelta()! > 0) {
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18"/>
+              } @else {
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3"/>
+              }
+            </svg>
+            <span class="text-sm font-medium font-mono"
+                  [class]="balanceDelta()! > 0 ? 'text-emerald-500' : 'text-rose-500'">
+              {{ balanceDelta()! > 0 ? '+' : '' }}{{ balanceDelta() | currency:account()!.currency:'symbol':'1.2-2' }}
+            </span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Evolution placeholder -->
+    <div class="rounded-xl border border-slate-200 dark:border-slate-700
+                bg-white dark:bg-slate-800 p-6">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="font-medium text-slate-900 dark:text-white">Evolution</h2>
+        <div class="flex gap-1">
+          @for (p of ['1D','1W','1M','YTD','1Y','ALL']; track p) {
+            <button class="px-2 py-1 text-xs rounded-md
+                           text-slate-400 hover:bg-slate-100
+                           dark:hover:bg-slate-700 transition-colors">
+              {{ p }}
+            </button>
+          }
+        </div>
+      </div>
+      <div class="h-24 flex items-center justify-center
+                  border border-dashed border-slate-200 dark:border-slate-700 rounded-lg">
+        <p class="text-slate-400 text-xs">📈 Coming soon — live prices required</p>
+      </div>
+    </div>
+
+    <!-- Allocation + Geo exposure -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+      <!-- Donut allocation -->
+      <div class="rounded-xl border border-slate-200 dark:border-slate-700
+                  bg-white dark:bg-slate-800 p-6">
+        <h2 class="font-medium text-slate-900 dark:text-white mb-4">Allocation</h2>
+        @if (donutData().length === 0) {
+          <div class="h-32 flex items-center justify-center">
+            <p class="text-slate-400 text-sm">No holdings yet</p>
+          </div>
+        } @else {
+          <div class="flex items-center gap-4">
+            <app-donut-chart [data]="donutData()" [total]="totalInvested()" [size]="140"/>
+            <div class="space-y-1.5 flex-1 min-w-0">
+              @for (slice of donutData(); track slice.label) {
+                <div class="flex items-center justify-between gap-2">
+                  <div class="flex items-center gap-1.5 min-w-0">
+                    <span class="w-2 h-2 rounded-full flex-shrink-0"
+                          [style.background-color]="slice.color"></span>
+                    <span class="text-xs font-mono font-medium
+                                 text-slate-700 dark:text-slate-300 truncate">
+                      {{ slice.label }}
+                    </span>
+                  </div>
+                  <span class="text-xs text-slate-500 dark:text-slate-400 flex-shrink-0">
+                    {{ totalInvested() > 0
+                      ? ((slice.value / totalInvested()) * 100 | number:'1.0-1') + '%'
+                      : '0%' }}
+                  </span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Geographical exposure placeholder -->
+      <div class="rounded-xl border border-slate-200 dark:border-slate-700
+                  bg-white dark:bg-slate-800 p-6">
+        <h2 class="font-medium text-slate-900 dark:text-white mb-4">
+          Geographical Exposure
+        </h2>
+        <div class="h-32 flex items-center justify-center
+                    border border-dashed border-slate-200 dark:border-slate-700 rounded-lg">
+          <div class="text-center">
+            <p class="text-slate-400 text-sm font-medium">🌍 Coming soon</p>
+            <p class="text-slate-400 text-xs mt-1">
+              Available in Phase 3
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Tabs: Holdings / Transactions -->
+    <div class="flex items-center justify-between">
+      <div class="flex gap-1 border-b border-slate-200 dark:border-slate-700 flex-1">
+        <button type="button"
+                (click)="activeTab.set('holdings')"
+                [class]="activeTab() === 'holdings'
+                  ? 'px-4 py-2.5 text-sm font-medium text-primary-600 dark:text-primary-400 border-b-2 border-primary-500 -mb-px'
+                  : 'px-4 py-2.5 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors'">
+          Holdings
+          <span class="ml-1.5 px-1.5 py-0.5 rounded text-xs
+                       bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+            {{ holdings().length }}
+          </span>
+        </button>
+        <button type="button"
+                (click)="activeTab.set('transactions')"
+                [class]="activeTab() === 'transactions'
+                  ? 'px-4 py-2.5 text-sm font-medium text-primary-600 dark:text-primary-400 border-b-2 border-primary-500 -mb-px'
+                  : 'px-4 py-2.5 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors'">
+          Transactions
+          <span class="ml-1.5 px-1.5 py-0.5 rounded text-xs
+                       bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+            {{ transactions().length }}
+          </span>
+        </button>
+      </div>
+
+      <!-- Add Transaction button -->
+      <button type="button"
+              (click)="showTransactionModal.set(true)"
+              class="ml-4 flex items-center gap-1.5 px-3 py-1.5 rounded-lg
+                     text-xs font-medium bg-primary-500 hover:bg-primary-600
+                     text-white transition-colors flex-shrink-0">
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"
+             stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+        </svg>
+        Add Transaction
+      </button>
+    </div>
+
+    <!-- Holdings tab -->
+    @if (activeTab() === 'holdings') {
+      <div class="rounded-xl border border-slate-200 dark:border-slate-700
+                  bg-white dark:bg-slate-800 overflow-hidden">
+
+        @if (holdings().length === 0) {
+          <div class="p-8 text-center">
+            <p class="text-slate-400 text-sm">
+              No open positions — add a BUY transaction to see holdings
+            </p>
+          </div>
+        } @else {
+
+          <!-- Table header -->
+          <div class="px-5 py-2.5 grid grid-cols-12 gap-3
+                      border-b border-slate-100 dark:border-slate-700
+                      text-xs font-medium text-slate-400 dark:text-slate-500
+                      uppercase tracking-wide">
+            <span class="col-span-3">Asset</span>
+            <span class="col-span-2 text-right">Quantity</span>
+            <span class="col-span-2 text-right">Avg Cost</span>
+            <span class="col-span-2 text-right">Invested</span>
+            <span class="col-span-3 text-right">
+              Market Value
+              <button type="button"
+                      (click)="togglePlMode()"
+                      class="ml-1 text-primary-400 hover:text-primary-500
+                             transition-colors normal-case tracking-normal font-normal">
+                P&L ({{ plMode() === 'euro' ? '€' : '%' }})
+              </button>
+            </span>
+          </div>
+
+          <!-- Rows -->
+          <div class="divide-y divide-slate-100 dark:divide-slate-700">
+            @for (holding of holdings(); track holding.ticker) {
+              <div class="px-5 py-3.5 grid grid-cols-12 gap-3 items-center
+                          hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+
+                <!-- Asset -->
+                <div class="col-span-3">
+                  <p class="text-sm font-bold font-mono text-slate-900 dark:text-white">
+                    {{ holding.ticker }}
+                  </p>
+                  <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+                    Fees {{ holding.totalFeesPaid | currency:holding.currency:'symbol':'1.2-2' }}
+                  </p>
+                </div>
+
+                <!-- Quantity -->
+                <div class="col-span-2 text-right">
+                  <p class="text-sm font-mono text-slate-700 dark:text-slate-300">
+                    {{ holding.quantity | number:'1.0-8' }}
+                  </p>
+                </div>
+
+                <!-- Avg Cost -->
+                <div class="col-span-2 text-right">
+                  <p class="text-sm font-mono text-slate-700 dark:text-slate-300">
+                    {{ holding.averageCostPrice | currency:holding.currency:'symbol':'1.2-2' }}
+                  </p>
+                </div>
+
+                <!-- Invested -->
+                <div class="col-span-2 text-right">
+                  <p class="text-sm font-mono text-slate-700 dark:text-slate-300">
+                    {{ holding.totalInvested | currency:holding.currency:'symbol':'1.2-2' }}
+                  </p>
+                </div>
+
+                <!-- Market Value + P&L placeholder -->
+                <div class="col-span-3 text-right">
+                  <p class="text-sm font-mono text-slate-400 dark:text-slate-500">
+                    —
+                  </p>
+                  <button type="button"
+                          (click)="togglePlMode()"
+                          class="text-xs font-mono text-slate-400 dark:text-slate-500
+                                 hover:text-slate-600 dark:hover:text-slate-300
+                                 transition-colors mt-0.5">
+                    P&L —
+                  </button>
+                </div>
+
+              </div>
+            }
+          </div>
+
+          <!-- Footer -->
+          <div class="px-5 py-3 border-t border-slate-200 dark:border-slate-700
+                      bg-slate-50 dark:bg-slate-900/50 space-y-1.5">
+            <div class="flex justify-between text-xs">
+              <span class="text-slate-500 dark:text-slate-400">Position value</span>
+              <span class="font-mono font-semibold text-slate-900 dark:text-white">
+                {{ totalInvested() | currency:'EUR':'symbol':'1.2-2' }}
+              </span>
+            </div>
+            <div class="flex justify-between text-xs">
+              <span class="text-slate-500 dark:text-slate-400">Total fees paid</span>
+              <span class="font-mono text-amber-500 dark:text-amber-400">
+                {{ totalFeesPaid() | currency:'EUR':'symbol':'1.2-2' }}
+              </span>
+            </div>
+            <div class="flex justify-between text-xs pt-1.5
+                        border-t border-slate-200 dark:border-slate-700">
+              <span class="font-medium text-slate-600 dark:text-slate-300">
+                Total cash out
+              </span>
+              <span class="font-mono font-bold text-slate-900 dark:text-white">
+                {{ totalCashOut() | currency:'EUR':'symbol':'1.2-2' }}
+              </span>
+            </div>
+          </div>
+
+        }
+      </div>
+    }
+
+    <!-- Transactions tab -->
+    @if (activeTab() === 'transactions') {
+      <div class="rounded-xl border border-slate-200 dark:border-slate-700
+                  bg-white dark:bg-slate-800 overflow-hidden">
+
+        @if (transactions().length === 0) {
+          <div class="p-8 text-center">
+            <p class="text-slate-400 text-sm">No transactions yet</p>
+          </div>
+        } @else {
+          <div class="divide-y divide-slate-100 dark:divide-slate-700">
+            @for (tx of transactions(); track tx.id) {
+              <div class="px-5 py-3.5 flex items-center justify-between
+                          hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+
+                <div class="flex items-center gap-3">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded
+                               text-xs font-medium"
+                        [class]="getBadgeClass(tx.type)">
+                    {{ tx.type }}
+                  </span>
+                  <div>
+                    @if (tx.ticker) {
+                      <p class="text-sm font-medium font-mono
+                                 text-slate-900 dark:text-white">
+                        {{ tx.ticker }}
+                      </p>
+                    }
+                    <p class="text-xs text-slate-400 dark:text-slate-500">
+                      {{ tx.date }}
+                    </p>
+                    @if (tx.description) {
+                      <p class="text-xs text-slate-400 italic mt-0.5">
+                        {{ tx.description }}
+                      </p>
+                    }
+                  </div>
+                </div>
+
+                <div class="text-right">
+                  <p class="text-sm font-medium font-mono"
+                     [class]="tx.type === 'BUY' || tx.type === 'WITHDRAWAL'
+                       ? 'text-rose-500' : 'text-emerald-500'">
+                    {{ tx.type === 'BUY' || tx.type === 'WITHDRAWAL' ? '-' : '+' }}{{ tx.totalAmount | currency:tx.currency:'symbol':'1.2-2' }}
+                  </p>
+                  @if (tx.quantity && tx.pricePerUnit) {
+                    <p class="text-xs text-slate-400 dark:text-slate-500">
+                      {{ tx.quantity }} × {{ tx.pricePerUnit | currency:tx.currency:'symbol':'1.2-2' }}
+                    </p>
+                  }
+                  <p class="text-xs text-slate-400 dark:text-slate-500">
+                    Fees: {{ tx.fees | currency:tx.currency:'symbol':'1.2-2' }}
+                  </p>
+                </div>
+
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+
+  }
+
+  <!-- Add Transaction Modal -->
+  @if (showTransactionModal() && account()) {
+    <app-add-transaction-modal
+      [accountId]="account()!.id"
+      [accountType]="account()!.accountType"
+      (closed)="showTransactionModal.set(false)"
+      (created)="onTransactionCreated()" />
+  }
 
 </div>
