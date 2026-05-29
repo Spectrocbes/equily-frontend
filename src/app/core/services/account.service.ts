@@ -1,12 +1,15 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, tap, switchMap, forkJoin, map, of } from 'rxjs';
 import {
   FinancialAccount,
   Transaction,
   Holding,
   CreateAccountRequest,
-  RecordTransactionRequest
+  RecordTransactionRequest,
+  AccountSummary,
+  WealthCategory,
+  ACCOUNT_CATEGORY,
 } from '../models/account.model';
 
 @Injectable({ providedIn: 'root' })
@@ -18,12 +21,16 @@ export class AccountService {
   private readonly _error = signal<string | null>(null);
   private readonly _modalLoading = signal(false);
   private readonly _modalError = signal<string | null>(null);
+  private readonly _summaries = signal<AccountSummary[]>([]);
+  private readonly _summariesLoading = signal(false);
 
   readonly accounts = this._accounts.asReadonly();
   readonly loading = this._loading.asReadonly();
   readonly error = this._error.asReadonly();
   readonly modalLoading = this._modalLoading.asReadonly();
   readonly modalError = this._modalError.asReadonly();
+  readonly summaries = this._summaries.asReadonly();
+  readonly summariesLoading = this._summariesLoading.asReadonly();
   readonly totalBalance = computed(() =>
     this._accounts().reduce((sum, a) => sum + a.balance, 0)
   );
@@ -43,6 +50,60 @@ export class AccountService {
           this._error.set(err.message ?? 'Failed to load accounts');
           this._loading.set(false);
         }
+      })
+    ).subscribe();
+  }
+
+  loadSummaries(): void {
+    this._summariesLoading.set(true);
+    this.loadAccounts();
+
+    const investmentCategories: WealthCategory[] = ['investments', 'crypto'];
+
+    this.http.get<FinancialAccount[]>(this.apiUrl).pipe(
+      switchMap(accounts => {
+        const investmentAccounts = accounts.filter(
+          a => investmentCategories.includes(ACCOUNT_CATEGORY[a.accountType])
+        );
+        const savingsAccounts = accounts.filter(
+          a => !investmentCategories.includes(ACCOUNT_CATEGORY[a.accountType])
+        );
+
+        if (investmentAccounts.length === 0) {
+          const summaries: AccountSummary[] = accounts.map(a => ({
+            account: a,
+            totalInvested: 0,
+            totalFeesPaid: 0,
+          }));
+          return of(summaries);
+        }
+
+        const holdingRequests = investmentAccounts.map(a =>
+          this.http.get<Holding[]>(`${this.apiUrl}/${a.id}/holdings`).pipe(
+            map(holdings => ({
+              account: a,
+              totalInvested: holdings.reduce((s, h) => s + h.totalInvested, 0),
+              totalFeesPaid: holdings.reduce((s, h) => s + h.totalFeesPaid, 0),
+            }))
+          )
+        );
+
+        const savingsSummaries: AccountSummary[] = savingsAccounts.map(a => ({
+          account: a,
+          totalInvested: 0,
+          totalFeesPaid: 0,
+        }));
+
+        return forkJoin(holdingRequests).pipe(
+          map(investmentSummaries => [...investmentSummaries, ...savingsSummaries])
+        );
+      }),
+      tap({
+        next: summaries => {
+          this._summaries.set(summaries);
+          this._summariesLoading.set(false);
+        },
+        error: () => this._summariesLoading.set(false),
       })
     ).subscribe();
   }
