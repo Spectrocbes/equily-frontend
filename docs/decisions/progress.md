@@ -107,6 +107,15 @@
 - 19/19 tests, lint clean, build 0 errors, 13 lazy chunks
 - Next: Session 3 — savings/cash pages + overview polish
 
+## 2026-05-29 — CSV import UI (complete)
+- `CsvBroker`, `CsvMode`, `CsvImportResponse` types added to `account.model.ts`
+- `AccountService.importCsv()`: multipart FormData POST to `/:id/import/csv`
+- `CsvImportModalComponent`: broker selector, mode selector (OPERATIONS / POSITIONS), file picker, result summary
+- Import CSV button added to `InvestmentAccountDetailComponent` and `CryptoAccountDetailComponent`; reloads data via `onCsvImported()` on success
+- Result step: imported / skipped / errors counts + collapsible error details list
+- 28/28 tests, lint clean, build 0 errors, 15 lazy chunks
+- Next: test visually with real BoursoBank CSV files
+
 ## 2026-05-29 — Phase 1.5 Session 3: savings/cash/crypto pages + overview polish (complete)
 - `AccountSummary` interface added to `account.model.ts`; `loadSummaries()` added to `AccountService` — forkJoin parallel holdings fetch for investment/crypto accounts
 - Overview: `totalWealth = totalInvested + cashBalance` (investments/crypto) + `balance` (savings/cash); loading skeleton on total wealth card; `summaries().length` for account count

@@ -3,19 +3,14 @@ import {
   signal, computed
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { AccountService } from '../../../core/services/account.service';
 import { FinancialAccount, Holding, Transaction } from '../../../core/models/account.model';
-import { AddTransactionModalComponent } from '../shared/add-transaction-modal.component';
-import { DonutChartComponent, DonutSlice } from '../../../shared/components/donut-chart/donut-chart.component';
+import { DonutSlice } from '../../../shared/components/donut-chart/donut-chart.component';
 
 @Component({
   selector: 'app-investment-account-detail',
   standalone: true,
-  imports: [
-    CurrencyPipe, DecimalPipe, RouterLink,
-    AddTransactionModalComponent, DonutChartComponent
-  ],
+  imports: [RouterLink],
   templateUrl: './investment-account-detail.component.html',
 })
 export class InvestmentAccountDetailComponent implements OnInit, OnDestroy {
@@ -30,6 +25,7 @@ export class InvestmentAccountDetailComponent implements OnInit, OnDestroy {
   protected readonly error        = signal<string | null>(null);
 
   protected readonly showTransactionModal = signal(false);
+  protected readonly showCsvModal        = signal(false);
   protected readonly activeTab           = signal<'holdings' | 'transactions'>('holdings');
   protected readonly plMode              = signal<'euro' | 'percent'>('euro');
 
@@ -108,6 +104,11 @@ export class InvestmentAccountDetailComponent implements OnInit, OnDestroy {
   }
 
   protected onTransactionCreated(): void {
+    const id = this.route.snapshot.paramMap.get('id')!;
+    this.loadAll(id);
+  }
+
+  protected onCsvImported(): void {
     const id = this.route.snapshot.paramMap.get('id')!;
     this.loadAll(id);
   }

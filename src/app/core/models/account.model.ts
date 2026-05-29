@@ -118,3 +118,13 @@ export interface RecordTransactionRequest {
   fees?: number;
   description?: string;
 }
+
+export type CsvBroker = 'BOURSOBANK';
+export type CsvMode = 'OPERATIONS' | 'POSITIONS';
+
+export interface CsvImportResponse {
+  imported: number;
+  skipped: number;
+  errors: number;
+  errorDetails: string[];
+}
