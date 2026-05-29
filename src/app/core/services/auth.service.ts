@@ -6,14 +6,16 @@ import {
   AuthResponse, RegisterRequest,
   LoginRequest, CurrentUser
 } from '../models/auth.model';
+import { AccountService } from './account.service';
 
 const ACCESS_TOKEN_KEY  = 'equily_access_token';
 const REFRESH_TOKEN_KEY = 'equily_refresh_token';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly http   = inject(HttpClient);
-  private readonly router = inject(Router);
+  private readonly http           = inject(HttpClient);
+  private readonly router         = inject(Router);
+  private readonly accountService = inject(AccountService);
 
   private readonly _currentUser = signal<CurrentUser | null>(
     this.loadStoredUser()
@@ -38,6 +40,7 @@ export class AuthService {
     if (token) {
       this.http.post('/auth/logout', {}).subscribe();
     }
+    this.accountService.reset();
     this.clearSession();
     this.router.navigate(['/login']);
   }
