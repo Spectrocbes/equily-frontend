@@ -1,8 +1,8 @@
-import { Component, output, inject, signal } from '@angular/core';
+import { Component, output, input, inject, signal, computed } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
-import { AccountService } from '../../core/services/account.service';
-import { AccountType } from '../../core/models/account.model';
+import { AccountService } from '../../../core/services/account.service';
+import { AccountType } from '../../../core/models/account.model';
 
 @Component({
   selector: 'app-add-account-modal',
@@ -13,6 +13,7 @@ import { AccountType } from '../../core/models/account.model';
 export class AddAccountModalComponent {
   closed = output<void>();
   created = output<void>();
+  allowedTypes = input<AccountType[] | null>(null);
 
   private readonly fb = inject(FormBuilder);
   private readonly accountService = inject(AccountService);
@@ -22,7 +23,7 @@ export class AddAccountModalComponent {
 
   protected readonly step = signal<1 | 2>(1);
 
-  protected readonly accountTypes: { value: AccountType; label: string }[] = [
+  private readonly accountTypes: { value: AccountType; label: string }[] = [
     { value: 'PEA', label: 'PEA — Plan Épargne Actions' },
     { value: 'PEA_PME', label: 'PEA PME' },
     { value: 'COMPTE_TITRES', label: 'Compte Titres Ordinaire' },
@@ -32,6 +33,13 @@ export class AddAccountModalComponent {
     { value: 'CASH_ACCOUNT', label: 'Compte Courant' },
     { value: 'CRYPTO_WALLET', label: 'Crypto Wallet' },
   ];
+
+  protected readonly filteredAccountTypes = computed(() => {
+    const allowed = this.allowedTypes();
+    return allowed
+      ? this.accountTypes.filter(t => allowed.includes(t.value))
+      : this.accountTypes;
+  });
 
   protected readonly brokerSuggestions: string[] = [
     'Fortuneo', 'BoursoBank', 'BNP Paribas', 'Société Générale',

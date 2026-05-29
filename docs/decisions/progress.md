@@ -83,3 +83,17 @@
 - `totalFeesPaid` and `totalCashOut` computed signals added to `AccountDetailComponent`
 - Subtitle updated: "Average cost excludes fees"
 - 27 tests, lint clean, build 0 errors
+
+## 2026-05-29 — Phase 1.5 Session 1: navigation refactor (complete)
+- New routes: `/overview`, `/wealth/investments`, `/wealth/crypto`, `/wealth/savings`, `/wealth/cash`
+- `wealth.routes.ts`: lazy-loaded child routes under `/wealth`
+- `ACCOUNT_CATEGORY` + `WEALTH_CATEGORY_LABELS` + `WEALTH_CATEGORY_ROUTE` maps added to `account.model.ts`
+- `SidebarComponent`: Wealth accordion with collapsible sub-items, no emoji icons; `routerLinkActive` single-line fix (InvalidCharacterError)
+- `OverviewComponent`: total wealth card + SVG donut allocation chart + placeholders (evolution, top performance); Add Account button (all types)
+- `DonutChartComponent`: SVG-based, signal inputs (`data`, `total`, `size`)
+- `InvestmentsComponent`: accordion per account, clickable name → detail route, Add Account button (investment types only)
+- Crypto/Savings/Cash: placeholder pages with filtered Add Account buttons
+- `AddAccountModalComponent`: `allowedTypes` input + `filteredAccountTypes` computed; moved to `features/wealth/shared/`
+- `features/accounts/` folder deleted; modals preserved in `wealth/shared/`
+- 13/13 tests, lint clean, build 0 errors, 11 lazy chunks
+- Next: Session 2 — investment account detail page (`/wealth/investments/:id`)

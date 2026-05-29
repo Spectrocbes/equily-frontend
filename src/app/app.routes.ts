@@ -3,34 +3,35 @@ import { Routes } from '@angular/router';
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: 'accounts',
+    redirectTo: 'overview',
     pathMatch: 'full',
   },
   {
-    path: 'accounts',
+    path: 'overview',
     loadComponent: () =>
-      import('./features/accounts/accounts.component').then(m => m.AccountsComponent),
+      import('./features/overview/overview.component')
+        .then(m => m.OverviewComponent),
   },
   {
-    path: 'accounts/:id',
-    loadComponent: () =>
-      import('./features/accounts/account-detail.component').then(
-        m => m.AccountDetailComponent
-      ),
-  },
-  {
-    path: 'holdings',
-    loadComponent: () =>
-      import('./features/holdings/holdings.component').then(m => m.HoldingsComponent),
+    path: 'wealth',
+    loadChildren: () =>
+      import('./features/wealth/wealth.routes')
+        .then(m => m.WEALTH_ROUTES),
   },
   {
     path: 'analytics',
     loadComponent: () =>
-      import('./features/analytics/analytics.component').then(m => m.AnalyticsComponent),
+      import('./features/analytics/analytics.component')
+        .then(m => m.AnalyticsComponent),
   },
   {
     path: 'rebalance',
     loadComponent: () =>
-      import('./features/rebalance/rebalance.component').then(m => m.RebalanceComponent),
+      import('./features/rebalance/rebalance.component')
+        .then(m => m.RebalanceComponent),
+  },
+  {
+    path: '**',
+    redirectTo: 'overview',
   },
 ];

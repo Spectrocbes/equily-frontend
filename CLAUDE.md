@@ -18,11 +18,33 @@ src/app/
 │   ├── services/          ← API services (AccountService, etc.)
 │   └── interceptors/      ← HTTP interceptors (error handling, etc.)
 ├── features/              ← feature modules
-│   └── accounts/          ← account list, account detail, transaction form
+│   ├── overview/          ← global wealth summary page
+│   ├── wealth/            ← wealth sub-features (investments, crypto, savings, cash)
+│   │   ├── investments/   ← investment accounts list + detail
+│   │   ├── crypto/        ← crypto wallets list + detail
+│   │   ├── savings/       ← savings accounts list
+│   │   ├── cash/          ← current accounts list
+│   │   └── shared/        ← modals shared across wealth sub-features
+│   ├── analytics/         ← global geographical exposure + insights
+│   └── rebalance/         ← rebalancing engine (Phase 6)
 ├── shared/                ← reusable components, pipes, directives
-│   ├── components/        ← Button, Card, Badge, etc.
+│   ├── components/        ← Button, Card, Badge, DonutChart, etc.
 │   └── pipes/             ← currency format, percentage, etc.
 └── layout/                ← AppShell, Navbar, Sidebar
+
+## Route Structure
+/overview                     → Global wealth summary
+/wealth                       → redirects to /wealth/investments
+/wealth/investments           → Investment accounts (PEA, CTO, AV, PER)
+/wealth/investments/:id       → Investment account detail
+/wealth/crypto                → Crypto wallets
+/wealth/crypto/:id            → Crypto wallet detail
+/wealth/savings               → Savings accounts (Livret A, LDDS, LEP...)
+/wealth/cash                  → Current accounts
+/analytics                    → Global geographical exposure + insights
+/rebalance                    → Rebalancing engine (Phase 6)
+
+AccountType → route mapping lives in src/app/core/models/account.model.ts
 
 ## Design System
 

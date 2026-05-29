@@ -47,6 +47,38 @@ export interface CreateAccountRequest {
   broker: string;
 }
 
+export type WealthCategory =
+  | 'investments'
+  | 'crypto'
+  | 'savings'
+  | 'cash';
+
+export const ACCOUNT_CATEGORY: Record<AccountType, WealthCategory> = {
+  PEA:             'investments',
+  PEA_PME:         'investments',
+  COMPTE_TITRES:   'investments',
+  PER:             'investments',
+  ASSURANCE_VIE:   'investments',
+  CRYPTO_WALLET:   'crypto',
+  SAVINGS_ACCOUNT: 'savings',
+  CASH_ACCOUNT:    'cash',
+  REAL_ESTATE:     'investments', // future
+};
+
+export const WEALTH_CATEGORY_LABELS: Record<WealthCategory, string> = {
+  investments: 'Investments',
+  crypto:      'Crypto',
+  savings:     'Savings',
+  cash:        'Cash',
+};
+
+export const WEALTH_CATEGORY_ROUTE: Record<WealthCategory, string> = {
+  investments: '/wealth/investments',
+  crypto:      '/wealth/crypto',
+  savings:     '/wealth/savings',
+  cash:        '/wealth/cash',
+};
+
 export const ALLOWED_TRANSACTION_TYPES: Record<AccountType, TransactionType[]> = {
   PEA:             ['BUY', 'SELL', 'DIVIDEND', 'DEPOSIT', 'WITHDRAWAL'],
   PEA_PME:         ['BUY', 'SELL', 'DIVIDEND', 'DEPOSIT', 'WITHDRAWAL'],
