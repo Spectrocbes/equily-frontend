@@ -127,3 +127,14 @@
 - Navbar logo wrapped in `<a routerLink="/overview">` (`RouterLink` added to `NavbarComponent`)
 - 22/22 tests, lint clean, build 0 errors, 14 lazy chunks
 - Next: Phase 2 — Market Data (live prices via Yahoo Finance + CoinGecko)
+
+## 2026-05-29 — Phase 5 Auth UI (complete)
+- `AuthService`: JWT decode on init, token storage (localStorage), login/register/logout/refresh
+- `authInterceptor`: Bearer header injection + 401→refresh→retry flow
+- `authGuard`: redirects unauthenticated users to `/login`
+- `LoginComponent`: reactive form, error handling (401), loading state
+- `RegisterComponent`: 3-field form (displayName, email, password), conflict handling (409)
+- `NavbarComponent`: dynamic avatar initial from `displayName`, user menu dropdown with sign out
+- `app.routes.ts`: `/login` + `/register` public, all other routes wrapped in `authGuard`
+- 38/38 tests, lint clean, build 0 errors, 17 lazy chunks
+- Next: test end-to-end with backend running
