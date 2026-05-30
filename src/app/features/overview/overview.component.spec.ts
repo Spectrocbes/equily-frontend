@@ -8,8 +8,9 @@ import { AccountSummary } from '../../core/models/account.model';
 const mockSummary: AccountSummary = {
   account: {
     id: '1', name: 'Mon PEA', accountType: 'PEA',
-    balance: 2698, currency: 'EUR',
+    subType: 'PEA', balance: 2698, currency: 'EUR',
     transactionCount: 5, broker: 'Fortuneo',
+    depositLimit: 150000, totalDeposits: 2698, remainingCapacity: 147302,
   },
   totalInvested: 7295,
   totalFeesPaid: 12.30,

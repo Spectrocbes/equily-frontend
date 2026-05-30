@@ -128,6 +128,14 @@
 - 22/22 tests, lint clean, build 0 errors, 14 lazy chunks
 - Next: Phase 2 — Market Data (live prices via Yahoo Finance + CoinGecko)
 
+## 2026-05-30 — Phase 5.5a: deposit limit UI (complete)
+- `AccountSubType` type + `ACCOUNT_SUB_TYPE_LABELS` + `ACCOUNT_TYPE_SUB_TYPES` + `DEPOSIT_LIMITS` constants added to `account.model.ts`
+- `FinancialAccount`: `subType`, `depositLimit`, `totalDeposits`, `remainingCapacity` fields added
+- `AddAccountModal`: dynamic sub-type selector driven by selected account type
+- `AddTransactionModal`: deposit warning banner (info / amber / rose severity) + submit blocked when limit exceeded
+- Investment account rows: mini progress bar + remaining capacity indicator
+- 46/46 tests, lint clean, build 0 errors
+
 ## 2026-05-30 — Phase 5 complete: user data isolation (complete)
 - `AccountService.reset()` clears all signal state (accounts, summaries, loading, errors) on logout
 - `AuthService.logout()` calls `accountService.reset()` before clearing the session — no previous user's data leaks to the next login
