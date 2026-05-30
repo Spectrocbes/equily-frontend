@@ -1,8 +1,12 @@
 import { Component, output, input, inject, signal, computed } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { AccountService } from '../../../core/services/account.service';
-import { AccountType } from '../../../core/models/account.model';
+import {
+  AccountType, AccountSubType,
+  ACCOUNT_TYPE_SUB_TYPES, ACCOUNT_SUB_TYPE_LABELS,
+} from '../../../core/models/account.model';
 
 @Component({
   selector: 'app-add-account-modal',
@@ -22,6 +26,8 @@ export class AddAccountModalComponent {
   protected readonly error = this.accountService.modalError;
 
   protected readonly step = signal<1 | 2>(1);
+
+  protected readonly ACCOUNT_SUB_TYPE_LABELS = ACCOUNT_SUB_TYPE_LABELS;
 
   private readonly accountTypes: { value: AccountType; label: string }[] = [
     { value: 'PEA', label: 'PEA — Plan Épargne Actions' },
@@ -50,11 +56,31 @@ export class AddAccountModalComponent {
   ];
 
   protected readonly form = this.fb.group({
-    name: ['', [Validators.required, Validators.minLength(1)]],
-    accountType: ['', Validators.required],
+    name:           ['', [Validators.required, Validators.minLength(1)]],
+    accountType:    ['', Validators.required],
     initialBalance: [0, [Validators.required, Validators.min(0)]],
-    broker: ['', Validators.required],
+    broker:         ['', Validators.required],
+    subType:        [null as AccountSubType | null],
   });
+
+  private readonly formValue = toSignal(this.form.valueChanges, {
+    initialValue: this.form.getRawValue(),
+  });
+
+  protected readonly availableSubTypes = computed(() => {
+    const type = this.formValue().accountType as AccountType;
+    return ACCOUNT_TYPE_SUB_TYPES[type] ?? [];
+  });
+
+  protected readonly showSubType = computed(() =>
+    this.availableSubTypes().length > 0
+  );
+
+  constructor() {
+    this.form.get('accountType')!.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => this.form.get('subType')!.setValue(null));
+  }
 
   protected onBackdropClick(event: MouseEvent): void {
     if (event.target === event.currentTarget) {
@@ -72,13 +98,14 @@ export class AddAccountModalComponent {
 
   protected onSubmit(): void {
     if (this.form.invalid) return;
-    const { name, accountType, initialBalance, broker } = this.form.getRawValue();
+    const { name, accountType, initialBalance, broker, subType } = this.form.getRawValue();
     this.accountService.createAccount({
       name: name!,
       accountType: accountType as AccountType,
       initialBalance: initialBalance!,
       currency: 'EUR',
       broker: broker!,
+      subType: subType as AccountSubType | null,
     }).subscribe({
       next: () => {
         this.created.emit();

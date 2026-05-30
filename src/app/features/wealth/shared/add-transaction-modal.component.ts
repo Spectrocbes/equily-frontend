@@ -1,22 +1,26 @@
 import { Component, input, output, inject, computed, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { DecimalPipe } from '@angular/common';
+import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { AccountService } from '../../../core/services/account.service';
 import {
-  AccountType, TransactionType,
+  AccountType, AccountSubType, TransactionType,
   ALLOWED_TRANSACTION_TYPES
 } from '../../../core/models/account.model';
 
 @Component({
   selector: 'app-add-transaction-modal',
   standalone: true,
-  imports: [ReactiveFormsModule, DecimalPipe],
+  imports: [ReactiveFormsModule, DecimalPipe, CurrencyPipe],
   templateUrl: './add-transaction-modal.component.html',
 })
 export class AddTransactionModalComponent {
-  accountId = input.required<string>();
-  accountType = input.required<AccountType>();
+  accountId         = input.required<string>();
+  accountType       = input.required<AccountType>();
+  accountSubType    = input<AccountSubType | null>(null);
+  remainingCapacity = input<number | null>(null);
+  depositLimit      = input<number | null>(null);
+  totalDeposits     = input<number | null>(null);
 
   closed = output<void>();
   created = output<void>();
@@ -67,9 +71,30 @@ export class AddTransactionModalComponent {
     return null;
   });
 
+  protected readonly showDepositWarning = computed(() => {
+    const type = this.selectedType();
+    if (type !== 'DEPOSIT') return false;
+    return this.depositLimit() !== null;
+  });
+
+  protected readonly wouldExceedLimit = computed(() => {
+    if (!this.showDepositWarning()) return false;
+    const amount = this.formValue().totalAmount ?? 0;
+    const remaining = this.remainingCapacity() ?? Infinity;
+    return (amount ?? 0) > remaining;
+  });
+
+  protected readonly isApproachingLimit = computed(() => {
+    if (!this.showDepositWarning()) return false;
+    const limit = this.depositLimit()!;
+    const total = this.totalDeposits() ?? 0;
+    return total / limit >= 0.9;
+  });
+
   protected readonly isFormValid = computed(() => {
     const type = this.selectedType();
     if (!type) return false;
+    if (this.wouldExceedLimit()) return false;
 
     const v = this.formValue();
     const dateValid = !!v.date;

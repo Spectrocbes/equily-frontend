@@ -91,4 +91,47 @@ describe('AddTransactionModalComponent', () => {
     fixture.detectChanges();
     expect(fixture.componentInstance.isFormValid()).toBe(true);
   });
+
+  it('showDepositWarning is false when type is not DEPOSIT', () => {
+    fixture.componentRef.setInput('depositLimit', 22950);
+    fixture.componentInstance.onTypeChange('WITHDRAWAL');
+    fixture.detectChanges();
+    expect(fixture.componentInstance['showDepositWarning']()).toBe(false);
+  });
+
+  it('showDepositWarning is false when no deposit limit', () => {
+    fixture.componentRef.setInput('depositLimit', null);
+    fixture.componentInstance.onTypeChange('DEPOSIT');
+    fixture.detectChanges();
+    expect(fixture.componentInstance['showDepositWarning']()).toBe(false);
+  });
+
+  it('showDepositWarning is true for DEPOSIT with limit', () => {
+    fixture.componentRef.setInput('depositLimit', 22950);
+    fixture.componentRef.setInput('remainingCapacity', 5000);
+    fixture.componentRef.setInput('totalDeposits', 17950);
+    fixture.componentInstance.onTypeChange('DEPOSIT');
+    fixture.detectChanges();
+    expect(fixture.componentInstance['showDepositWarning']()).toBe(true);
+  });
+
+  it('wouldExceedLimit is true when amount exceeds remaining', () => {
+    fixture.componentRef.setInput('depositLimit', 22950);
+    fixture.componentRef.setInput('remainingCapacity', 5000);
+    fixture.componentRef.setInput('totalDeposits', 17950);
+    fixture.componentInstance.onTypeChange('DEPOSIT');
+    fixture.componentInstance['form'].patchValue({ totalAmount: 6000, date: '2026-01-15' });
+    fixture.detectChanges();
+    expect(fixture.componentInstance['wouldExceedLimit']()).toBe(true);
+  });
+
+  it('isFormValid returns false when would exceed limit', () => {
+    fixture.componentRef.setInput('depositLimit', 22950);
+    fixture.componentRef.setInput('remainingCapacity', 5000);
+    fixture.componentRef.setInput('totalDeposits', 17950);
+    fixture.componentInstance.onTypeChange('DEPOSIT');
+    fixture.componentInstance['form'].patchValue({ totalAmount: 6000, date: '2026-01-15' });
+    fixture.detectChanges();
+    expect(fixture.componentInstance.isFormValid()).toBe(false);
+  });
 });

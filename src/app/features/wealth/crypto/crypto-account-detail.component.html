@@ -424,6 +424,10 @@
     <app-add-transaction-modal
       [accountId]="account()!.id"
       [accountType]="account()!.accountType"
+      [accountSubType]="account()!.subType"
+      [depositLimit]="account()!.depositLimit"
+      [totalDeposits]="account()!.totalDeposits"
+      [remainingCapacity]="account()!.remainingCapacity"
       (closed)="showTransactionModal.set(false)"
       (created)="onTransactionCreated()" />
   }

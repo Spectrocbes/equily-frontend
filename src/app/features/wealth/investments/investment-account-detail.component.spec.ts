@@ -9,8 +9,8 @@ import { FinancialAccount, Holding, Transaction } from '../../../core/models/acc
 
 const mockAccount: FinancialAccount = {
   id: 'acc-1', name: 'Mon PEA', accountType: 'PEA',
-  balance: 5000, currency: 'EUR', transactionCount: 1,
-  broker: 'Fortuneo',
+  subType: 'PEA', balance: 5000, currency: 'EUR', transactionCount: 1,
+  broker: 'Fortuneo', depositLimit: 150000, totalDeposits: 5000, remainingCapacity: 145000,
 };
 
 const mockHolding: Holding = {

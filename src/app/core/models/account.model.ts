@@ -1,11 +1,59 @@
+export type AccountSubType =
+  | 'LIVRET_A' | 'LDDS' | 'LDD' | 'LEP' | 'LIVRET_JEUNE'
+  | 'PEA' | 'PEA_PME' | 'COMPTE_TITRES' | 'PER' | 'ASSURANCE_VIE'
+  | 'CRYPTO_WALLET' | 'CASH_ACCOUNT' | 'REAL_ESTATE' | 'OTHER';
+
+export const ACCOUNT_SUB_TYPE_LABELS: Record<AccountSubType, string> = {
+  LIVRET_A:      'Livret A',
+  LDDS:          'LDDS',
+  LDD:           'LDD',
+  LEP:           'LEP',
+  LIVRET_JEUNE:  'Livret Jeune',
+  PEA:           'PEA',
+  PEA_PME:       'PEA-PME',
+  COMPTE_TITRES: 'Compte Titres',
+  PER:           'PER',
+  ASSURANCE_VIE: 'Assurance Vie',
+  CRYPTO_WALLET: 'Crypto Wallet',
+  CASH_ACCOUNT:  'Compte Courant',
+  REAL_ESTATE:   'Immobilier',
+  OTHER:         'Autre',
+};
+
+export const ACCOUNT_TYPE_SUB_TYPES: Partial<Record<AccountType, AccountSubType[]>> = {
+  SAVINGS_ACCOUNT: ['LIVRET_A', 'LDDS', 'LDD', 'LEP', 'LIVRET_JEUNE'],
+  PEA:             ['PEA'],
+  PEA_PME:         ['PEA_PME'],
+  COMPTE_TITRES:   ['COMPTE_TITRES'],
+  PER:             ['PER'],
+  ASSURANCE_VIE:   ['ASSURANCE_VIE'],
+  CRYPTO_WALLET:   ['CRYPTO_WALLET'],
+  CASH_ACCOUNT:    ['CASH_ACCOUNT'],
+};
+
+// Mirrors backend DepositLimits constants
+export const DEPOSIT_LIMITS: Partial<Record<AccountSubType, number>> = {
+  LIVRET_A:     22950,
+  LDDS:         12000,
+  LDD:          12000,
+  LEP:          10000,
+  LIVRET_JEUNE: 1600,
+  PEA:          150000,
+  PEA_PME:      225000,
+};
+
 export interface FinancialAccount {
   id: string;
   name: string;
   accountType: AccountType;
+  subType: AccountSubType | null;
   balance: number;
   currency: string;
   transactionCount: number;
   broker: string;
+  depositLimit: number | null;
+  totalDeposits: number | null;
+  remainingCapacity: number | null;
 }
 
 export type AccountType =
@@ -45,6 +93,7 @@ export interface CreateAccountRequest {
   initialBalance: number;
   currency: string;
   broker: string;
+  subType: AccountSubType | null;
 }
 
 export type WealthCategory =

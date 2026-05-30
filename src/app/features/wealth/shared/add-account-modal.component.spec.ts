@@ -32,7 +32,7 @@ describe('AddAccountModalComponent', () => {
 
   it('submit button is disabled while modalLoading is true on step 2', () => {
     const form = fixture.componentInstance['form'];
-    form.setValue({ name: 'Test PEA', accountType: 'PEA', initialBalance: 1000, broker: 'Fortuneo' });
+    form.setValue({ name: 'Test PEA', accountType: 'PEA', initialBalance: 1000, broker: 'Fortuneo', subType: null });
     fixture.componentInstance['step'].set(2);
     modalLoadingSignal.set(true);
     fixture.detectChanges();
@@ -54,12 +54,30 @@ describe('AddAccountModalComponent', () => {
     fixture.componentInstance.created.subscribe(createdSpy);
 
     const form = fixture.componentInstance['form'];
-    form.setValue({ name: 'Test PEA', accountType: 'PEA', initialBalance: 1000, broker: 'Fortuneo' });
+    form.setValue({ name: 'Test PEA', accountType: 'PEA', initialBalance: 1000, broker: 'Fortuneo', subType: null });
     fixture.componentInstance['step'].set(2);
     fixture.detectChanges();
 
     fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
     expect(mockAccountService.createAccount).toHaveBeenCalled();
     expect(createdSpy).toHaveBeenCalled();
+  });
+
+  it('shows subType selector when accountType has sub-types', () => {
+    const form = fixture.componentInstance['form'];
+    form.get('accountType')!.setValue('SAVINGS_ACCOUNT');
+    fixture.detectChanges();
+    expect(fixture.componentInstance['showSubType']()).toBe(true);
+    const select = fixture.nativeElement.querySelector('select[formcontrolname="subType"]');
+    expect(select).toBeTruthy();
+  });
+
+  it('hides subType selector when accountType has no sub-types', () => {
+    const form = fixture.componentInstance['form'];
+    form.get('accountType')!.setValue('REAL_ESTATE');
+    fixture.detectChanges();
+    expect(fixture.componentInstance['showSubType']()).toBe(false);
+    const select = fixture.nativeElement.querySelector('select[formcontrolname="subType"]');
+    expect(select).toBeFalsy();
   });
 });
