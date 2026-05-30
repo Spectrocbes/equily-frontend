@@ -4,6 +4,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { Router } from '@angular/router';
 import { AuthService } from './auth.service';
+import { AccountService } from './account.service';
 import { AuthResponse } from '../models/auth.model';
 
 const ACCESS_TOKEN_KEY  = 'equily_access_token';
@@ -68,6 +69,13 @@ describe('AuthService', () => {
     expect(localStorage.getItem(REFRESH_TOKEN_KEY)).toBeNull();
     expect(service.currentUser()).toBeNull();
     expect(navigateSpy).toHaveBeenCalledWith(['/login']);
+  });
+
+  it('logout calls accountService.reset', () => {
+    const accountService = TestBed.inject(AccountService);
+    const resetSpy = jest.spyOn(accountService, 'reset');
+    service.logout();
+    expect(resetSpy).toHaveBeenCalled();
   });
 
   it('isAuthenticated returns false when no token stored', () => {

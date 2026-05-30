@@ -163,6 +163,15 @@ export class AccountService {
     return this.http.get<Holding[]>(`${this.apiUrl}/${accountId}/holdings`);
   }
 
+  reset(): void {
+    this._accounts.set([]);
+    this._summaries.set([]);
+    this._loading.set(false);
+    this._error.set(null);
+    this._modalLoading.set(false);
+    this._modalError.set(null);
+  }
+
   importCsv(
     accountId: string,
     file: File,

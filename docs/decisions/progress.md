@@ -128,6 +128,14 @@
 - 22/22 tests, lint clean, build 0 errors, 14 lazy chunks
 - Next: Phase 2 — Market Data (live prices via Yahoo Finance + CoinGecko)
 
+## 2026-05-30 — Phase 5 complete: user data isolation (complete)
+- `AccountService.reset()` clears all signal state (accounts, summaries, loading, errors) on logout
+- `AuthService.logout()` calls `accountService.reset()` before clearing the session — no previous user's data leaks to the next login
+- `proxy.conf.json`: `/auth` proxied to backend alongside `/api`
+- 39/39 tests, lint clean, build 0 errors
+- Phase 5 complete — full auth + data isolation
+- Next: Phase 2 — Market Data (live prices via Yahoo Finance + CoinGecko)
+
 ## 2026-05-29 — Phase 5 Auth UI (complete)
 - `AuthService`: JWT decode on init, token storage (localStorage), login/register/logout/refresh
 - `authInterceptor`: Bearer header injection + 401→refresh→retry flow
