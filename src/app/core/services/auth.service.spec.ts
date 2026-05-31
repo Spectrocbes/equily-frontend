@@ -99,4 +99,36 @@ describe('AuthService', () => {
     expect(localStorage.getItem(ACCESS_TOKEN_KEY)).toBe(mockAuthResponse.accessToken);
     expect(service.currentUser()?.email).toBe('test@example.com');
   });
+
+  it('verifyEmail calls POST /auth/verify-email with token', () => {
+    service.verifyEmail('abc123').subscribe();
+    const req = httpMock.expectOne('/auth/verify-email');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ token: 'abc123' });
+    req.flush(null);
+  });
+
+  it('resendVerification calls POST /auth/resend-verification with email', () => {
+    service.resendVerification('test@example.com').subscribe();
+    const req = httpMock.expectOne('/auth/resend-verification');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ email: 'test@example.com' });
+    req.flush(null);
+  });
+
+  it('forgotPassword calls POST /auth/forgot-password with email', () => {
+    service.forgotPassword('test@example.com').subscribe();
+    const req = httpMock.expectOne('/auth/forgot-password');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ email: 'test@example.com' });
+    req.flush(null);
+  });
+
+  it('resetPassword calls POST /auth/reset-password with token and newPassword', () => {
+    service.resetPassword('tok123', 'newPass!1').subscribe();
+    const req = httpMock.expectOne('/auth/reset-password');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ token: 'tok123', newPassword: 'newPass!1' });
+    req.flush(null);
+  });
 });

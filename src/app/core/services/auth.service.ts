@@ -56,6 +56,22 @@ export class AuthService {
     );
   }
 
+  verifyEmail(token: string) {
+    return this.http.post<void>('/auth/verify-email', { token });
+  }
+
+  resendVerification(email: string) {
+    return this.http.post<void>('/auth/resend-verification', { email });
+  }
+
+  forgotPassword(email: string) {
+    return this.http.post<void>('/auth/forgot-password', { email });
+  }
+
+  resetPassword(token: string, newPassword: string) {
+    return this.http.post<void>('/auth/reset-password', { token, newPassword });
+  }
+
   getAccessToken(): string | null {
     return localStorage.getItem(ACCESS_TOKEN_KEY);
   }
