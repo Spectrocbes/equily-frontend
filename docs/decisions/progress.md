@@ -154,3 +154,13 @@
 - `app.routes.ts`: `/login` + `/register` public, all other routes wrapped in `authGuard`
 - 38/38 tests, lint clean, build 0 errors, 17 lazy chunks
 - Next: test end-to-end with backend running
+
+## 2026-05-31 — Phase 5.5b: email verification + password reset UI (complete)
+- `AuthService`: +4 methods — `verifyEmail`, `resendVerification`, `forgotPassword`, `resetPassword`
+- `VerifyEmailComponent`: auto-verifies on `?token=` param; post-register "check your email" state with resend button
+- `RegisterComponent`: redirects to `/verify-email?email=xxx` after success (instead of `/overview`)
+- `LoginComponent`: 403 → unverified email banner with resend link; "Forgot password?" link added below password field
+- `ForgotPasswordComponent`: email form, always shows success state (no email enumeration)
+- `ResetPasswordComponent`: reads token from URL, password + confirm with mismatch validator, 3s redirect to login on success
+- 3 new public routes: `/verify-email`, `/forgot-password`, `/reset-password`
+- 58/58 tests, lint clean, build 0 errors

@@ -33,7 +33,10 @@ export class RegisterComponent {
       email: email!,
       password: password!,
     }).subscribe({
-      next: () => this.router.navigate(['/overview']),
+      next: () => this.router.navigate(
+        ['/verify-email'],
+        { queryParams: { email: email! } }
+      ),
       error: (err) => {
         this.error.set(
           err.status === 409
