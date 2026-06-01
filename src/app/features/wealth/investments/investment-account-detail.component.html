@@ -31,7 +31,7 @@
   @if (account()) {
 
     <!-- Account header -->
-    <div class="flex items-start justify-between">
+    <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
       <div>
         <div class="flex items-center gap-2 mb-1">
           <span class="text-xs font-medium px-2 py-0.5 rounded-full
@@ -49,7 +49,7 @@
       </div>
 
       <!-- Account header values -->
-      <div class="flex items-start gap-6">
+      <div class="flex flex-col sm:flex-row sm:items-start gap-4 sm:gap-6">
 
         <!-- Portfolio Value — primary, large -->
         <div>
@@ -87,7 +87,7 @@
         </div>
 
         <!-- Cash Available — secondary, smaller -->
-        <div class="border-l border-slate-200 dark:border-slate-700 pl-6">
+        <div class="border-t sm:border-t-0 sm:border-l border-slate-200 dark:border-slate-700 pt-4 sm:pt-0 sm:pl-6">
           <p class="text-xs text-slate-400 dark:text-slate-500 mb-1">
             Cash Available
           </p>
@@ -180,8 +180,9 @@
     </div>
 
     <!-- Tabs: Holdings / Transactions -->
-    <div class="flex items-center justify-between">
-      <div class="flex gap-1 border-b border-slate-200 dark:border-slate-700 flex-1">
+    <div class="flex items-center justify-between gap-2">
+      <div class="overflow-x-auto flex-1">
+      <div class="flex gap-1 border-b border-slate-200 dark:border-slate-700">
         <button type="button"
                 (click)="activeTab.set('holdings')"
                 [class]="activeTab() === 'holdings'
@@ -204,6 +205,7 @@
             {{ transactions().length }}
           </span>
         </button>
+      </div>
       </div>
 
       <!-- Import CSV button -->
@@ -249,6 +251,8 @@
             </p>
           </div>
         } @else {
+          <div class="overflow-x-auto">
+          <div class="min-w-[640px]">
 
           <!-- Table header -->
           <div class="px-5 py-2.5 grid grid-cols-12 gap-3
@@ -351,6 +355,8 @@
             </div>
           </div>
 
+          </div>
+          </div>
         }
       </div>
     }
@@ -401,11 +407,11 @@
                     {{ tx.type === 'BUY' || tx.type === 'WITHDRAWAL' ? '-' : '+' }}{{ tx.totalAmount | currency:tx.currency:'symbol':'1.2-2' }}
                   </p>
                   @if (tx.quantity && tx.pricePerUnit) {
-                    <p class="text-xs text-slate-400 dark:text-slate-500">
+                    <p class="hidden sm:block text-xs text-slate-400 dark:text-slate-500">
                       {{ tx.quantity }} × {{ tx.pricePerUnit | currency:tx.currency:'symbol':'1.2-2' }}
                     </p>
                   }
-                  <p class="text-xs text-slate-400 dark:text-slate-500">
+                  <p class="hidden sm:block text-xs text-slate-400 dark:text-slate-500">
                     Fees: {{ tx.fees | currency:tx.currency:'symbol':'1.2-2' }}
                   </p>
                 </div>

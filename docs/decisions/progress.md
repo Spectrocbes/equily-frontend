@@ -165,6 +165,17 @@
 - 3 new public routes: `/verify-email`, `/forgot-password`, `/reset-password`
 - 58/58 tests, lint clean, build 0 errors
 
+## 2026-06-01 — Responsive layout refactor (complete)
+- Removed all `position: fixed` from navbar and sidebar — pure flex layout, no manual `pt-16`/`ml-64` offsets
+- `AppLayoutComponent`: `sidebarOpen` signal, mobile overlay backdrop (click/keydown to close), `p-4 lg:p-6` main padding
+- `NavbarComponent`: hamburger button (`lg:hidden`, emits `menuToggled`), logo text `hidden sm:block`, `px-4 lg:px-6`
+- `SidebarComponent`: responsive drawer — `fixed` + `translate-x` on mobile, `lg:relative lg:translate-x-0` on desktop; mobile close button
+- All page components: headers use `flex-col sm:flex-row` — stack on mobile, row on desktop
+- `InvestmentAccountDetailComponent`: account header `flex-col lg:flex-row`, header values `flex-col sm:flex-row`, tabs `overflow-x-auto`, holdings table `overflow-x-auto min-w-[640px]`, transaction fees/qty `hidden sm:block` on mobile
+- Base font: 14 px mobile, 16 px at `lg:` breakpoint via `@screen lg` in `styles.scss`
+- All template URLs separated from component TS files (CLAUDE.md compliance)
+- 58/58 tests, lint clean, build 0 errors
+
 ## 2026-06-01 — UI layout fixes + landing page (complete)
 - Two-layout architecture: `AuthLayoutComponent` (full-screen, scrollable) + `AppLayoutComponent` (navbar + sidebar, overflow-hidden)
 - `AppComponent` stripped to bare `<router-outlet>`; navbar/sidebar moved into `AppLayoutComponent`

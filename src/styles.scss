@@ -9,6 +9,11 @@
     height: 100%;
     margin: 0;
     padding: 0;
+    font-size: 14px;
+  }
+
+  @screen lg {
+    html { font-size: 16px; }
   }
   html {
     @apply bg-white text-slate-900;

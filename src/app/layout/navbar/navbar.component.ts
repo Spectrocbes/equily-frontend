@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, output, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ThemeService } from '../../core/services/theme.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -10,6 +10,8 @@ import { AuthService } from '../../core/services/auth.service';
   templateUrl: './navbar.component.html',
 })
 export class NavbarComponent {
+  readonly menuToggled = output<void>();
+
   protected readonly themeService = inject(ThemeService);
   protected readonly authService  = inject(AuthService);
   protected readonly showUserMenu = signal(false);
