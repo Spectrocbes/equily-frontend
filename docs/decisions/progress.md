@@ -164,3 +164,18 @@
 - `ResetPasswordComponent`: reads token from URL, password + confirm with mismatch validator, 3s redirect to login on success
 - 3 new public routes: `/verify-email`, `/forgot-password`, `/reset-password`
 - 58/58 tests, lint clean, build 0 errors
+
+## 2026-06-01 — UI layout fixes + landing page (complete)
+- Two-layout architecture: `AuthLayoutComponent` (full-screen, scrollable) + `AppLayoutComponent` (navbar + sidebar, overflow-hidden)
+- `AppComponent` stripped to bare `<router-outlet>`; navbar/sidebar moved into `AppLayoutComponent`
+- `LandingComponent`: hero, stats bar, features grid (6 cards), account types, security section, about, footer
+- Split-screen login + register pages: form panel left, visual panel right (gradient + checklist); hidden on mobile
+- `AuthHeaderComponent`: shared clickable logo (`/home`) used by all auth pages — single source of truth
+- Landing route changed from `path: ''` to `path: 'home'`; root `''` redirects to `home`; wildcard redirects to `overview`
+- Global overflow fix: `html/body` no longer has `overflow: hidden`; only `AppLayoutComponent` root div carries it
+- Auth pages (`/home`, `/login`, `/register`, etc.) scroll freely via `AuthLayoutComponent` `min-h-screen` wrapper
+- Scroll-to-top button on landing: appears after 400 px scroll via `@HostListener('window:scroll')`, smooth scroll on click
+- Anchor nav via `scrollIntoView` — no `href="#section"` links that pollute browser history
+- All public-facing marketing copy generalized — no French-specific terms, no competitor mentions on landing/auth pages
+- About section rewritten: professional product tone replacing personal-project framing
+- 58/58 tests, lint clean, build 0 errors

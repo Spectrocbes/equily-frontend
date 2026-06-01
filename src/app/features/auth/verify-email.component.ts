@@ -1,11 +1,12 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { AuthHeaderComponent } from './auth-header.component';
 
 @Component({
   selector: 'app-verify-email',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, AuthHeaderComponent],
   templateUrl: './verify-email.component.html',
 })
 export class VerifyEmailComponent implements OnInit {

@@ -2,11 +2,12 @@ import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { AuthHeaderComponent } from './auth-header.component';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, AuthHeaderComponent],
   templateUrl: './login.component.html',
 })
 export class LoginComponent {
@@ -47,6 +48,14 @@ export class LoginComponent {
       },
     });
   }
+
+  protected readonly rightPanelItems = [
+    'All account types — stocks, ETFs, crypto, savings',
+    'Broker CSV import — no manual entry',
+    'Holdings, P&L, and fee tracking',
+    'Multi-user with strict data isolation',
+    'Dark mode included',
+  ];
 
   protected resendVerification(): void {
     const email = this.unverifiedEmail();

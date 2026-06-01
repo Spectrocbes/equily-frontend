@@ -9,8 +9,9 @@ export const routes: Routes = [
     path: '',
     component: AuthLayoutComponent,
     children: [
+      { path: '', redirectTo: 'home', pathMatch: 'full' },
       {
-        path: '',
+        path: 'home',
         loadComponent: () =>
           import('./features/landing/landing.component')
             .then(m => m.LandingComponent),
