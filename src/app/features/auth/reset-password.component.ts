@@ -16,6 +16,7 @@ export class ResetPasswordComponent implements OnInit {
   private readonly router      = inject(Router);
   private readonly fb          = inject(FormBuilder);
 
+  protected readonly tokenState = signal<'validating' | 'valid' | 'invalid'>('validating');
   protected readonly token   = signal<string | null>(null);
   protected readonly loading = signal(false);
   protected readonly error   = signal<string | null>(null);
@@ -29,10 +30,19 @@ export class ResetPasswordComponent implements OnInit {
   ngOnInit(): void {
     const token = this.route.snapshot.queryParamMap.get('token');
     if (!token) {
+      this.tokenState.set('invalid');
       this.error.set('Invalid reset link. Please request a new one.');
       return;
     }
     this.token.set(token);
+
+    this.authService.validateResetToken(token).subscribe({
+      next: () => this.tokenState.set('valid'),
+      error: (err) => {
+        this.tokenState.set('invalid');
+        this.error.set(err.error ?? 'Invalid or expired reset link.');
+      },
+    });
   }
 
   protected onSubmit(): void {

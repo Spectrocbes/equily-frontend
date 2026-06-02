@@ -68,6 +68,10 @@ export class AuthService {
     return this.http.post<void>('/auth/forgot-password', { email });
   }
 
+  validateResetToken(token: string) {
+    return this.http.post<void>('/auth/validate-reset-token', { token });
+  }
+
   resetPassword(token: string, newPassword: string) {
     return this.http.post<void>('/auth/reset-password', { token, newPassword });
   }

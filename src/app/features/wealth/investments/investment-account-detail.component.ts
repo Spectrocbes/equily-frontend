@@ -1,11 +1,11 @@
 import {
-  Component, OnInit, OnDestroy, inject,
-  signal, computed
+  Component, OnInit, inject,
+  signal, computed, WritableSignal
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { AccountService } from '../../../core/services/account.service';
-import { FinancialAccount, Holding, Transaction } from '../../../core/models/account.model';
+import { FinancialAccount, Holding, Transaction, TransactionType } from '../../../core/models/account.model';
 import { AddTransactionModalComponent } from '../shared/add-transaction-modal.component';
 import { CsvImportModalComponent } from '../shared/csv-import-modal.component';
 import { DonutChartComponent, DonutSlice } from '../../../shared/components/donut-chart/donut-chart.component';
@@ -19,7 +19,7 @@ import { DonutChartComponent, DonutSlice } from '../../../shared/components/donu
   ],
   templateUrl: './investment-account-detail.component.html',
 })
-export class InvestmentAccountDetailComponent implements OnInit, OnDestroy {
+export class InvestmentAccountDetailComponent implements OnInit {
   private readonly route    = inject(ActivatedRoute);
   private readonly router   = inject(Router);
   private readonly accountService = inject(AccountService);
@@ -35,10 +35,10 @@ export class InvestmentAccountDetailComponent implements OnInit, OnDestroy {
   protected readonly activeTab           = signal<'holdings' | 'transactions'>('holdings');
   protected readonly plMode              = signal<'euro' | 'percent'>('euro');
 
-  protected readonly balanceDelta = signal<number | null>(null);
-  protected readonly balanceFlash = signal<'gain' | 'loss' | null>(null);
-  private previousBalance: number | null = null;
-  private deltaTimeout: ReturnType<typeof setTimeout> | null = null;
+  protected readonly cashDelta          = signal<number | null>(null);
+  protected readonly cashDeltaPositive  = signal(true);
+  protected readonly portfolioDelta     = signal<number | null>(null);
+  protected readonly portfolioDeltaPositive = signal(true);
 
   protected readonly totalInvested = computed(() =>
     this.holdings().reduce((s, h) => s + h.totalInvested, 0)
@@ -70,27 +70,12 @@ export class InvestmentAccountDetailComponent implements OnInit, OnDestroy {
     this.loadAll(id);
   }
 
-  ngOnDestroy(): void {
-    if (this.deltaTimeout) clearTimeout(this.deltaTimeout);
-  }
-
   private loadAll(id: string): void {
     this.loading.set(true);
     this.error.set(null);
 
     this.accountService.getAccountById(id).subscribe({
       next: (acc) => {
-        if (this.previousBalance !== null && this.previousBalance !== acc.balance) {
-          const delta = acc.balance - this.previousBalance;
-          this.balanceDelta.set(delta);
-          this.balanceFlash.set(delta > 0 ? 'gain' : 'loss');
-          if (this.deltaTimeout) clearTimeout(this.deltaTimeout);
-          this.deltaTimeout = setTimeout(() => {
-            this.balanceDelta.set(null);
-            this.balanceFlash.set(null);
-          }, 4000);
-        }
-        this.previousBalance = acc.balance;
         this.account.set(acc);
         this.loading.set(false);
       },
@@ -109,9 +94,38 @@ export class InvestmentAccountDetailComponent implements OnInit, OnDestroy {
     });
   }
 
-  protected onTransactionCreated(): void {
+  protected onTransactionCreated(type: TransactionType, amount: number): void {
     const id = this.route.snapshot.paramMap.get('id')!;
     this.loadAll(id);
+
+    switch (type) {
+      case 'DEPOSIT':
+      case 'DIVIDEND':
+        this.showDelta(this.cashDelta, this.cashDeltaPositive, amount, true);
+        break;
+      case 'WITHDRAWAL':
+        this.showDelta(this.cashDelta, this.cashDeltaPositive, amount, false);
+        break;
+      case 'BUY':
+        this.showDelta(this.cashDelta, this.cashDeltaPositive, amount, false);
+        this.showDelta(this.portfolioDelta, this.portfolioDeltaPositive, amount, true);
+        break;
+      case 'SELL':
+        this.showDelta(this.cashDelta, this.cashDeltaPositive, amount, true);
+        this.showDelta(this.portfolioDelta, this.portfolioDeltaPositive, amount, false);
+        break;
+    }
+  }
+
+  private showDelta(
+    deltaSignal: WritableSignal<number | null>,
+    positiveSignal: WritableSignal<boolean>,
+    amount: number,
+    positive: boolean
+  ): void {
+    deltaSignal.set(amount);
+    positiveSignal.set(positive);
+    setTimeout(() => deltaSignal.set(null), 4000);
   }
 
   protected onCsvImported(): void {

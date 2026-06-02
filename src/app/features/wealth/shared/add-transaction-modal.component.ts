@@ -1,4 +1,4 @@
-import { Component, input, output, inject, computed, signal } from '@angular/core';
+import { Component, OnInit, input, output, inject, computed, signal, effect } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -14,7 +14,7 @@ import {
   imports: [ReactiveFormsModule, DecimalPipe, CurrencyPipe],
   templateUrl: './add-transaction-modal.component.html',
 })
-export class AddTransactionModalComponent {
+export class AddTransactionModalComponent implements OnInit {
   accountId         = input.required<string>();
   accountType       = input.required<AccountType>();
   accountSubType    = input<AccountSubType | null>(null);
@@ -22,14 +22,14 @@ export class AddTransactionModalComponent {
   depositLimit      = input<number | null>(null);
   totalDeposits     = input<number | null>(null);
 
-  closed = output<void>();
-  created = output<void>();
+  closed  = output<void>();
+  created = output<{ type: TransactionType; amount: number }>();
 
   private readonly fb = inject(FormBuilder);
   protected readonly accountService = inject(AccountService);
 
-  protected readonly loading = this.accountService.modalLoading;
-  protected readonly error = this.accountService.modalError;
+  protected readonly loading = signal(false);
+  protected readonly error   = signal<string | null>(null);
 
   protected readonly allowedTypes = computed(() =>
     ALLOWED_TRANSACTION_TYPES[this.accountType()]
@@ -61,12 +61,15 @@ export class AddTransactionModalComponent {
   });
 
   protected readonly computedTotal = computed(() => {
-    const v = this.formValue();
-    const qty = v.quantity;
+    const v    = this.formValue();
+    const qty  = v.quantity;
     const price = v.pricePerUnit;
     const fees = v.fees ?? 0;
+    const type = this.selectedType();
     if (qty && price && qty > 0 && price > 0) {
-      return Math.round((qty * price + fees) * 100) / 100;
+      if (type === 'BUY')  return Math.round((qty * price + fees) * 100) / 100;
+      if (type === 'SELL') return Math.round((qty * price - fees) * 100) / 100;
+      return Math.round(qty * price * 100) / 100;
     }
     return null;
   });
@@ -113,6 +116,18 @@ export class AddTransactionModalComponent {
     return (v.totalAmount ?? 0) > 0 && dateValid;
   });
 
+  constructor() {
+    effect(() => {
+      this.selectedType();
+      this.error.set(null);
+    }, { allowSignalWrites: true });
+  }
+
+  ngOnInit(): void {
+    this.error.set(null);
+    this.loading.set(false);
+  }
+
   protected onTypeChange(type: TransactionType): void {
     this.selectedType.set(type);
     this.form.patchValue({
@@ -130,14 +145,22 @@ export class AddTransactionModalComponent {
 
   protected onSubmit(): void {
     if (!this.isFormValid()) return;
-    const v = this.form.getRawValue();
+    const v    = this.form.getRawValue();
     const type = this.selectedType() as TransactionType;
-    const needsAsset = type === 'BUY' || type === 'SELL';
+    const needsAsset  = type === 'BUY' || type === 'SELL';
     const needsTicker = needsAsset || type === 'DIVIDEND';
 
-    const totalAmount = needsAsset
-      ? Math.round(((v.quantity! * v.pricePerUnit!) + (v.fees ?? 0)) * 100) / 100
-      : v.totalAmount!;
+    let totalAmount: number;
+    if (type === 'BUY') {
+      totalAmount = Math.round(((v.quantity! * v.pricePerUnit!) + (v.fees ?? 0)) * 100) / 100;
+    } else if (type === 'SELL') {
+      totalAmount = Math.round(((v.quantity! * v.pricePerUnit!) - (v.fees ?? 0)) * 100) / 100;
+    } else {
+      totalAmount = v.totalAmount!;
+    }
+
+    this.loading.set(true);
+    this.error.set(null);
 
     this.accountService.recordTransaction(this.accountId(), {
       type,
@@ -152,11 +175,23 @@ export class AddTransactionModalComponent {
       description:   v.description || undefined,
     }).subscribe({
       next: () => {
-        this.created.emit();
+        this.created.emit({ type, amount: totalAmount });
         this.closed.emit();
       },
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      error: () => {},
+      error: (err) => {
+        let message = 'Transaction failed. Please try again.';
+        if (err.error && typeof err.error === 'string') {
+          message = err.error;
+        } else if (err.error?.message) {
+          message = err.error.message;
+        } else if (err.status === 422) {
+          message = 'Transaction exceeds account limits or available balance.';
+        } else if (err.status === 403) {
+          message = 'Session expired. Please sign in again.';
+        }
+        this.error.set(message);
+        this.loading.set(false);
+      },
     });
   }
 }
