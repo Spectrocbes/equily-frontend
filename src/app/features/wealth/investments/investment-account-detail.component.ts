@@ -5,7 +5,7 @@ import {
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { AccountService } from '../../../core/services/account.service';
-import { FinancialAccount, Holding, Transaction, TransactionType } from '../../../core/models/account.model';
+import { FinancialAccount, Holding, Transaction, TransactionType, accountAgeYears } from '../../../core/models/account.model';
 import { AddTransactionModalComponent } from '../shared/add-transaction-modal.component';
 import { CsvImportModalComponent } from '../shared/csv-import-modal.component';
 import { DonutChartComponent, DonutSlice } from '../../../shared/components/donut-chart/donut-chart.component';
@@ -48,6 +48,10 @@ export class InvestmentAccountDetailComponent implements OnInit {
   );
   protected readonly totalCashOut = computed(() =>
     this.totalInvested() + this.totalFeesPaid()
+  );
+
+  protected readonly accountAgeYears = computed(() =>
+    accountAgeYears(this.account()?.openedAt ?? null)
   );
 
   protected readonly donutData = computed((): DonutSlice[] => {

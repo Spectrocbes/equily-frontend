@@ -54,6 +54,7 @@ export interface FinancialAccount {
   depositLimit: number | null;
   totalDeposits: number | null;
   remainingCapacity: number | null;
+  openedAt: string | null; // ISO date string 'YYYY-MM-DD'
 }
 
 export type AccountType =
@@ -94,6 +95,16 @@ export interface CreateAccountRequest {
   currency: string;
   broker: string;
   subType: AccountSubType | null;
+  openedAt: string | null;
+}
+
+export function accountAgeYears(openedAt: string | null): number | null {
+  if (!openedAt) return null;
+  const opened = new Date(openedAt);
+  const now    = new Date();
+  const years  = (now.getTime() - opened.getTime())
+    / (1000 * 60 * 60 * 24 * 365.25);
+  return Math.floor(years);
 }
 
 export type WealthCategory =

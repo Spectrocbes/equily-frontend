@@ -32,7 +32,7 @@ describe('AddAccountModalComponent', () => {
 
   it('submit button is disabled while modalLoading is true on step 2', () => {
     const form = fixture.componentInstance['form'];
-    form.setValue({ name: 'Test PEA', accountType: 'PEA', initialBalance: 1000, broker: 'Fortuneo', subType: null });
+    form.setValue({ name: 'Test PEA', accountType: 'PEA', initialBalance: 1000, broker: 'Fortuneo', subType: null, openedAt: '2020-01-01' });
     fixture.componentInstance['step'].set(2);
     modalLoadingSignal.set(true);
     fixture.detectChanges();
@@ -54,13 +54,37 @@ describe('AddAccountModalComponent', () => {
     fixture.componentInstance.created.subscribe(createdSpy);
 
     const form = fixture.componentInstance['form'];
-    form.setValue({ name: 'Test PEA', accountType: 'PEA', initialBalance: 1000, broker: 'Fortuneo', subType: null });
+    form.setValue({ name: 'Test PEA', accountType: 'PEA', initialBalance: 1000, broker: 'Fortuneo', subType: null, openedAt: '2020-01-01' });
     fixture.componentInstance['step'].set(2);
     fixture.detectChanges();
 
     fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
     expect(mockAccountService.createAccount).toHaveBeenCalled();
     expect(createdSpy).toHaveBeenCalled();
+  });
+
+  it('shows openedAt field for PEA account type', () => {
+    const form = fixture.componentInstance['form'];
+    form.get('accountType')!.setValue('PEA');
+    fixture.detectChanges();
+    expect(fixture.componentInstance['showOpenedAt']()).toBe(true);
+    const input = fixture.nativeElement.querySelector('input[formcontrolname="openedAt"]');
+    expect(input).toBeTruthy();
+  });
+
+  it('hides openedAt field for SAVINGS_ACCOUNT type', () => {
+    const form = fixture.componentInstance['form'];
+    form.get('accountType')!.setValue('SAVINGS_ACCOUNT');
+    fixture.detectChanges();
+    expect(fixture.componentInstance['showOpenedAt']()).toBe(false);
+    const input = fixture.nativeElement.querySelector('input[formcontrolname="openedAt"]');
+    expect(input).toBeFalsy();
+  });
+
+  it('defaults openedAt to today', () => {
+    const today = new Date().toISOString().split('T')[0];
+    const form = fixture.componentInstance['form'];
+    expect(form.get('openedAt')!.value).toBe(today);
   });
 
   it('shows subType selector when accountType has sub-types', () => {
