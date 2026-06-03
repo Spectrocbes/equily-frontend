@@ -33,7 +33,7 @@
     <!-- Account header -->
     <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
       <div>
-        <div class="flex items-center gap-2 mb-1">
+        <div class="flex items-center gap-2 mb-1 flex-wrap">
           <span class="text-xs font-medium px-2 py-0.5 rounded-full
                        bg-primary-50 dark:bg-primary-900/30
                        text-primary-700 dark:text-primary-300">
@@ -42,6 +42,19 @@
           <span class="text-xs text-slate-400 dark:text-slate-500">
             {{ account()!.broker }}
           </span>
+          @if (account()?.openedAt) {
+            <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs
+                        font-medium border"
+                 [class]="accountAgeYears() !== null && accountAgeYears()! >= 5
+                   ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300'
+                   : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300'">
+              @if (accountAgeYears() !== null && accountAgeYears()! >= 5) {
+                ✓ Open for {{ accountAgeYears() }} years
+              } @else if (accountAgeYears() !== null) {
+                ⚠️ {{ accountAgeYears() }} year{{ accountAgeYears() === 1 ? '' : 's' }} old — PEA withdrawal rules apply
+              }
+            </div>
+          }
         </div>
         <h1 class="text-2xl font-semibold text-slate-900 dark:text-white">
           {{ account()!.name }}

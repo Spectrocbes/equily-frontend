@@ -191,6 +191,14 @@
 - About section rewritten: professional product tone replacing personal-project framing
 - 58/58 tests, lint clean, build 0 errors
 
+## 2026-06-03 — Session A frontend: openedAt field + PEA age display (complete)
+- `FinancialAccount`: `openedAt: string | null` added; `accountAgeYears()` helper exported from `account.model.ts`
+- `CreateAccountRequest`: `openedAt: string | null` added; `AccountService.createAccount()` passes it through
+- `AddAccountModalComponent`: `openedAt` date picker shown for PEA/PEA-PME/CTO/PER/AV types; defaults to today; `[max]="today()"` prevents future dates; confirmation step shows formatted date
+- `InvestmentAccountDetailComponent`: age badge in header — emerald (≥5 years, withdrawal rules lifted) or amber (<5 years, PEA withdrawal rules apply)
+- `account.model.spec.ts` created (3 tests for `accountAgeYears`); modal spec updated (+3 tests: shows/hides openedAt, defaults to today)
+- 76/76 tests, lint clean, build 0 errors
+
 ## 2026-06-03 — UX fixes from functional testing (complete)
 - Cash + Savings account detail pages (`/wealth/cash/:id`, `/wealth/savings/:id`): header, balance, Transactions tab, Add Transaction modal (DEPOSIT/WITHDRAWAL only)
 - Clickable account rows in `cash.component.html` + `savings.component.html` via `<a [routerLink]>`

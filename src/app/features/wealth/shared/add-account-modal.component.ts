@@ -1,6 +1,6 @@
 import { Component, output, input, inject, signal, computed, HostListener } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { DecimalPipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { AccountService } from '../../../core/services/account.service';
 import {
@@ -12,7 +12,7 @@ import { ToastService } from '../../../shared/toast/toast.service';
 @Component({
   selector: 'app-add-account-modal',
   standalone: true,
-  imports: [ReactiveFormsModule, DecimalPipe],
+  imports: [ReactiveFormsModule, DecimalPipe, DatePipe],
   templateUrl: './add-account-modal.component.html',
 })
 export class AddAccountModalComponent {
@@ -83,6 +83,7 @@ export class AddAccountModalComponent {
     initialBalance: [0, [Validators.required, Validators.min(0)]],
     broker:         ['', Validators.required],
     subType:        [null as AccountSubType | null],
+    openedAt:       [this.today() as string | null, null],
   });
 
   private readonly formValue = toSignal(this.form.valueChanges, {
@@ -97,6 +98,16 @@ export class AddAccountModalComponent {
   protected readonly showSubType = computed(() =>
     this.availableSubTypes().length > 0
   );
+
+  protected readonly showOpenedAt = computed(() => {
+    const type = this.formValue().accountType as AccountType;
+    return (['PEA', 'PEA_PME', 'COMPTE_TITRES', 'PER', 'ASSURANCE_VIE'] as string[])
+      .includes(type);
+  });
+
+  protected today(): string {
+    return new Date().toISOString().split('T')[0];
+  }
 
   constructor() {
     this.form.get('accountType')!.valueChanges
@@ -125,7 +136,7 @@ export class AddAccountModalComponent {
 
   protected onSubmit(): void {
     if (this.form.invalid) return;
-    const { name, accountType, initialBalance, broker, subType } = this.form.getRawValue();
+    const { name, accountType, initialBalance, broker, subType, openedAt } = this.form.getRawValue();
     this.accountService.createAccount({
       name: name!,
       accountType: accountType as AccountType,
@@ -133,6 +144,7 @@ export class AddAccountModalComponent {
       currency: 'EUR',
       broker: broker!,
       subType: subType as AccountSubType | null,
+      openedAt: openedAt ?? null,
     }).subscribe({
       next: () => {
         this.created.emit();
