@@ -7,6 +7,7 @@ import {
   AccountType, AccountSubType, TransactionType,
   ALLOWED_TRANSACTION_TYPES
 } from '../../../core/models/account.model';
+import { ToastService } from '../../../shared/toast/toast.service';
 
 @Component({
   selector: 'app-add-transaction-modal',
@@ -27,6 +28,7 @@ export class AddTransactionModalComponent implements OnInit {
 
   private readonly fb = inject(FormBuilder);
   protected readonly accountService = inject(AccountService);
+  private readonly toastService = inject(ToastService);
 
   protected readonly loading = signal(false);
   protected readonly error   = signal<string | null>(null);
@@ -94,17 +96,27 @@ export class AddTransactionModalComponent implements OnInit {
 
   protected readonly wouldExceedLimit = computed(() => {
     if (!this.showDepositWarning()) return false;
-    const amount = this.formValue().totalAmount ?? 0;
+    const amount    = this.formValue().totalAmount ?? 0;
     const remaining = this.remainingCapacity() ?? Infinity;
-    return (amount ?? 0) > remaining;
+    return remaining <= 0 || amount > remaining;
   });
 
   protected readonly isApproachingLimit = computed(() => {
     if (!this.showDepositWarning()) return false;
+    if (this.wouldExceedLimit()) return false;
     const limit = this.depositLimit()!;
     const total = this.totalDeposits() ?? 0;
-    return total / limit >= 0.9;
+    if (limit === 0) return false;
+    return (total / limit) >= 0.9;
   });
+
+  protected readonly maxDate = computed(() => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow.toISOString().split('T')[0];
+  });
+
+  protected readonly minDate = '1900-01-01';
 
   protected readonly dateWarning = computed(() => {
     const date = this.formValue().date;
@@ -226,14 +238,12 @@ export class AddTransactionModalComponent implements OnInit {
         let message = 'Transaction failed. Please try again.';
         if (err.error && typeof err.error === 'string') {
           message = err.error;
-        } else if (err.error?.message) {
-          message = err.error.message;
         } else if (err.status === 422) {
           message = 'Transaction exceeds account limits or available balance.';
         } else if (err.status === 403) {
           message = 'Session expired. Please sign in again.';
         }
-        this.error.set(message);
+        this.toastService.error(message);
         this.loading.set(false);
       },
     });

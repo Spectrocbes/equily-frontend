@@ -1,0 +1,32 @@
+<div class="fixed bottom-6 right-6 z-[100]
+            flex flex-col gap-2 max-w-sm w-full pointer-events-none">
+  @for (toast of toastService.toasts(); track toast.id) {
+    <div class="flex items-start gap-3 px-4 py-3 rounded-xl
+                shadow-lg border text-sm font-medium
+                pointer-events-auto"
+         [class]="toastClasses(toast.type)">
+
+      <span class="flex-shrink-0 mt-0.5 text-base">
+        @switch (toast.type) {
+          @case ('error')   { ⛔ }
+          @case ('success') { ✅ }
+          @case ('warning') { ⚠️ }
+          @case ('info')    { ℹ️ }
+        }
+      </span>
+
+      <p class="flex-1 leading-snug">{{ toast.message }}</p>
+
+      <button type="button"
+              (click)="toastService.dismiss(toast.id)"
+              class="flex-shrink-0 opacity-50 hover:opacity-100
+                     transition-opacity mt-0.5">
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"
+             stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+  }
+</div>
