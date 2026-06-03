@@ -7,6 +7,7 @@ import {
   AccountType, AccountSubType,
   ACCOUNT_TYPE_SUB_TYPES, ACCOUNT_SUB_TYPE_LABELS,
 } from '../../../core/models/account.model';
+import { ToastService } from '../../../shared/toast/toast.service';
 
 @Component({
   selector: 'app-add-account-modal',
@@ -21,6 +22,7 @@ export class AddAccountModalComponent {
 
   private readonly fb = inject(FormBuilder);
   private readonly accountService = inject(AccountService);
+  private readonly toastService = inject(ToastService);
 
   protected readonly loading = this.accountService.modalLoading;
   protected readonly error = this.accountService.modalError;
@@ -136,8 +138,9 @@ export class AddAccountModalComponent {
         this.created.emit();
         this.closed.emit();
       },
-      error: () => {
-        // error already set in service via tap — modal stays open to show message
+      error: (err) => {
+        const message = err.error?.message ?? err.message ?? 'Failed to create account';
+        this.toastService.error(message);
       },
     });
   }

@@ -2,7 +2,7 @@ import { Component, OnInit, inject, computed, signal } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AccountService } from '../../../core/services/account.service';
-import { AccountType, ACCOUNT_CATEGORY } from '../../../core/models/account.model';
+import { AccountType, ACCOUNT_CATEGORY, FinancialAccount } from '../../../core/models/account.model';
 import { AddAccountModalComponent } from '../shared/add-account-modal.component';
 
 @Component({
@@ -28,6 +28,14 @@ export class InvestmentsComponent implements OnInit {
   protected readonly total = computed(() =>
     this.accounts().reduce((s, a) => s + a.balance, 0)
   );
+
+  protected depositPercent(account: FinancialAccount): number {
+    if (!account.depositLimit || account.depositLimit === 0) return 0;
+    return Math.min(
+      100,
+      ((account.totalDeposits ?? 0) / account.depositLimit) * 100
+    );
+  }
 
   protected onAccountCreated(): void {
     this.accountService.loadAccounts();

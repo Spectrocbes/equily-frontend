@@ -65,52 +65,68 @@
       <div class="divide-y divide-slate-100 dark:divide-slate-700">
         @for (account of accounts(); track account.id) {
           <a [routerLink]="['/wealth/investments', account.id]"
-             class="flex items-center justify-between px-5 py-4
+             class="block px-5 py-4
                     hover:bg-slate-50 dark:hover:bg-slate-700/50
                     transition-colors cursor-pointer no-underline group">
 
-            <div>
-              <p class="text-sm font-semibold text-slate-900 dark:text-white
-                         group-hover:text-primary-600 dark:group-hover:text-primary-400
-                         transition-colors">
-                {{ account.name }}
-              </p>
-              <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
-                {{ account.broker }} · {{ account.accountType }}
-              </p>
-            </div>
-
-            <div class="flex items-center gap-4">
-              <div class="text-right">
-                <p class="text-sm font-semibold font-mono
-                           text-slate-900 dark:text-white">
-                  {{ account.balance | currency:'EUR':'symbol':'1.2-2' }}
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-semibold text-slate-900 dark:text-white
+                           group-hover:text-primary-600 dark:group-hover:text-primary-400
+                           transition-colors">
+                  {{ account.name }}
                 </p>
                 <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
-                  P&L — coming soon
+                  {{ account.broker }} · {{ account.accountType }}
                 </p>
-                @if (account.remainingCapacity !== null && account.depositLimit !== null) {
-                  <div class="mt-1 flex flex-col items-end">
-                    <div class="w-24 h-1 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                      <div class="h-full rounded-full transition-all"
-                           [style.width.%]="((account.totalDeposits ?? 0) / account.depositLimit!) * 100"
-                           [class]="((account.totalDeposits ?? 0) / account.depositLimit!) >= 0.9
-                             ? 'bg-amber-500'
-                             : 'bg-primary-500'">
-                      </div>
-                    </div>
-                    <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
-                      {{ account.remainingCapacity | currency:'EUR':'symbol':'1.0-0' }} remaining
-                    </p>
-                  </div>
-                }
               </div>
-              <svg class="w-4 h-4 text-slate-300 dark:text-slate-600
-                           group-hover:text-primary-400 transition-colors"
-                   fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
-              </svg>
+
+              <div class="flex items-center gap-4">
+                <div class="text-right">
+                  <p class="text-sm font-semibold font-mono
+                             text-slate-900 dark:text-white">
+                    {{ account.balance | currency:'EUR':'symbol':'1.2-2' }}
+                  </p>
+                  <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+                    P&L — coming soon
+                  </p>
+                </div>
+                <svg class="w-4 h-4 text-slate-300 dark:text-slate-600
+                             group-hover:text-primary-400 transition-colors"
+                     fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                </svg>
+              </div>
             </div>
+
+            @if (account.depositLimit !== null && account.depositLimit! > 0) {
+              <div class="mt-2 w-full">
+                <div class="h-1.5 bg-slate-200 dark:bg-slate-700
+                            rounded-full overflow-hidden">
+                  <div class="h-full rounded-full transition-all duration-500"
+                       [style.width.%]="depositPercent(account)"
+                       [class]="depositPercent(account) >= 100
+                         ? 'bg-rose-500'
+                         : depositPercent(account) >= 90
+                         ? 'bg-amber-500'
+                         : 'bg-primary-500'">
+                  </div>
+                </div>
+                <div class="flex justify-between mt-1">
+                  <span class="text-xs text-slate-400 dark:text-slate-500">
+                    {{ (account.totalDeposits ?? 0) | currency:'EUR':'symbol':'1.0-0' }} deposited
+                  </span>
+                  <span class="text-xs font-medium"
+                        [class]="depositPercent(account) >= 100
+                          ? 'text-rose-500'
+                          : depositPercent(account) >= 90
+                          ? 'text-amber-500'
+                          : 'text-slate-400 dark:text-slate-500'">
+                    {{ (account.remainingCapacity ?? 0) | currency:'EUR':'symbol':'1.0-0' }} left
+                  </span>
+                </div>
+              </div>
+            }
 
           </a>
         }
