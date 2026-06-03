@@ -15,11 +15,16 @@ export class LoginComponent {
   private readonly authService = inject(AuthService);
   private readonly router      = inject(Router);
 
-  protected readonly loading        = signal(false);
-  protected readonly error          = signal<string | null>(null);
+  protected readonly loading         = signal(false);
+  protected readonly error           = signal<string | null>(null);
   protected readonly unverifiedEmail = signal<string | null>(null);
-  protected readonly resendLoading  = signal(false);
-  protected readonly resendSent     = signal(false);
+  protected readonly resendLoading   = signal(false);
+  protected readonly resendSent      = signal(false);
+  protected readonly submitted       = signal(false);
+
+  protected showError(field: string): boolean {
+    return this.submitted() && !!this.form.get(field)?.invalid;
+  }
 
   protected readonly form = this.fb.group({
     email:    ['', [Validators.required, Validators.email]],
@@ -27,6 +32,7 @@ export class LoginComponent {
   });
 
   protected onSubmit(): void {
+    this.submitted.set(true);
     if (this.form.invalid) return;
     this.loading.set(true);
     this.error.set(null);

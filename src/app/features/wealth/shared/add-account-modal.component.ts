@@ -1,4 +1,4 @@
-import { Component, output, input, inject, signal, computed } from '@angular/core';
+import { Component, output, input, inject, signal, computed, HostListener } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
@@ -26,8 +26,35 @@ export class AddAccountModalComponent {
   protected readonly error = this.accountService.modalError;
 
   protected readonly step = signal<1 | 2>(1);
+  protected readonly submitted = signal(false);
+
+  protected showError(field: string): boolean {
+    return this.submitted() && !!this.form.get(field)?.invalid;
+  }
 
   protected readonly ACCOUNT_SUB_TYPE_LABELS = ACCOUNT_SUB_TYPE_LABELS;
+
+  protected readonly brokerDropdownOpen = signal(false);
+  protected readonly selectedBroker     = signal<string>('');
+
+  protected readonly brokers: string[] = [
+    'Fortuneo', 'BoursoBank', 'Degiro', 'Trade Republic',
+    'Binance', 'Coinbase', 'Crédit Agricole', 'BNP Paribas',
+    'Société Générale', 'LCL', 'Other',
+  ];
+
+  protected selectBroker(broker: string): void {
+    this.selectedBroker.set(broker);
+    this.form.get('broker')?.setValue(broker);
+    this.brokerDropdownOpen.set(false);
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (!(event.target as Element).closest('.broker-dropdown')) {
+      this.brokerDropdownOpen.set(false);
+    }
+  }
 
   private readonly accountTypes: { value: AccountType; label: string }[] = [
     { value: 'PEA', label: 'PEA — Plan Épargne Actions' },
@@ -47,13 +74,6 @@ export class AddAccountModalComponent {
       : this.accountTypes;
   });
 
-  protected readonly brokerSuggestions: string[] = [
-    'Fortuneo', 'BoursoBank', 'BNP Paribas', 'Société Générale',
-    'Crédit Mutuel', 'Crédit Agricole', 'LCL', 'La Banque Postale',
-    'Caisse d\'Épargne', 'BRED', 'ING', 'Hello bank!',
-    'Degiro', 'Trade Republic', 'Saxo Bank', 'Interactive Brokers',
-    'Binance', 'Coinbase', 'Kraken',
-  ];
 
   protected readonly form = this.fb.group({
     name:           ['', [Validators.required, Validators.minLength(1)]],
@@ -82,17 +102,22 @@ export class AddAccountModalComponent {
       .subscribe(() => this.form.get('subType')!.setValue(null));
   }
 
-  protected onBackdropClick(event: MouseEvent): void {
-    if (event.target === event.currentTarget) {
+  protected mouseDownOnBackdrop = false;
+
+  protected onBackdropMouseDown(event: MouseEvent): void {
+    this.mouseDownOnBackdrop = event.target === event.currentTarget;
+  }
+
+  protected onBackdropMouseUp(event: MouseEvent): void {
+    if (this.mouseDownOnBackdrop && event.target === event.currentTarget) {
       this.closed.emit();
     }
+    this.mouseDownOnBackdrop = false;
   }
 
   protected nextStep(): void {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
+    this.submitted.set(true);
+    if (this.form.invalid) return;
     this.step.set(2);
   }
 

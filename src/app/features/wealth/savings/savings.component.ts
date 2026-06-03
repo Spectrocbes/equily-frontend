@@ -1,5 +1,6 @@
 import { Component, OnInit, inject, computed, signal } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { AccountService } from '../../../core/services/account.service';
 import { AccountType, ACCOUNT_CATEGORY } from '../../../core/models/account.model';
 import { AddAccountModalComponent } from '../shared/add-account-modal.component';
@@ -7,7 +8,7 @@ import { AddAccountModalComponent } from '../shared/add-account-modal.component'
 @Component({
   selector: 'app-savings',
   standalone: true,
-  imports: [CurrencyPipe, AddAccountModalComponent],
+  imports: [CurrencyPipe, RouterLink, AddAccountModalComponent],
   templateUrl: './savings.component.html',
 })
 export class SavingsComponent implements OnInit {

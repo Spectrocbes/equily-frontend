@@ -1,5 +1,5 @@
 import { Component, OnInit, input, output, inject, computed, signal, effect } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { AccountService } from '../../../core/services/account.service';
@@ -52,7 +52,19 @@ export class AddTransactionModalComponent implements OnInit {
     pricePerUnit: [null as number | null],
     totalAmount:  [null as number | null],
     fees:         [0],
-    date:         [new Date().toISOString().split('T')[0], Validators.required],
+    date: [
+      new Date().toISOString().split('T')[0],
+      [
+        Validators.required,
+        (control: AbstractControl) => {
+          const date = new Date(control.value);
+          if (isNaN(date.getTime())) return { invalidDate: true };
+          if (date.getFullYear() > 9999) return { invalidDate: true };
+          if (date.getFullYear() < 1900) return { invalidDate: true };
+          return null;
+        },
+      ],
+    ],
     description:  [''],
   });
 
@@ -94,13 +106,23 @@ export class AddTransactionModalComponent implements OnInit {
     return total / limit >= 0.9;
   });
 
+  protected readonly dateWarning = computed(() => {
+    const date = this.formValue().date;
+    if (!date) return null;
+    const selected = new Date(date);
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+    if (selected > today) return 'This transaction is dated in the future.';
+    return null;
+  });
+
   protected readonly isFormValid = computed(() => {
     const type = this.selectedType();
     if (!type) return false;
     if (this.wouldExceedLimit()) return false;
 
     const v = this.formValue();
-    const dateValid = !!v.date;
+    const dateValid = !!v.date && this.form.get('date')?.valid !== false;
 
     if (type === 'BUY' || type === 'SELL') {
       return !!(v.ticker?.trim()) &&
@@ -139,8 +161,30 @@ export class AddTransactionModalComponent implements OnInit {
     });
   }
 
-  protected onBackdropClick(event: MouseEvent): void {
-    if (event.target === event.currentTarget) this.closed.emit();
+  protected mouseDownOnBackdrop = false;
+
+  protected onBackdropMouseDown(event: MouseEvent): void {
+    this.mouseDownOnBackdrop = event.target === event.currentTarget;
+  }
+
+  protected onBackdropMouseUp(event: MouseEvent): void {
+    if (this.mouseDownOnBackdrop && event.target === event.currentTarget) {
+      this.closed.emit();
+    }
+    this.mouseDownOnBackdrop = false;
+  }
+
+  protected onFeesFocus(): void {
+    if (this.form.get('fees')?.value === 0) {
+      this.form.get('fees')?.setValue(null);
+    }
+  }
+
+  protected onFeesBlur(): void {
+    const v = this.form.get('fees')?.value;
+    if (v === null || v === undefined) {
+      this.form.get('fees')?.setValue(0);
+    }
   }
 
   protected onSubmit(): void {

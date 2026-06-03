@@ -30,9 +30,9 @@ describe('LoginComponent', () => {
     expect(el.querySelector('button[type="submit"]')).toBeTruthy();
   });
 
-  it('submit button is disabled when form is invalid', () => {
+  it('submit button is enabled when form is invalid (errors shown on submit)', () => {
     const btn = fixture.nativeElement.querySelector('button[type="submit"]') as HTMLButtonElement;
-    expect(btn.disabled).toBe(true);
+    expect(btn.disabled).toBe(false);
   });
 
   it('calls authService.login on valid submit', () => {

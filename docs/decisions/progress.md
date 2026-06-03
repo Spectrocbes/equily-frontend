@@ -190,3 +190,15 @@
 - All public-facing marketing copy generalized — no French-specific terms, no competitor mentions on landing/auth pages
 - About section rewritten: professional product tone replacing personal-project framing
 - 58/58 tests, lint clean, build 0 errors
+
+## 2026-06-03 — UX fixes from functional testing (complete)
+- Cash + Savings account detail pages (`/wealth/cash/:id`, `/wealth/savings/:id`): header, balance, Transactions tab, Add Transaction modal (DEPOSIT/WITHDRAWAL only)
+- Clickable account rows in `cash.component.html` + `savings.component.html` via `<a [routerLink]>`
+- Form validation: errors shown only on submit attempt (`submitted` signal + `showError()` helper) — applied to LoginComponent, RegisterComponent, AddAccountModalComponent, ForgotPasswordComponent, ResetPasswordComponent
+- Login tab order: `tabindex="-1"` on "Forgot password?" link removes it from keyboard tab sequence while keeping it clickable
+- Modal backdrop: `(mousedown)` + `(mouseup)` pattern replaces `(click)` — prevents accidental close when dragging from inside the modal to outside; applied to AddAccountModal, AddTransactionModal, CsvImportModal
+- Custom broker dropdown in `AddAccountModalComponent` replaces native `<select>` (which ignored dark theme); `@HostListener('document:click')` closes it on outside click
+- Number input spinner arrows removed globally via `styles.scss` (`-webkit-appearance: none`, `-moz-appearance: textfield`)
+- Fees field: clears zero on focus, restores zero on blur (`onFeesFocus` / `onFeesBlur`)
+- Date validation in `AddTransactionModalComponent`: custom validator blocks years < 1900 or > 9999; `dateWarning` computed shows amber warning for future dates (non-blocking)
+- 65/65 tests, lint clean, build 0 errors

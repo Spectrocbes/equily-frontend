@@ -15,8 +15,13 @@ export class RegisterComponent {
   private readonly authService = inject(AuthService);
   private readonly router      = inject(Router);
 
-  protected readonly loading = signal(false);
-  protected readonly error   = signal<string | null>(null);
+  protected readonly loading    = signal(false);
+  protected readonly error      = signal<string | null>(null);
+  protected readonly submitted  = signal(false);
+
+  protected showError(field: string): boolean {
+    return this.submitted() && !!this.form.get(field)?.invalid;
+  }
 
   protected readonly rightPanelItems = [
     'All account types — stocks, ETFs, crypto, savings',
@@ -33,6 +38,7 @@ export class RegisterComponent {
   });
 
   protected onSubmit(): void {
+    this.submitted.set(true);
     if (this.form.invalid) return;
     this.loading.set(true);
     this.error.set(null);

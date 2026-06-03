@@ -14,14 +14,20 @@ export class ForgotPasswordComponent {
   private readonly fb          = inject(FormBuilder);
   private readonly authService = inject(AuthService);
 
-  protected readonly loading = signal(false);
-  protected readonly sent    = signal(false);
+  protected readonly loading    = signal(false);
+  protected readonly sent       = signal(false);
+  protected readonly submitted  = signal(false);
+
+  protected showError(field: string): boolean {
+    return this.submitted() && !!this.form.get(field)?.invalid;
+  }
 
   protected readonly form = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
   });
 
   protected onSubmit(): void {
+    this.submitted.set(true);
     if (this.form.invalid) return;
     this.loading.set(true);
     this.authService.forgotPassword(this.form.value.email!).subscribe({

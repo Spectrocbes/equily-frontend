@@ -17,10 +17,15 @@ export class ResetPasswordComponent implements OnInit {
   private readonly fb          = inject(FormBuilder);
 
   protected readonly tokenState = signal<'validating' | 'valid' | 'invalid'>('validating');
-  protected readonly token   = signal<string | null>(null);
-  protected readonly loading = signal(false);
-  protected readonly error   = signal<string | null>(null);
-  protected readonly success = signal(false);
+  protected readonly token     = signal<string | null>(null);
+  protected readonly loading   = signal(false);
+  protected readonly error     = signal<string | null>(null);
+  protected readonly success   = signal(false);
+  protected readonly submitted = signal(false);
+
+  protected showError(field: string): boolean {
+    return this.submitted() && !!this.form.get(field)?.invalid;
+  }
 
   protected readonly form = this.fb.group({
     password:        ['', [Validators.required, Validators.minLength(8)]],
@@ -46,6 +51,7 @@ export class ResetPasswordComponent implements OnInit {
   }
 
   protected onSubmit(): void {
+    this.submitted.set(true);
     if (this.form.invalid || !this.token()) return;
     this.loading.set(true);
     this.error.set(null);

@@ -43,8 +43,8 @@ describe('AddAccountModalComponent', () => {
   it('emits closed when cancel is clicked', () => {
     const closedSpy = jest.fn();
     fixture.componentInstance.closed.subscribe(closedSpy);
-    // Step 1 buttons: [X (type=button), Cancel (type=button), Next (type=button)]
-    const cancelBtn = fixture.nativeElement.querySelectorAll('button[type="button"]')[1];
+    // Step 1 buttons: [X, broker-toggle, Cancel, Next]
+    const cancelBtn = fixture.nativeElement.querySelectorAll('button[type="button"]')[2];
     cancelBtn.click();
     expect(closedSpy).toHaveBeenCalled();
   });
