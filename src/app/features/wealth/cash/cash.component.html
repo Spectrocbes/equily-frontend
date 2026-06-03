@@ -1,14 +1,14 @@
 <div class="space-y-6">
 
   <!-- Header -->
-  <div class="flex items-start justify-between">
+  <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
     <div>
       <h1 class="text-2xl font-semibold text-slate-900 dark:text-white">Cash</h1>
       <p class="text-slate-500 dark:text-slate-400 mt-1 text-sm">
         Current accounts and cash holdings
       </p>
     </div>
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-3 self-start sm:self-auto">
       <div class="text-right">
         <p class="text-xs text-slate-500 dark:text-slate-400">Total</p>
         <p class="text-2xl font-bold font-mono text-slate-900 dark:text-white">
@@ -39,7 +39,9 @@
     } @else {
       <div class="divide-y divide-slate-100 dark:divide-slate-700">
         @for (account of accounts(); track account.id) {
-          <div class="px-5 py-4 flex items-center justify-between">
+          <a [routerLink]="[account.id]"
+             class="px-5 py-4 flex items-center justify-between
+                    hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
             <div>
               <p class="text-sm font-semibold text-slate-900 dark:text-white">
                 {{ account.name }}
@@ -52,7 +54,7 @@
             <p class="text-sm font-semibold font-mono text-slate-900 dark:text-white">
               {{ account.balance | currency:'EUR':'symbol':'1.2-2' }}
             </p>
-          </div>
+          </a>
         }
       </div>
 

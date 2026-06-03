@@ -164,3 +164,41 @@
 - `ResetPasswordComponent`: reads token from URL, password + confirm with mismatch validator, 3s redirect to login on success
 - 3 new public routes: `/verify-email`, `/forgot-password`, `/reset-password`
 - 58/58 tests, lint clean, build 0 errors
+
+## 2026-06-01 — Responsive layout refactor (complete)
+- Removed all `position: fixed` from navbar and sidebar — pure flex layout, no manual `pt-16`/`ml-64` offsets
+- `AppLayoutComponent`: `sidebarOpen` signal, mobile overlay backdrop (click/keydown to close), `p-4 lg:p-6` main padding
+- `NavbarComponent`: hamburger button (`lg:hidden`, emits `menuToggled`), logo text `hidden sm:block`, `px-4 lg:px-6`
+- `SidebarComponent`: responsive drawer — `fixed` + `translate-x` on mobile, `lg:relative lg:translate-x-0` on desktop; mobile close button
+- All page components: headers use `flex-col sm:flex-row` — stack on mobile, row on desktop
+- `InvestmentAccountDetailComponent`: account header `flex-col lg:flex-row`, header values `flex-col sm:flex-row`, tabs `overflow-x-auto`, holdings table `overflow-x-auto min-w-[640px]`, transaction fees/qty `hidden sm:block` on mobile
+- Base font: 14 px mobile, 16 px at `lg:` breakpoint via `@screen lg` in `styles.scss`
+- All template URLs separated from component TS files (CLAUDE.md compliance)
+- 58/58 tests, lint clean, build 0 errors
+
+## 2026-06-01 — UI layout fixes + landing page (complete)
+- Two-layout architecture: `AuthLayoutComponent` (full-screen, scrollable) + `AppLayoutComponent` (navbar + sidebar, overflow-hidden)
+- `AppComponent` stripped to bare `<router-outlet>`; navbar/sidebar moved into `AppLayoutComponent`
+- `LandingComponent`: hero, stats bar, features grid (6 cards), account types, security section, about, footer
+- Split-screen login + register pages: form panel left, visual panel right (gradient + checklist); hidden on mobile
+- `AuthHeaderComponent`: shared clickable logo (`/home`) used by all auth pages — single source of truth
+- Landing route changed from `path: ''` to `path: 'home'`; root `''` redirects to `home`; wildcard redirects to `overview`
+- Global overflow fix: `html/body` no longer has `overflow: hidden`; only `AppLayoutComponent` root div carries it
+- Auth pages (`/home`, `/login`, `/register`, etc.) scroll freely via `AuthLayoutComponent` `min-h-screen` wrapper
+- Scroll-to-top button on landing: appears after 400 px scroll via `@HostListener('window:scroll')`, smooth scroll on click
+- Anchor nav via `scrollIntoView` — no `href="#section"` links that pollute browser history
+- All public-facing marketing copy generalized — no French-specific terms, no competitor mentions on landing/auth pages
+- About section rewritten: professional product tone replacing personal-project framing
+- 58/58 tests, lint clean, build 0 errors
+
+## 2026-06-03 — UX fixes from functional testing (complete)
+- Cash + Savings account detail pages (`/wealth/cash/:id`, `/wealth/savings/:id`): header, balance, Transactions tab, Add Transaction modal (DEPOSIT/WITHDRAWAL only)
+- Clickable account rows in `cash.component.html` + `savings.component.html` via `<a [routerLink]>`
+- Form validation: errors shown only on submit attempt (`submitted` signal + `showError()` helper) — applied to LoginComponent, RegisterComponent, AddAccountModalComponent, ForgotPasswordComponent, ResetPasswordComponent
+- Login tab order: `tabindex="-1"` on "Forgot password?" link removes it from keyboard tab sequence while keeping it clickable
+- Modal backdrop: `(mousedown)` + `(mouseup)` pattern replaces `(click)` — prevents accidental close when dragging from inside the modal to outside; applied to AddAccountModal, AddTransactionModal, CsvImportModal
+- Custom broker dropdown in `AddAccountModalComponent` replaces native `<select>` (which ignored dark theme); `@HostListener('document:click')` closes it on outside click
+- Number input spinner arrows removed globally via `styles.scss` (`-webkit-appearance: none`, `-moz-appearance: textfield`)
+- Fees field: clears zero on focus, restores zero on blur (`onFeesFocus` / `onFeesBlur`)
+- Date validation in `AddTransactionModalComponent`: custom validator blocks years < 1900 or > 9999; `dateWarning` computed shows amber warning for future dates (non-blocking)
+- 65/65 tests, lint clean, build 0 errors

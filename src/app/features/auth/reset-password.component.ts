@@ -2,11 +2,12 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { AuthHeaderComponent } from './auth-header.component';
 
 @Component({
   selector: 'app-reset-password',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, AuthHeaderComponent],
   templateUrl: './reset-password.component.html',
 })
 export class ResetPasswordComponent implements OnInit {
@@ -15,10 +16,16 @@ export class ResetPasswordComponent implements OnInit {
   private readonly router      = inject(Router);
   private readonly fb          = inject(FormBuilder);
 
-  protected readonly token   = signal<string | null>(null);
-  protected readonly loading = signal(false);
-  protected readonly error   = signal<string | null>(null);
-  protected readonly success = signal(false);
+  protected readonly tokenState = signal<'validating' | 'valid' | 'invalid'>('validating');
+  protected readonly token     = signal<string | null>(null);
+  protected readonly loading   = signal(false);
+  protected readonly error     = signal<string | null>(null);
+  protected readonly success   = signal(false);
+  protected readonly submitted = signal(false);
+
+  protected showError(field: string): boolean {
+    return this.submitted() && !!this.form.get(field)?.invalid;
+  }
 
   protected readonly form = this.fb.group({
     password:        ['', [Validators.required, Validators.minLength(8)]],
@@ -28,13 +35,23 @@ export class ResetPasswordComponent implements OnInit {
   ngOnInit(): void {
     const token = this.route.snapshot.queryParamMap.get('token');
     if (!token) {
+      this.tokenState.set('invalid');
       this.error.set('Invalid reset link. Please request a new one.');
       return;
     }
     this.token.set(token);
+
+    this.authService.validateResetToken(token).subscribe({
+      next: () => this.tokenState.set('valid'),
+      error: (err) => {
+        this.tokenState.set('invalid');
+        this.error.set(err.error ?? 'Invalid or expired reset link.');
+      },
+    });
   }
 
   protected onSubmit(): void {
+    this.submitted.set(true);
     if (this.form.invalid || !this.token()) return;
     this.loading.set(true);
     this.error.set(null);

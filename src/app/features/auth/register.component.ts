@@ -2,11 +2,12 @@ import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { AuthHeaderComponent } from './auth-header.component';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, AuthHeaderComponent],
   templateUrl: './register.component.html',
 })
 export class RegisterComponent {
@@ -14,8 +15,21 @@ export class RegisterComponent {
   private readonly authService = inject(AuthService);
   private readonly router      = inject(Router);
 
-  protected readonly loading = signal(false);
-  protected readonly error   = signal<string | null>(null);
+  protected readonly loading    = signal(false);
+  protected readonly error      = signal<string | null>(null);
+  protected readonly submitted  = signal(false);
+
+  protected showError(field: string): boolean {
+    return this.submitted() && !!this.form.get(field)?.invalid;
+  }
+
+  protected readonly rightPanelItems = [
+    'All account types — stocks, ETFs, crypto, savings',
+    'Broker CSV import — no manual entry',
+    'Holdings, P&L, and fee tracking',
+    'Multi-user with strict data isolation',
+    'Dark mode included',
+  ];
 
   protected readonly form = this.fb.group({
     displayName: ['', [Validators.required, Validators.minLength(2)]],
@@ -24,6 +38,7 @@ export class RegisterComponent {
   });
 
   protected onSubmit(): void {
+    this.submitted.set(true);
     if (this.form.invalid) return;
     this.loading.set(true);
     this.error.set(null);

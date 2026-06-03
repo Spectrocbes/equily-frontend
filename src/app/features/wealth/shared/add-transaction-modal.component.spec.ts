@@ -1,7 +1,6 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { AddTransactionModalComponent } from './add-transaction-modal.component';
 import { AccountService } from '../../../core/services/account.service';
-import { Signal, signal } from '@angular/core';
 import { of } from 'rxjs';
 
 describe('AddTransactionModalComponent', () => {
@@ -10,8 +9,6 @@ describe('AddTransactionModalComponent', () => {
 
   beforeEach(async () => {
     mockService = {
-      modalLoading: signal(false) as Signal<boolean>,
-      modalError: signal<string | null>(null) as Signal<string | null>,
       recordTransaction: jest.fn().mockReturnValue(of(undefined)),
     };
 

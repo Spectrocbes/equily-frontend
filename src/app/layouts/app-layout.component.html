@@ -1,0 +1,21 @@
+<div class="flex flex-col h-screen overflow-hidden bg-slate-50 dark:bg-slate-900">
+  <app-navbar (menuToggled)="sidebarOpen.set(!sidebarOpen())" />
+  <div class="flex flex-1 overflow-hidden min-h-0 relative">
+    @if (sidebarOpen()) {
+      <div class="fixed inset-0 z-20 bg-black/50 lg:hidden"
+           role="button"
+           tabindex="0"
+           aria-label="Close sidebar"
+           (click)="sidebarOpen.set(false)"
+           (keydown.enter)="sidebarOpen.set(false)"
+           (keydown.space)="sidebarOpen.set(false)">
+      </div>
+    }
+    <app-sidebar
+      [open]="sidebarOpen()"
+      (closed)="sidebarOpen.set(false)" />
+    <main class="flex-1 overflow-y-auto min-w-0 p-4 lg:p-6">
+      <router-outlet />
+    </main>
+  </div>
+</div>

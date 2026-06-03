@@ -3,7 +3,6 @@ import { InvestmentAccountDetailComponent } from './investment-account-detail.co
 import { AccountService } from '../../../core/services/account.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { provideRouter } from '@angular/router';
-import { signal } from '@angular/core';
 import { of } from 'rxjs';
 import { FinancialAccount, Holding, Transaction } from '../../../core/models/account.model';
 
@@ -36,8 +35,6 @@ describe('InvestmentAccountDetailComponent', () => {
         {
           provide: AccountService,
           useValue: {
-            modalLoading: signal(false),
-            modalError: signal(null),
             getAccountById:  jest.fn().mockReturnValue(of(mockAccount)),
             getHoldings:     jest.fn().mockReturnValue(of([mockHolding])),
             getTransactions: jest.fn().mockReturnValue(of([mockTransaction])),

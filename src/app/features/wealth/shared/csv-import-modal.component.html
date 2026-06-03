@@ -1,7 +1,8 @@
 <div class="fixed inset-0 z-50 flex items-center justify-center p-4"
      role="presentation"
      tabindex="0"
-     (click)="onBackdropClick($event)"
+     (mousedown)="onBackdropMouseDown($event)"
+     (mouseup)="onBackdropMouseUp($event)"
      (keydown.escape)="closed.emit()">
   <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
 

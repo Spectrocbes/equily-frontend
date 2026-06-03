@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, input, output, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
 @Component({
@@ -8,6 +8,9 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
   templateUrl: './sidebar.component.html',
 })
 export class SidebarComponent {
+  readonly open   = input<boolean>(false);
+  readonly closed = output<void>();
+
   protected readonly wealthExpanded = signal(true);
 
   protected toggleWealth(): void {

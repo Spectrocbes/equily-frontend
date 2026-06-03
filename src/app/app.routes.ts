@@ -1,39 +1,59 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
+import { AuthLayoutComponent } from './layouts/auth-layout.component';
+import { AppLayoutComponent } from './layouts/app-layout.component';
 
 export const routes: Routes = [
-  // Public routes
-  {
-    path: 'login',
-    loadComponent: () =>
-      import('./features/auth/login.component').then(m => m.LoginComponent),
-  },
-  {
-    path: 'register',
-    loadComponent: () =>
-      import('./features/auth/register.component').then(m => m.RegisterComponent),
-  },
-  {
-    path: 'verify-email',
-    loadComponent: () =>
-      import('./features/auth/verify-email.component').then(m => m.VerifyEmailComponent),
-  },
-  {
-    path: 'forgot-password',
-    loadComponent: () =>
-      import('./features/auth/forgot-password.component').then(m => m.ForgotPasswordComponent),
-  },
-  {
-    path: 'reset-password',
-    loadComponent: () =>
-      import('./features/auth/reset-password.component').then(m => m.ResetPasswordComponent),
-  },
-  // Protected routes
+  // ── Auth layout (full-screen, no navbar/sidebar) ──────────────────
   {
     path: '',
+    component: AuthLayoutComponent,
+    children: [
+      { path: '', redirectTo: 'home', pathMatch: 'full' },
+      {
+        path: 'home',
+        loadComponent: () =>
+          import('./features/landing/landing.component')
+            .then(m => m.LandingComponent),
+      },
+      {
+        path: 'login',
+        loadComponent: () =>
+          import('./features/auth/login.component')
+            .then(m => m.LoginComponent),
+      },
+      {
+        path: 'register',
+        loadComponent: () =>
+          import('./features/auth/register.component')
+            .then(m => m.RegisterComponent),
+      },
+      {
+        path: 'verify-email',
+        loadComponent: () =>
+          import('./features/auth/verify-email.component')
+            .then(m => m.VerifyEmailComponent),
+      },
+      {
+        path: 'forgot-password',
+        loadComponent: () =>
+          import('./features/auth/forgot-password.component')
+            .then(m => m.ForgotPasswordComponent),
+      },
+      {
+        path: 'reset-password',
+        loadComponent: () =>
+          import('./features/auth/reset-password.component')
+            .then(m => m.ResetPasswordComponent),
+      },
+    ],
+  },
+  // ── App layout (navbar + sidebar, protected) ──────────────────────
+  {
+    path: '',
+    component: AppLayoutComponent,
     canActivate: [authGuard],
     children: [
-      { path: '', redirectTo: 'overview', pathMatch: 'full' },
       {
         path: 'overview',
         loadComponent: () =>

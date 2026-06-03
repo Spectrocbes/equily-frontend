@@ -53,8 +53,17 @@ export class CsvImportModalComponent {
     }
   }
 
-  protected onBackdropClick(event: MouseEvent): void {
-    if (event.target === event.currentTarget) this.closed.emit();
+  protected mouseDownOnBackdrop = false;
+
+  protected onBackdropMouseDown(event: MouseEvent): void {
+    this.mouseDownOnBackdrop = event.target === event.currentTarget;
+  }
+
+  protected onBackdropMouseUp(event: MouseEvent): void {
+    if (this.mouseDownOnBackdrop && event.target === event.currentTarget) {
+      this.closed.emit();
+    }
+    this.mouseDownOnBackdrop = false;
   }
 
   protected canImport(): boolean {

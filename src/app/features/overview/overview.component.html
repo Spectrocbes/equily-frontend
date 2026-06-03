@@ -1,7 +1,7 @@
 <div class="space-y-6">
 
   <!-- Header -->
-  <div class="flex items-center justify-between">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
     <div>
       <h1 class="text-2xl font-semibold text-slate-900 dark:text-white">Overview</h1>
       <p class="text-slate-500 dark:text-slate-400 mt-1 text-sm">
@@ -9,7 +9,7 @@
       </p>
     </div>
     <button (click)="showModal.set(true)"
-            class="flex items-center gap-2 px-4 py-2 rounded-lg
+            class="flex items-center gap-2 px-4 py-2 rounded-lg self-start sm:self-auto
                    bg-primary-500 hover:bg-primary-600
                    text-white text-sm font-medium transition-colors">
       <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24"

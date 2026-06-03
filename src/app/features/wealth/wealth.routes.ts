@@ -37,9 +37,21 @@ export const WEALTH_ROUTES: Routes = [
         .then(m => m.SavingsComponent),
   },
   {
+    path: 'savings/:id',
+    loadComponent: () =>
+      import('./savings/savings-account-detail.component')
+        .then(m => m.SavingsAccountDetailComponent),
+  },
+  {
     path: 'cash',
     loadComponent: () =>
       import('./cash/cash.component')
         .then(m => m.CashComponent),
+  },
+  {
+    path: 'cash/:id',
+    loadComponent: () =>
+      import('./cash/cash-account-detail.component')
+        .then(m => m.CashAccountDetailComponent),
   },
 ];
