@@ -25,18 +25,20 @@ describe('AddTransactionModalComponent', () => {
 
   it('renders all allowed types for PEA', () => {
     const text = fixture.nativeElement.textContent;
-    ['BUY', 'SELL', 'DIVIDEND', 'DEPOSIT', 'WITHDRAWAL'].forEach(t =>
+    ['Buy', 'Sell', 'Dividend', 'Deposit', 'Withdrawal'].forEach(t =>
       expect(text).toContain(t)
     );
   });
 
-  it('renders only DEPOSIT and WITHDRAWAL for SAVINGS_ACCOUNT', async () => {
+  it('renders DEPOSIT, WITHDRAWAL and INTEREST for savings sub-types', async () => {
     fixture.componentRef.setInput('accountType', 'SAVINGS_ACCOUNT');
+    fixture.componentRef.setInput('accountSubType', 'LIVRET_A');
     fixture.detectChanges();
     const text = fixture.nativeElement.textContent;
-    expect(text).toContain('DEPOSIT');
-    expect(text).toContain('WITHDRAWAL');
-    expect(text).not.toContain('BUY');
+    expect(text).toContain('Deposit');
+    expect(text).toContain('Withdrawal');
+    expect(text).toContain('Interest received');
+    expect(text).not.toContain('Buy');
   });
 
   it('submit button is disabled when form is invalid', () => {

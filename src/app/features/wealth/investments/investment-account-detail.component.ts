@@ -7,6 +7,7 @@ import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { AccountService } from '../../../core/services/account.service';
 import { FinancialAccount, Holding, Transaction, TransactionType, accountAgeYears } from '../../../core/models/account.model';
 import { AddTransactionModalComponent } from '../shared/add-transaction-modal.component';
+import { EditTransactionModalComponent } from '../shared/edit-transaction-modal.component';
 import { CsvImportModalComponent } from '../shared/csv-import-modal.component';
 import { DonutChartComponent, DonutSlice } from '../../../shared/components/donut-chart/donut-chart.component';
 
@@ -15,7 +16,8 @@ import { DonutChartComponent, DonutSlice } from '../../../shared/components/donu
   standalone: true,
   imports: [
     CurrencyPipe, DecimalPipe, RouterLink,
-    AddTransactionModalComponent, CsvImportModalComponent, DonutChartComponent
+    AddTransactionModalComponent, EditTransactionModalComponent,
+    CsvImportModalComponent, DonutChartComponent,
   ],
   templateUrl: './investment-account-detail.component.html',
 })
@@ -30,8 +32,9 @@ export class InvestmentAccountDetailComponent implements OnInit {
   protected readonly loading      = signal(false);
   protected readonly error        = signal<string | null>(null);
 
-  protected readonly showTransactionModal = signal(false);
-  protected readonly showCsvModal        = signal(false);
+  protected readonly showTransactionModal  = signal(false);
+  protected readonly showCsvModal         = signal(false);
+  protected readonly editingTransaction   = signal<Transaction | null>(null);
   protected readonly activeTab           = signal<'holdings' | 'transactions'>('holdings');
   protected readonly plMode              = signal<'euro' | 'percent'>('euro');
 
@@ -105,6 +108,7 @@ export class InvestmentAccountDetailComponent implements OnInit {
     switch (type) {
       case 'DEPOSIT':
       case 'DIVIDEND':
+      case 'INTEREST':
         this.showDelta(this.cashDelta, this.cashDeltaPositive, amount, true);
         break;
       case 'WITHDRAWAL':
@@ -119,6 +123,15 @@ export class InvestmentAccountDetailComponent implements OnInit {
         this.showDelta(this.portfolioDelta, this.portfolioDeltaPositive, amount, false);
         break;
     }
+  }
+
+  protected onTransactionEditClick(tx: Transaction): void {
+    this.editingTransaction.set(tx);
+  }
+
+  protected onTransactionUpdated(): void {
+    const id = this.route.snapshot.paramMap.get('id')!;
+    this.loadAll(id);
   }
 
   private showDelta(
@@ -146,6 +159,7 @@ export class InvestmentAccountDetailComponent implements OnInit {
       BUY:        'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300',
       SELL:       'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300',
       DIVIDEND:   'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300',
+      INTEREST:   'bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300',
       DEPOSIT:    'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300',
       WITHDRAWAL: 'bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300',
     };

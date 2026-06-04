@@ -4,11 +4,12 @@ import { CurrencyPipe } from '@angular/common';
 import { AccountService } from '../../../core/services/account.service';
 import { FinancialAccount, Transaction, TransactionType } from '../../../core/models/account.model';
 import { AddTransactionModalComponent } from '../shared/add-transaction-modal.component';
+import { EditTransactionModalComponent } from '../shared/edit-transaction-modal.component';
 
 @Component({
   selector: 'app-cash-account-detail',
   standalone: true,
-  imports: [CurrencyPipe, RouterLink, AddTransactionModalComponent],
+  imports: [CurrencyPipe, RouterLink, AddTransactionModalComponent, EditTransactionModalComponent],
   templateUrl: './cash-account-detail.component.html',
 })
 export class CashAccountDetailComponent implements OnInit {
@@ -21,6 +22,7 @@ export class CashAccountDetailComponent implements OnInit {
   protected readonly loading      = signal(true);
   protected readonly error        = signal<string | null>(null);
   protected readonly showTransactionModal = signal(false);
+  protected readonly editingTransaction   = signal<Transaction | null>(null);
   protected readonly allowedTypes: TransactionType[] = ['DEPOSIT', 'WITHDRAWAL'];
 
   ngOnInit(): void {
@@ -49,10 +51,20 @@ export class CashAccountDetailComponent implements OnInit {
     this.loadAll(id);
   }
 
+  protected onTransactionEditClick(tx: Transaction): void {
+    this.editingTransaction.set(tx);
+  }
+
+  protected onTransactionUpdated(): void {
+    const id = this.route.snapshot.paramMap.get('id')!;
+    this.loadAll(id);
+  }
+
   protected getBadgeClass(type: string): string {
     const map: Record<string, string> = {
       DEPOSIT:    'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300',
       WITHDRAWAL: 'bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300',
+      INTEREST:   'bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300',
     };
     return map[type] ?? 'bg-slate-100 text-slate-600';
   }

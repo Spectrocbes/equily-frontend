@@ -13,6 +13,7 @@ import {
   CsvBroker,
   CsvMode,
   CsvImportResponse,
+  PeaSummary,
 } from '../models/account.model';
 
 @Injectable({ providedIn: 'root' })
@@ -170,6 +171,28 @@ export class AccountService {
     this._error.set(null);
     this._modalLoading.set(false);
     this._modalError.set(null);
+  }
+
+  getPeaSummary(): Observable<PeaSummary> {
+    return this.http.get<PeaSummary>(`${this.apiUrl}/summary/pea`);
+  }
+
+  updateTransaction(
+    accountId: string,
+    transactionId: string,
+    data: {
+      totalAmount: number;
+      date: string;
+      fees: number;
+      quantity?: number;
+      pricePerUnit?: number;
+      description?: string;
+    }
+  ): Observable<void> {
+    return this.http.put<void>(
+      `${this.apiUrl}/${accountId}/transactions/${transactionId}`,
+      data
+    );
   }
 
   importCsv(

@@ -86,7 +86,8 @@ export type TransactionType =
   | 'SELL'
   | 'DIVIDEND'
   | 'DEPOSIT'
-  | 'WITHDRAWAL';
+  | 'WITHDRAWAL'
+  | 'INTEREST';
 
 export interface CreateAccountRequest {
   name: string;
@@ -177,6 +178,20 @@ export interface RecordTransactionRequest {
   date: string;
   fees?: number;
   description?: string;
+}
+
+export interface PeaSummary {
+  hasPea: boolean;
+  hasPeaPme: boolean;
+  peaDeposits: number;
+  peaPmeDeposits: number;
+  combinedDeposits: number;
+  combinedLimit: number;
+  combinedRemaining: number;
+  peaLimit: number;
+  peaRemaining: number;
+  peaAccountId: string | null;
+  peaPmeAccountId: string | null;
 }
 
 export type CsvBroker = 'BOURSOBANK';

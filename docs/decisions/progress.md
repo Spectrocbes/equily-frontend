@@ -210,3 +210,13 @@
 - Fees field: clears zero on focus, restores zero on blur (`onFeesFocus` / `onFeesBlur`)
 - Date validation in `AddTransactionModalComponent`: custom validator blocks years < 1900 or > 9999; `dateWarning` computed shows amber warning for future dates (non-blocking)
 - 65/65 tests, lint clean, build 0 errors
+
+## 2026-06-04 — Transaction edit, INTEREST type, PEA combined warning, UX fixes (complete)
+- Age badge in `InvestmentAccountDetailComponent` conditioned on `subType === 'PEA' || 'PEA_PME'` only (was shown for all investment accounts)
+- `AddAccountModal`: subType auto-selected when only one option available; `Validators.required` applied dynamically when sub-types exist; "(optional)" label removed; validation error shown on submit
+- `PeaSummary` interface + `AccountService.getPeaSummary()` added (GET `/accounts/summary/pea`); `AddTransactionModal` loads it on init for PEA/PEA-PME accounts and shows combined PEA+PEA-PME deposit warning when both accounts exist
+- `INTEREST` added to `TransactionType`; `availableTransactionTypes` computed in `AddTransactionModal` filters by `accountSubType` — savings sub-types get DEPOSIT/WITHDRAWAL/INTEREST, cash gets DEPOSIT/WITHDRAWAL, investments get the full set; buttons show human-readable labels
+- `EditTransactionModalComponent` created — edits totalAmount/date/fees/description; type + ticker shown as read-only badge; PUT `/accounts/:id/transactions/:id`; toast on success/error
+- Hover-revealed edit button on transaction rows in investment, cash, and savings detail pages (`group` + `opacity-0 group-hover:opacity-100`)
+- "Accounts" `<h2>` section header added before accounts list in `savings.component.html` and `cash.component.html`
+- 84/84 tests, lint clean, build 0 errors
