@@ -56,9 +56,19 @@
       <div class="flex items-start gap-4 self-start sm:self-auto">
         <div class="text-right">
           <p class="text-xs text-slate-500 dark:text-slate-400 mb-0.5">Balance</p>
-          <p class="text-2xl font-bold font-mono text-slate-900 dark:text-white">
-            {{ account()!.balance | currency:account()!.currency:'symbol':'1.2-2' }}
-          </p>
+          <div class="relative">
+            <p class="text-2xl font-bold font-mono text-slate-900 dark:text-white">
+              {{ account()!.balance | currency:account()!.currency:'symbol':'1.2-2' }}
+            </p>
+            @if (savingsDelta() !== null) {
+              <span class="text-sm font-mono animate-bounce"
+                    [class]="savingsDeltaPositive()
+                      ? 'text-emerald-500' : 'text-rose-500'">
+                {{ savingsDeltaPositive() ? '↑ +' : '↓ -' }}
+                {{ savingsDelta()! | currency:'EUR':'symbol':'1.2-2' }}
+              </span>
+            }
+          </div>
         </div>
 
         <button type="button"
@@ -158,8 +168,9 @@
       [depositLimit]="account()!.depositLimit"
       [totalDeposits]="account()!.totalDeposits"
       [remainingCapacity]="account()!.remainingCapacity"
+      [currentBalance]="account()!.balance"
       (closed)="showTransactionModal.set(false)"
-      (created)="onTransactionCreated()" />
+      (created)="onTransactionCreated($event.type, $event.amount)" />
   }
 
   <!-- Edit Transaction Modal -->

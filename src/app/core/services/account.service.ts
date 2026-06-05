@@ -47,7 +47,10 @@ export class AccountService {
     this.http.get<FinancialAccount[]>(this.apiUrl).pipe(
       tap({
         next: (accounts) => {
-          this._accounts.set(accounts);
+          const sorted = [...accounts].sort((a, b) =>
+            a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+          );
+          this._accounts.set(sorted);
           this._loading.set(false);
         },
         error: (err) => {

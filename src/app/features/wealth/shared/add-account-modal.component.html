@@ -75,29 +75,31 @@
           }
         </div>
 
-        <!-- Account type -->
-        <div>
-          <label for="account-type" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-            Account type
-          </label>
-          <select
-            id="account-type"
-            formControlName="accountType"
-            class="w-full px-3 py-2 rounded-lg text-sm
-                   bg-slate-50 dark:bg-slate-900
-                   border border-slate-200 dark:border-slate-600
-                   text-slate-900 dark:text-white
-                   focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
-                   transition-colors">
-            <option value="">Select a type</option>
-            @for (type of filteredAccountTypes(); track type.value) {
-              <option [value]="type.value">{{ type.label }}</option>
+        @if (!isSingleAccountType()) {
+          <!-- Account type -->
+          <div>
+            <label for="account-type" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+              Account type
+            </label>
+            <select
+              id="account-type"
+              formControlName="accountType"
+              class="w-full px-3 py-2 rounded-lg text-sm
+                     bg-slate-50 dark:bg-slate-900
+                     border border-slate-200 dark:border-slate-600
+                     text-slate-900 dark:text-white
+                     focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
+                     transition-colors">
+              <option value="">Select a type</option>
+              @for (type of filteredAccountTypes(); track type.value) {
+                <option [value]="type.value">{{ type.label }}</option>
+              }
+            </select>
+            @if (showError('accountType')) {
+              <p class="text-rose-500 text-xs mt-1">Account type is required</p>
             }
-          </select>
-          @if (showError('accountType')) {
-            <p class="text-rose-500 text-xs mt-1">Account type is required</p>
-          }
-        </div>
+          </div>
+        }
 
         <!-- Sub-type -->
         @if (showSubType()) {
@@ -105,7 +107,7 @@
             <label for="account-sub-type"
                    class="block text-sm font-medium
                            text-slate-700 dark:text-slate-300 mb-1.5">
-              Account sub-type
+              {{ isSingleAccountType() ? 'Account type' : 'Account sub-type' }}
             </label>
             <select id="account-sub-type" formControlName="subType"
                     class="w-full px-3 py-2 rounded-lg text-sm
@@ -259,24 +261,26 @@
             <span class="font-medium text-slate-900 dark:text-white">{{ form.value.name }}</span>
           </div>
 
-          <div class="flex justify-between text-sm">
-            <span class="text-slate-500 dark:text-slate-400">Type</span>
-            <span class="font-medium text-slate-900 dark:text-white">{{ form.value.accountType }}</span>
-          </div>
+          @if (isSingleAccountType() && form.value.subType) {
+            <div class="flex justify-between text-sm">
+              <span class="text-slate-500 dark:text-slate-400">Type</span>
+              <span class="font-medium text-slate-900 dark:text-white">
+                {{ ACCOUNT_SUB_TYPE_LABELS[form.value.subType!] }}
+              </span>
+            </div>
+          } @else {
+            <div class="flex justify-between text-sm">
+              <span class="text-slate-500 dark:text-slate-400">Type</span>
+              <span class="font-medium text-slate-900 dark:text-white">
+                {{ ACCOUNT_TYPE_LABELS[form.value.accountType!] }}
+              </span>
+            </div>
+          }
 
           @if (form.value.broker) {
             <div class="flex justify-between text-sm">
               <span class="text-slate-500 dark:text-slate-400">Broker</span>
               <span class="font-medium text-slate-900 dark:text-white">{{ form.value.broker }}</span>
-            </div>
-          }
-
-          @if (form.value.subType) {
-            <div class="flex justify-between text-sm">
-              <span class="text-slate-500 dark:text-slate-400">Sub-type</span>
-              <span class="font-medium text-slate-900 dark:text-white">
-                {{ ACCOUNT_SUB_TYPE_LABELS[form.value.subType!] }}
-              </span>
             </div>
           }
 

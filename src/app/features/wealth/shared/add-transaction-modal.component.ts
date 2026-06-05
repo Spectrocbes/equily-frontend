@@ -22,6 +22,7 @@ export class AddTransactionModalComponent implements OnInit {
   remainingCapacity = input<number | null>(null);
   depositLimit      = input<number | null>(null);
   totalDeposits     = input<number | null>(null);
+  currentBalance    = input<number | null>(null);
 
   closed  = output<void>();
   created = output<{ type: TransactionType; amount: number }>();
@@ -121,6 +122,37 @@ export class AddTransactionModalComponent implements OnInit {
     ['LIVRET_A', 'LDDS', 'LEP', 'LIVRET_JEUNE'].includes(this.accountSubType() ?? '')
   );
 
+  protected readonly usedAmount = computed(() => {
+    if (this.isSavingsSubType()) {
+      return this.currentBalance() ?? 0;
+    }
+    return this.totalDeposits() ?? 0;
+  });
+
+  protected readonly effectiveLimit = computed(() => {
+    const summary = this.peaSummary();
+    if (summary?.hasPea && summary?.hasPeaPme) {
+      return summary.combinedLimit;
+    }
+    return this.depositLimit() ?? 0;
+  });
+
+  protected readonly effectiveRemaining = computed(() => {
+    const summary = this.peaSummary();
+    if (summary?.hasPea && summary?.hasPeaPme) {
+      return summary.combinedRemaining;
+    }
+    return this.remainingCapacity() ?? 0;
+  });
+
+  protected readonly effectiveUsed = computed(() => {
+    const summary = this.peaSummary();
+    if (summary?.hasPea && summary?.hasPeaPme) {
+      return summary.combinedDeposits;
+    }
+    return this.usedAmount();
+  });
+
   protected readonly showDepositWarning = computed(() => {
     const type = this.selectedType();
     if (type !== 'DEPOSIT') return false;
@@ -130,17 +162,16 @@ export class AddTransactionModalComponent implements OnInit {
   protected readonly wouldExceedLimit = computed(() => {
     if (!this.showDepositWarning()) return false;
     const amount    = this.formValue().totalAmount ?? 0;
-    const remaining = this.remainingCapacity() ?? Infinity;
+    const remaining = this.effectiveRemaining();
     return remaining <= 0 || amount > remaining;
   });
 
   protected readonly isApproachingLimit = computed(() => {
     if (!this.showDepositWarning()) return false;
     if (this.wouldExceedLimit()) return false;
-    const limit = this.depositLimit()!;
-    const total = this.totalDeposits() ?? 0;
+    const limit = this.effectiveLimit();
     if (limit === 0) return false;
-    return (total / limit) >= 0.9;
+    return (this.effectiveUsed() / limit) >= 0.9;
   });
 
   protected readonly maxDate = computed(() => {

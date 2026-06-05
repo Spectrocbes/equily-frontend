@@ -28,6 +28,8 @@ export class SavingsAccountDetailComponent implements OnInit {
   protected readonly ACCOUNT_SUB_TYPE_LABELS = ACCOUNT_SUB_TYPE_LABELS;
   protected readonly showTransactionModal    = signal(false);
   protected readonly editingTransaction      = signal<Transaction | null>(null);
+  protected readonly savingsDelta            = signal<number | null>(null);
+  protected readonly savingsDeltaPositive    = signal<boolean>(true);
   protected readonly allowedTypes: TransactionType[] = ['DEPOSIT', 'WITHDRAWAL'];
 
   ngOnInit(): void {
@@ -51,9 +53,12 @@ export class SavingsAccountDetailComponent implements OnInit {
     });
   }
 
-  protected onTransactionCreated(): void {
+  protected onTransactionCreated(type: string, amount: number): void {
     const id = this.route.snapshot.paramMap.get('id')!;
     this.loadAll(id);
+    this.savingsDeltaPositive.set(type !== 'WITHDRAWAL');
+    this.savingsDelta.set(amount);
+    setTimeout(() => this.savingsDelta.set(null), 4000);
   }
 
   protected onTransactionEditClick(tx: Transaction): void {
