@@ -173,7 +173,7 @@
               Import complete
             </p>
           </div>
-          <div class="grid grid-cols-3 gap-3">
+          <div [class]="result()!.skipped > 0 ? 'grid grid-cols-3 gap-3' : 'grid grid-cols-2 gap-3'">
             <div class="text-center">
               <p class="text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400">
                 {{ displayedImported() }}
@@ -183,14 +183,16 @@
                 <p class="text-xs text-primary-400 mt-0.5">+ 1 auto-deposit</p>
               }
             </div>
-            <div class="text-center">
-              <p class="text-2xl font-bold font-mono text-slate-500 dark:text-slate-400">
-                {{ result()!.skipped }}
-              </p>
-              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Skipped
-              </p>
-            </div>
+            @if (result()!.skipped > 0) {
+              <div class="text-center">
+                <p class="text-2xl font-bold font-mono text-slate-500 dark:text-slate-400">
+                  {{ result()!.skipped }}
+                </p>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Skipped
+                </p>
+              </div>
+            }
             <div class="text-center">
               <p class="text-2xl font-bold font-mono"
                  [class]="result()!.errors > 0

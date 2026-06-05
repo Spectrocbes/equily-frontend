@@ -1,11 +1,11 @@
-import { Component, output, input, inject, signal, computed, HostListener } from '@angular/core';
+import { Component, OnInit, output, input, inject, signal, computed, HostListener } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { AccountService } from '../../../core/services/account.service';
 import {
   AccountType, AccountSubType,
-  ACCOUNT_TYPE_SUB_TYPES, ACCOUNT_SUB_TYPE_LABELS,
+  ACCOUNT_TYPE_SUB_TYPES, ACCOUNT_SUB_TYPE_LABELS, ACCOUNT_TYPE_LABELS,
 } from '../../../core/models/account.model';
 import { ToastService } from '../../../shared/toast/toast.service';
 
@@ -15,7 +15,7 @@ import { ToastService } from '../../../shared/toast/toast.service';
   imports: [ReactiveFormsModule, DecimalPipe, DatePipe],
   templateUrl: './add-account-modal.component.html',
 })
-export class AddAccountModalComponent {
+export class AddAccountModalComponent implements OnInit {
   closed = output<void>();
   created = output<void>();
   allowedTypes = input<AccountType[] | null>(null);
@@ -35,6 +35,11 @@ export class AddAccountModalComponent {
   }
 
   protected readonly ACCOUNT_SUB_TYPE_LABELS = ACCOUNT_SUB_TYPE_LABELS;
+  protected readonly ACCOUNT_TYPE_LABELS     = ACCOUNT_TYPE_LABELS as Record<string, string>;
+
+  protected readonly isSingleAccountType = computed(() =>
+    (this.allowedTypes()?.length ?? 0) === 1
+  );
 
   protected readonly brokerDropdownOpen = signal(false);
   protected readonly selectedBroker     = signal<string>('');
@@ -139,6 +144,13 @@ export class AddAccountModalComponent {
       this.closed.emit();
     }
     this.mouseDownOnBackdrop = false;
+  }
+
+  ngOnInit(): void {
+    const allowed = this.allowedTypes();
+    if (allowed?.length === 1) {
+      this.form.get('accountType')?.setValue(allowed[0]);
+    }
   }
 
   protected nextStep(): void {

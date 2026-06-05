@@ -156,18 +156,29 @@
         @if (peaSummary() && peaSummary()!.hasPea && peaSummary()!.hasPeaPme) {
           <!-- Combined PEA + PEA-PME warning -->
           <div class="rounded-lg p-3 text-sm space-y-2 border"
-               [class]="peaSummary()!.combinedRemaining <= 0
+               [class]="wouldExceedLimit()
                  ? 'bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-800'
-                 : peaSummary()!.combinedDeposits / peaSummary()!.combinedLimit >= 0.9
+                 : isApproachingLimit()
                  ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
                  : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700'">
 
-            <p class="font-medium"
-               [class]="peaSummary()!.combinedRemaining <= 0
-                 ? 'text-rose-700 dark:text-rose-300'
-                 : 'text-amber-700 dark:text-amber-300'">
-              Combined PEA + PEA-PME deposit limit
-            </p>
+            <div class="flex items-center gap-1.5 font-medium"
+                 [class]="wouldExceedLimit()
+                   ? 'text-rose-700 dark:text-rose-300'
+                   : isApproachingLimit()
+                   ? 'text-amber-700 dark:text-amber-300'
+                   : 'text-slate-600 dark:text-slate-400'">
+              @if (wouldExceedLimit()) {
+                <span>⛔</span>
+                <span>Combined deposit limit exceeded</span>
+              } @else if (isApproachingLimit()) {
+                <span>⚠️</span>
+                <span>Approaching combined deposit limit</span>
+              } @else {
+                <span>ℹ️</span>
+                <span>Combined PEA + PEA-PME deposit limit</span>
+              }
+            </div>
 
             <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
               <span>PEA deposits</span>
@@ -229,7 +240,7 @@
               </span>
               <span>{{ isSavingsSubType() ? 'Current balance' : 'Deposits so far' }}</span>
               <span class="text-right font-mono">
-                {{ (totalDeposits() ?? 0) | currency:'EUR':'symbol':'1.2-2' }}
+                {{ usedAmount() | currency:'EUR':'symbol':'1.2-2' }}
               </span>
               <span class="font-medium">Remaining capacity</span>
               <span class="text-right font-mono font-medium">

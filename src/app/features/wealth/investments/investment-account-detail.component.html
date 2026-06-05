@@ -470,6 +470,7 @@
       [depositLimit]="account()!.depositLimit"
       [totalDeposits]="account()!.totalDeposits"
       [remainingCapacity]="account()!.remainingCapacity"
+      [currentBalance]="account()!.balance"
       (closed)="showTransactionModal.set(false)"
       (created)="onTransactionCreated($event.type, $event.amount)" />
   }
