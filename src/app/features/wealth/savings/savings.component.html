@@ -53,7 +53,7 @@
                   {{ account.name }}
                 </p>
                 <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
-                  {{ account.broker }} · {{ account.accountType }}
+                  {{ account.broker }} · {{ ACCOUNT_TYPE_LABELS[account.accountType] }}
                   · {{ account.transactionCount }} transaction{{ account.transactionCount !== 1 ? 's' : '' }}
                 </p>
               </div>
@@ -75,16 +75,18 @@
                   </div>
                 </div>
                 <div class="flex justify-between mt-1">
-                  <span class="text-xs text-slate-400 dark:text-slate-500">
-                    {{ (account.totalDeposits ?? 0) | currency:'EUR':'symbol':'1.0-0' }} deposited
-                  </span>
-                  <span class="text-xs font-medium"
-                        [class]="depositPercent(account) >= 100
-                          ? 'text-rose-500'
-                          : depositPercent(account) >= 90
-                          ? 'text-amber-500'
-                          : 'text-slate-400 dark:text-slate-500'">
-                    {{ (account.remainingCapacity ?? 0) | currency:'EUR':'symbol':'1.0-0' }} left
+                  @if (account.subType === 'PEA' || account.subType === 'PEA_PME') {
+                    <span class="text-xs text-slate-400">
+                      {{ (account.totalDeposits ?? 0) | currency:'EUR':'symbol':'1.0-0' }} deposited
+                    </span>
+                  } @else {
+                    <span class="text-xs text-slate-400">
+                      {{ account.balance | currency:'EUR':'symbol':'1.0-0' }} balance
+                    </span>
+                  }
+                  <span class="text-xs"
+                        [class]="depositPercent(account) >= 90 ? 'text-amber-500' : 'text-slate-400'">
+                    {{ (account.remainingCapacity ?? 0) | currency:'EUR':'symbol':'1.0-0' }} remaining
                   </span>
                 </div>
               </div>

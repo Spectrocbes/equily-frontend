@@ -1,12 +1,11 @@
 export type AccountSubType =
-  | 'LIVRET_A' | 'LDDS' | 'LDD' | 'LEP' | 'LIVRET_JEUNE'
+  | 'LIVRET_A' | 'LDDS' | 'LEP' | 'LIVRET_JEUNE'
   | 'PEA' | 'PEA_PME' | 'COMPTE_TITRES' | 'PER' | 'ASSURANCE_VIE'
   | 'CRYPTO_WALLET' | 'CASH_ACCOUNT' | 'REAL_ESTATE' | 'OTHER';
 
 export const ACCOUNT_SUB_TYPE_LABELS: Record<AccountSubType, string> = {
   LIVRET_A:      'Livret A',
   LDDS:          'LDDS',
-  LDD:           'LDD',
   LEP:           'LEP',
   LIVRET_JEUNE:  'Livret Jeune',
   PEA:           'PEA',
@@ -21,7 +20,7 @@ export const ACCOUNT_SUB_TYPE_LABELS: Record<AccountSubType, string> = {
 };
 
 export const ACCOUNT_TYPE_SUB_TYPES: Partial<Record<AccountType, AccountSubType[]>> = {
-  SAVINGS_ACCOUNT: ['LIVRET_A', 'LDDS', 'LDD', 'LEP', 'LIVRET_JEUNE'],
+  SAVINGS_ACCOUNT: ['LIVRET_A', 'LDDS', 'LEP', 'LIVRET_JEUNE'],
   PEA:             ['PEA'],
   PEA_PME:         ['PEA_PME'],
   COMPTE_TITRES:   ['COMPTE_TITRES'],
@@ -35,7 +34,6 @@ export const ACCOUNT_TYPE_SUB_TYPES: Partial<Record<AccountType, AccountSubType[
 export const DEPOSIT_LIMITS: Partial<Record<AccountSubType, number>> = {
   LIVRET_A:     22950,
   LDDS:         12000,
-  LDD:          12000,
   LEP:          10000,
   LIVRET_JEUNE: 1600,
   PEA:          150000,
@@ -55,6 +53,7 @@ export interface FinancialAccount {
   totalDeposits: number | null;
   remainingCapacity: number | null;
   openedAt: string | null; // ISO date string 'YYYY-MM-DD'
+  portfolioValue: number | null; // null for savings/cash/real-estate
 }
 
 export type AccountType =
@@ -99,6 +98,10 @@ export interface CreateAccountRequest {
   openedAt: string | null;
 }
 
+export function totalAccountValue(account: FinancialAccount): number {
+  return (account.portfolioValue ?? 0) + account.balance;
+}
+
 export function accountAgeYears(openedAt: string | null): number | null {
   if (!openedAt) return null;
   const opened = new Date(openedAt);
@@ -113,6 +116,18 @@ export type WealthCategory =
   | 'crypto'
   | 'savings'
   | 'cash';
+
+export const ACCOUNT_TYPE_LABELS: Record<AccountType, string> = {
+  PEA:             'PEA',
+  PEA_PME:         'PEA-PME',
+  COMPTE_TITRES:   'Compte Titres',
+  PER:             'PER',
+  ASSURANCE_VIE:   'Assurance Vie',
+  SAVINGS_ACCOUNT: 'Savings',
+  CASH_ACCOUNT:    'Cash',
+  CRYPTO_WALLET:   'Crypto',
+  REAL_ESTATE:     'Real Estate',
+};
 
 export const ACCOUNT_CATEGORY: Record<AccountType, WealthCategory> = {
   PEA:             'investments',

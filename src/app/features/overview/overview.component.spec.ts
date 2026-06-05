@@ -11,6 +11,7 @@ const mockSummary: AccountSummary = {
     subType: 'PEA', balance: 2698, currency: 'EUR',
     transactionCount: 5, broker: 'Fortuneo',
     depositLimit: 150000, totalDeposits: 2698, remainingCapacity: 147302,
+    openedAt: null, portfolioValue: 7295,
   },
   totalInvested: 7295,
   totalFeesPaid: 12.30,
@@ -44,8 +45,8 @@ describe('OverviewComponent', () => {
     fixture.detectChanges();
   });
 
-  it('uses totalInvested + balance for investment accounts in totalWealth', () => {
-    // PEA with balance=2698 and totalInvested=7295 → 7295 + 2698 = 9993
+  it('uses portfolioValue + balance for investment accounts in totalWealth', () => {
+    // PEA with portfolioValue=7295 and balance=2698 → 7295 + 2698 = 9993
     expect(fixture.componentInstance.totalWealth()).toBe(9993);
   });
 

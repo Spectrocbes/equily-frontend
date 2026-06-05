@@ -1,5 +1,6 @@
-import { Component, input, output, inject, signal } from '@angular/core';
+import { Component, input, output, inject, signal, computed } from '@angular/core';
 import { AccountService } from '../../../core/services/account.service';
+import { ToastService } from '../../../shared/toast/toast.service';
 import {
   CsvBroker, CsvMode, CsvImportResponse
 } from '../../../core/models/account.model';
@@ -16,6 +17,7 @@ export class CsvImportModalComponent {
   imported  = output<CsvImportResponse>();
 
   private readonly accountService = inject(AccountService);
+  private readonly toastService   = inject(ToastService);
 
   protected readonly step =
     signal<'select' | 'result'>('select');
@@ -25,6 +27,20 @@ export class CsvImportModalComponent {
   protected readonly loading        = signal(false);
   protected readonly error          = signal<string | null>(null);
   protected readonly result         = signal<CsvImportResponse | null>(null);
+
+  protected readonly displayedImported = computed(() => {
+    const result = this.result();
+    if (!result) return 0;
+    if (this.selectedMode() === 'POSITIONS' && result.imported > 0) {
+      return result.imported - 1;
+    }
+    return result.imported;
+  });
+
+  protected readonly autoDepositAdded = computed(() =>
+    this.selectedMode() === 'POSITIONS' &&
+    (this.result()?.imported ?? 0) > 0
+  );
 
   protected readonly brokers: { value: CsvBroker; label: string }[] = [
     { value: 'BOURSOBANK', label: 'BoursoBank' },
@@ -88,7 +104,15 @@ export class CsvImportModalComponent {
         this.imported.emit(res);
       },
       error: (err) => {
-        this.error.set(err.error ?? err.message ?? 'Import failed');
+        let message = 'Import failed. Please try again.';
+        if (err.error && typeof err.error === 'string') {
+          message = err.error;
+        } else if (err.error?.message && typeof err.error.message === 'string') {
+          message = err.error.message;
+        } else if (err.status === 400) {
+          message = 'Invalid file — no valid transactions found.';
+        }
+        this.toastService.error(message);
         this.loading.set(false);
       },
     });

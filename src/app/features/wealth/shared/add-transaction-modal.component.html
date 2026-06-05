@@ -227,7 +227,7 @@
               <span class="text-right font-mono font-medium">
                 {{ depositLimit() | currency:'EUR':'symbol':'1.2-2' }}
               </span>
-              <span>Deposits so far</span>
+              <span>{{ isSavingsSubType() ? 'Current balance' : 'Deposits so far' }}</span>
               <span class="text-right font-mono">
                 {{ (totalDeposits() ?? 0) | currency:'EUR':'symbol':'1.2-2' }}
               </span>

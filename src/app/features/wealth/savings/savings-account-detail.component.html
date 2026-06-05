@@ -37,14 +37,14 @@
           <span class="text-xs font-medium px-2 py-0.5 rounded-full
                        bg-emerald-50 dark:bg-emerald-900/30
                        text-emerald-700 dark:text-emerald-300">
-            {{ account()!.accountType }}
+            {{ ACCOUNT_TYPE_LABELS[account()!.accountType] }}
           </span>
           <span class="text-xs text-slate-400 dark:text-slate-500">
             {{ account()!.broker }}
           </span>
           @if (account()!.subType) {
             <span class="text-xs text-slate-400 dark:text-slate-500">
-              · {{ account()!.subType }}
+              · {{ ACCOUNT_SUB_TYPE_LABELS[account()!.subType!] }}
             </span>
           }
         </div>

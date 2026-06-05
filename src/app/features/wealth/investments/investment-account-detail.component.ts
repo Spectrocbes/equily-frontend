@@ -5,7 +5,10 @@ import {
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { AccountService } from '../../../core/services/account.service';
-import { FinancialAccount, Holding, Transaction, TransactionType, accountAgeYears } from '../../../core/models/account.model';
+import {
+  FinancialAccount, Holding, Transaction, TransactionType, accountAgeYears,
+  ACCOUNT_TYPE_LABELS,
+} from '../../../core/models/account.model';
 import { AddTransactionModalComponent } from '../shared/add-transaction-modal.component';
 import { EditTransactionModalComponent } from '../shared/edit-transaction-modal.component';
 import { CsvImportModalComponent } from '../shared/csv-import-modal.component';
@@ -32,6 +35,7 @@ export class InvestmentAccountDetailComponent implements OnInit {
   protected readonly loading      = signal(false);
   protected readonly error        = signal<string | null>(null);
 
+  protected readonly ACCOUNT_TYPE_LABELS   = ACCOUNT_TYPE_LABELS;
   protected readonly showTransactionModal  = signal(false);
   protected readonly showCsvModal         = signal(false);
   protected readonly editingTransaction   = signal<Transaction | null>(null);

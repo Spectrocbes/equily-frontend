@@ -12,10 +12,17 @@
     </div>
     <div class="flex items-center gap-3 self-start sm:self-auto">
       <div class="text-right">
-        <p class="text-xs text-slate-500 dark:text-slate-400 mb-1">Total</p>
-        <p class="text-2xl font-bold font-mono text-slate-900 dark:text-white">
-          {{ total() | currency:'EUR':'symbol':'1.2-2' }}
+        <p class="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-0.5">
+          Total
         </p>
+        <p class="text-xl font-bold font-mono text-primary-400">
+          {{ totalPortfolioValue() | currency:'EUR':'symbol':'1.2-2' }}
+        </p>
+        @if (totalCash() > 0) {
+          <p class="text-xs text-slate-500 dark:text-slate-500 font-mono mt-0.5">
+            + {{ totalCash() | currency:'EUR':'symbol':'1.0-0' }} cash
+          </p>
+        }
       </div>
       <button (click)="showModal.set(true)"
               class="flex items-center gap-2 px-4 py-2 rounded-lg
@@ -62,7 +69,7 @@
         <p class="text-slate-400 text-sm">No investment accounts yet</p>
       </div>
     } @else {
-      <div class="divide-y divide-slate-100 dark:divide-slate-700">
+      <div class="divide-y divide-slate-100 dark:divide-slate-700 mb-3">
         @for (account of accounts(); track account.id) {
           <a [routerLink]="['/wealth/investments', account.id]"
              class="block px-5 py-4
@@ -77,18 +84,14 @@
                   {{ account.name }}
                 </p>
                 <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
-                  {{ account.broker }} · {{ account.accountType }}
+                  {{ account.broker }} · {{ ACCOUNT_TYPE_LABELS[account.accountType] }}
                 </p>
               </div>
 
               <div class="flex items-center gap-4">
-                <div class="text-right">
-                  <p class="text-sm font-semibold font-mono
-                             text-slate-900 dark:text-white">
-                    {{ account.balance | currency:'EUR':'symbol':'1.2-2' }}
-                  </p>
-                  <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
-                    P&L — coming soon
+                <div class="text-right flex-shrink-0">
+                  <p class="text-sm font-semibold font-mono text-slate-900 dark:text-white">
+                    {{ (account.portfolioValue ?? 0) | currency:'EUR':'symbol':'1.2-2' }}
                   </p>
                 </div>
                 <svg class="w-4 h-4 text-slate-300 dark:text-slate-600
@@ -113,16 +116,18 @@
                   </div>
                 </div>
                 <div class="flex justify-between mt-1">
-                  <span class="text-xs text-slate-400 dark:text-slate-500">
-                    {{ (account.totalDeposits ?? 0) | currency:'EUR':'symbol':'1.0-0' }} deposited
-                  </span>
-                  <span class="text-xs font-medium"
-                        [class]="depositPercent(account) >= 100
-                          ? 'text-rose-500'
-                          : depositPercent(account) >= 90
-                          ? 'text-amber-500'
-                          : 'text-slate-400 dark:text-slate-500'">
-                    {{ (account.remainingCapacity ?? 0) | currency:'EUR':'symbol':'1.0-0' }} left
+                  @if (account.subType === 'PEA' || account.subType === 'PEA_PME') {
+                    <span class="text-xs text-slate-400">
+                      {{ (account.totalDeposits ?? 0) | currency:'EUR':'symbol':'1.0-0' }} deposited
+                    </span>
+                  } @else {
+                    <span class="text-xs text-slate-400">
+                      {{ account.balance | currency:'EUR':'symbol':'1.0-0' }} balance
+                    </span>
+                  }
+                  <span class="text-xs"
+                        [class]="depositPercent(account) >= 90 ? 'text-amber-500' : 'text-slate-400'">
+                    {{ (account.remainingCapacity ?? 0) | currency:'EUR':'symbol':'1.0-0' }} remaining
                   </span>
                 </div>
               </div>
@@ -130,6 +135,18 @@
 
           </a>
         }
+      </div>
+
+      <!-- Total row -->
+      <div class="flex items-center justify-between px-5 py-3
+                  border-t border-slate-200 dark:border-slate-700
+                  bg-slate-50 dark:bg-slate-900/50">
+        <span class="text-xs font-medium text-slate-500 dark:text-slate-400">
+          Total investments
+        </span>
+        <p class="text-sm font-semibold font-mono text-slate-900 dark:text-white">
+          {{ totalPortfolioValue() | currency:'EUR':'symbol':'1.2-2' }}
+        </p>
       </div>
     }
   </div>

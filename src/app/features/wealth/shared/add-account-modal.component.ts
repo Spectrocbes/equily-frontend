@@ -96,7 +96,7 @@ export class AddAccountModalComponent {
   });
 
   protected readonly showSubType = computed(() =>
-    this.availableSubTypes().length > 0
+    this.availableSubTypes().length > 1
   );
 
   protected readonly showOpenedAt = computed(() => {

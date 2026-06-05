@@ -117,6 +117,10 @@ export class AddTransactionModalComponent implements OnInit {
     return null;
   });
 
+  protected readonly isSavingsSubType = computed(() =>
+    ['LIVRET_A', 'LDDS', 'LEP', 'LIVRET_JEUNE'].includes(this.accountSubType() ?? '')
+  );
+
   protected readonly showDepositWarning = computed(() => {
     const type = this.selectedType();
     if (type !== 'DEPOSIT') return false;
