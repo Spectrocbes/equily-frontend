@@ -36,13 +36,13 @@
           Transaction type
         </span>
         <div class="flex flex-wrap gap-2">
-          @for (type of allowedTypes(); track type) {
+          @for (type of availableTransactionTypes(); track type.value) {
             <button type="button"
-                    (click)="onTypeChange(type)"
-                    [class]="selectedType() === type
+                    (click)="onTypeChange(type.value)"
+                    [class]="selectedType() === type.value
                       ? 'px-3 py-1.5 rounded-lg text-xs font-medium bg-primary-500 text-white'
                       : 'px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors'">
-              {{ type }}
+              {{ type.label }}
             </button>
           }
         </div>
@@ -153,52 +153,91 @@
 
       <!-- Deposit limit warning -->
       @if (showDepositWarning()) {
-        <div class="rounded-lg p-3 text-sm space-y-1"
-             [class]="wouldExceedLimit()
-               ? 'bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800'
-               : isApproachingLimit()
-               ? 'bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800'
-               : 'bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700'">
+        @if (peaSummary() && peaSummary()!.hasPea && peaSummary()!.hasPeaPme) {
+          <!-- Combined PEA + PEA-PME warning -->
+          <div class="rounded-lg p-3 text-sm space-y-2 border"
+               [class]="peaSummary()!.combinedRemaining <= 0
+                 ? 'bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-800'
+                 : peaSummary()!.combinedDeposits / peaSummary()!.combinedLimit >= 0.9
+                 ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
+                 : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700'">
 
-          <div class="flex items-center gap-1.5 font-medium"
-               [class]="wouldExceedLimit()
+            <p class="font-medium"
+               [class]="peaSummary()!.combinedRemaining <= 0
                  ? 'text-rose-700 dark:text-rose-300'
-                 : isApproachingLimit()
-                 ? 'text-amber-700 dark:text-amber-300'
-                 : 'text-slate-600 dark:text-slate-400'">
-            @if (wouldExceedLimit()) {
-              <span>⛔</span>
-              <span>Deposit would exceed regulatory limit</span>
-            } @else if (isApproachingLimit()) {
-              <span>⚠️</span>
-              <span>Approaching regulatory limit</span>
-            } @else {
-              <span>ℹ️</span>
-              <span>Regulatory deposit limit</span>
-            }
-          </div>
+                 : 'text-amber-700 dark:text-amber-300'">
+              Combined PEA + PEA-PME deposit limit
+            </p>
 
-          <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs mt-1"
+            <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+              <span>PEA deposits</span>
+              <span class="text-right font-mono">
+                {{ peaSummary()!.peaDeposits | currency:'EUR':'symbol':'1.0-0' }}
+                / {{ peaSummary()!.peaLimit | currency:'EUR':'symbol':'1.0-0' }}
+              </span>
+              <span>PEA-PME deposits</span>
+              <span class="text-right font-mono">
+                {{ peaSummary()!.peaPmeDeposits | currency:'EUR':'symbol':'1.0-0' }}
+              </span>
+              <span class="font-medium">Combined total</span>
+              <span class="text-right font-mono font-medium">
+                {{ peaSummary()!.combinedDeposits | currency:'EUR':'symbol':'1.0-0' }}
+                / {{ peaSummary()!.combinedLimit | currency:'EUR':'symbol':'1.0-0' }}
+              </span>
+              <span class="font-medium">Remaining capacity</span>
+              <span class="text-right font-mono font-medium">
+                {{ peaSummary()!.combinedRemaining | currency:'EUR':'symbol':'1.0-0' }}
+              </span>
+            </div>
+          </div>
+        } @else {
+          <!-- Standard single-account warning -->
+          <div class="rounded-lg p-3 text-sm space-y-1"
                [class]="wouldExceedLimit()
-                 ? 'text-rose-600 dark:text-rose-400'
+                 ? 'bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800'
                  : isApproachingLimit()
-                 ? 'text-amber-600 dark:text-amber-400'
-                 : 'text-slate-500 dark:text-slate-400'">
-            <span>Legal limit</span>
-            <span class="text-right font-mono font-medium">
-              {{ depositLimit() | currency:'EUR':'symbol':'1.2-2' }}
-            </span>
-            <span>Deposits so far</span>
-            <span class="text-right font-mono">
-              {{ (totalDeposits() ?? 0) | currency:'EUR':'symbol':'1.2-2' }}
-            </span>
-            <span class="font-medium">Remaining capacity</span>
-            <span class="text-right font-mono font-medium">
-              {{ (remainingCapacity() ?? 0) | currency:'EUR':'symbol':'1.2-2' }}
-            </span>
-          </div>
+                 ? 'bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800'
+                 : 'bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700'">
 
-        </div>
+            <div class="flex items-center gap-1.5 font-medium"
+                 [class]="wouldExceedLimit()
+                   ? 'text-rose-700 dark:text-rose-300'
+                   : isApproachingLimit()
+                   ? 'text-amber-700 dark:text-amber-300'
+                   : 'text-slate-600 dark:text-slate-400'">
+              @if (wouldExceedLimit()) {
+                <span>⛔</span>
+                <span>Deposit would exceed regulatory limit</span>
+              } @else if (isApproachingLimit()) {
+                <span>⚠️</span>
+                <span>Approaching regulatory limit</span>
+              } @else {
+                <span>ℹ️</span>
+                <span>Regulatory deposit limit</span>
+              }
+            </div>
+
+            <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs mt-1"
+                 [class]="wouldExceedLimit()
+                   ? 'text-rose-600 dark:text-rose-400'
+                   : isApproachingLimit()
+                   ? 'text-amber-600 dark:text-amber-400'
+                   : 'text-slate-500 dark:text-slate-400'">
+              <span>Legal limit</span>
+              <span class="text-right font-mono font-medium">
+                {{ depositLimit() | currency:'EUR':'symbol':'1.2-2' }}
+              </span>
+              <span>{{ isSavingsSubType() ? 'Current balance' : 'Deposits so far' }}</span>
+              <span class="text-right font-mono">
+                {{ (totalDeposits() ?? 0) | currency:'EUR':'symbol':'1.2-2' }}
+              </span>
+              <span class="font-medium">Remaining capacity</span>
+              <span class="text-right font-mono font-medium">
+                {{ (remainingCapacity() ?? 0) | currency:'EUR':'symbol':'1.2-2' }}
+              </span>
+            </div>
+          </div>
+        }
       }
 
       <!-- Date -->

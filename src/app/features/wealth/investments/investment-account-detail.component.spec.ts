@@ -10,6 +10,7 @@ const mockAccount: FinancialAccount = {
   id: 'acc-1', name: 'Mon PEA', accountType: 'PEA',
   subType: 'PEA', balance: 5000, currency: 'EUR', transactionCount: 1,
   broker: 'Fortuneo', depositLimit: 150000, totalDeposits: 5000, remainingCapacity: 145000,
+  openedAt: null, portfolioValue: null,
 };
 
 const mockHolding: Holding = {

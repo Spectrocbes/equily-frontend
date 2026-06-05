@@ -96,7 +96,7 @@ export class AddAccountModalComponent {
   });
 
   protected readonly showSubType = computed(() =>
-    this.availableSubTypes().length > 0
+    this.availableSubTypes().length > 1
   );
 
   protected readonly showOpenedAt = computed(() => {
@@ -112,7 +112,20 @@ export class AddAccountModalComponent {
   constructor() {
     this.form.get('accountType')!.valueChanges
       .pipe(takeUntilDestroyed())
-      .subscribe(() => this.form.get('subType')!.setValue(null));
+      .subscribe(type => {
+        const subTypeControl = this.form.get('subType')!;
+        subTypeControl.setValue(null);
+        const available = ACCOUNT_TYPE_SUB_TYPES[type as AccountType] ?? [];
+        if (available.length === 1) {
+          subTypeControl.setValue(available[0]);
+        }
+        if (available.length > 0) {
+          subTypeControl.setValidators([Validators.required]);
+        } else {
+          subTypeControl.clearValidators();
+        }
+        subTypeControl.updateValueAndValidity();
+      });
   }
 
   protected mouseDownOnBackdrop = false;

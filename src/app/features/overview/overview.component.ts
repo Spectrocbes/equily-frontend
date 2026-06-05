@@ -2,7 +2,7 @@ import { Component, OnInit, inject, computed, signal } from '@angular/core';
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AccountService } from '../../core/services/account.service';
-import { ACCOUNT_CATEGORY } from '../../core/models/account.model';
+import { AccountType, ACCOUNT_CATEGORY } from '../../core/models/account.model';
 import { DonutChartComponent } from '../../shared/components/donut-chart/donut-chart.component';
 import { AddAccountModalComponent } from '../wealth/shared/add-account-modal.component';
 
@@ -16,28 +16,32 @@ export class OverviewComponent implements OnInit {
   protected readonly accountService = inject(AccountService);
   protected readonly showModal = signal(false);
 
+  private readonly INVESTMENT_TYPES: AccountType[] = [
+    'PEA', 'PEA_PME', 'COMPTE_TITRES', 'PER', 'ASSURANCE_VIE', 'CRYPTO_WALLET',
+  ];
+
   protected readonly investmentTotal = computed(() =>
-    this.accountService.summaries()
-      .filter(s => ACCOUNT_CATEGORY[s.account.accountType] === 'investments')
-      .reduce((sum, s) => sum + s.totalInvested + s.account.balance, 0)
+    this.accountService.accounts()
+      .filter(a => ACCOUNT_CATEGORY[a.accountType] === 'investments')
+      .reduce((sum, a) => sum + (a.portfolioValue ?? 0) + a.balance, 0)
   );
 
   protected readonly cryptoTotal = computed(() =>
-    this.accountService.summaries()
-      .filter(s => ACCOUNT_CATEGORY[s.account.accountType] === 'crypto')
-      .reduce((sum, s) => sum + s.totalInvested + s.account.balance, 0)
+    this.accountService.accounts()
+      .filter(a => ACCOUNT_CATEGORY[a.accountType] === 'crypto')
+      .reduce((sum, a) => sum + (a.portfolioValue ?? 0) + a.balance, 0)
   );
 
   protected readonly savingsTotal = computed(() =>
-    this.accountService.summaries()
-      .filter(s => ACCOUNT_CATEGORY[s.account.accountType] === 'savings')
-      .reduce((sum, s) => sum + s.account.balance, 0)
+    this.accountService.accounts()
+      .filter(a => ACCOUNT_CATEGORY[a.accountType] === 'savings')
+      .reduce((sum, a) => sum + a.balance, 0)
   );
 
   protected readonly cashTotal = computed(() =>
-    this.accountService.summaries()
-      .filter(s => ACCOUNT_CATEGORY[s.account.accountType] === 'cash')
-      .reduce((sum, s) => sum + s.account.balance, 0)
+    this.accountService.accounts()
+      .filter(a => ACCOUNT_CATEGORY[a.accountType] === 'cash')
+      .reduce((sum, a) => sum + a.balance, 0)
   );
 
   protected readonly totalWealth = computed(() =>
@@ -54,6 +58,7 @@ export class OverviewComponent implements OnInit {
 
   ngOnInit(): void {
     this.accountService.loadSummaries();
+    this.accountService.loadAccounts();
   }
 
   protected onAccountCreated(): void {

@@ -28,6 +28,11 @@
     </div>
   </div>
 
+  <!-- Accounts section header -->
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="text-lg font-semibold text-slate-900 dark:text-white">Accounts</h2>
+  </div>
+
   <!-- Accounts list -->
   <div class="rounded-xl border border-slate-200 dark:border-slate-700
               bg-white dark:bg-slate-800 overflow-hidden">
@@ -47,7 +52,7 @@
                 {{ account.name }}
               </p>
               <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
-                {{ account.broker }} · {{ account.accountType }}
+                {{ account.broker }} · {{ ACCOUNT_TYPE_LABELS[account.accountType] }}
                 · {{ account.transactionCount }} transaction{{ account.transactionCount !== 1 ? 's' : '' }}
               </p>
             </div>

@@ -210,3 +210,23 @@
 - Fees field: clears zero on focus, restores zero on blur (`onFeesFocus` / `onFeesBlur`)
 - Date validation in `AddTransactionModalComponent`: custom validator blocks years < 1900 or > 9999; `dateWarning` computed shows amber warning for future dates (non-blocking)
 - 65/65 tests, lint clean, build 0 errors
+
+## 2026-06-05 — UX polish + portfolioValue in investments list (complete)
+- Fix 1: savings progress bar uses `account.balance` (not `totalDeposits`) for savings sub-types; label shows "balance" not "deposits so far"; "left" → "remaining"
+- Fix 2: `ACCOUNT_TYPE_LABELS` map applied throughout all templates — no raw technical strings (`PEA`, `SAVINGS_ACCOUNT`, etc.) visible in the UI
+- Fix 3: sub-type selector hidden in `AddAccountModal` when only one option exists (auto-selected internally); `showSubType` gated on `> 1` options
+- Fix 4: brokerage fees field shown only for BUY/SELL in `EditTransactionModal` (`@if type === 'BUY' || 'SELL'`)
+- Fix 5: CSV import error handler uses `ToastService` (not inline error signal); spec updated to assert `toastService.error()` called
+- Fix 6: POSITIONS import result subtracts 1 from imported count (auto-deposit not shown); "+ 1 auto-deposit" note displayed when applicable
+- Fix 7: `portfolioValue: number | null` added to `FinancialAccount`; `totalAccountValue()` helper exported from model; `investments.component` updated — account row shows portfolio value only (no cash), header total shows portfolio large + cash discrete, footer total shows portfolio only; `overview.component` uses `accounts()` + `portfolioValue` (not `totalInvested`) for all wealth computations; `loadAccounts()` called in `ngOnInit`
+- 84/84 tests, lint clean, build 0 errors
+
+## 2026-06-04 — Transaction edit, INTEREST type, PEA combined warning, UX fixes (complete)
+- Age badge in `InvestmentAccountDetailComponent` conditioned on `subType === 'PEA' || 'PEA_PME'` only (was shown for all investment accounts)
+- `AddAccountModal`: subType auto-selected when only one option available; `Validators.required` applied dynamically when sub-types exist; "(optional)" label removed; validation error shown on submit
+- `PeaSummary` interface + `AccountService.getPeaSummary()` added (GET `/accounts/summary/pea`); `AddTransactionModal` loads it on init for PEA/PEA-PME accounts and shows combined PEA+PEA-PME deposit warning when both accounts exist
+- `INTEREST` added to `TransactionType`; `availableTransactionTypes` computed in `AddTransactionModal` filters by `accountSubType` — savings sub-types get DEPOSIT/WITHDRAWAL/INTEREST, cash gets DEPOSIT/WITHDRAWAL, investments get the full set; buttons show human-readable labels
+- `EditTransactionModalComponent` created — edits totalAmount/date/fees/description; type + ticker shown as read-only badge; PUT `/accounts/:id/transactions/:id`; toast on success/error
+- Hover-revealed edit button on transaction rows in investment, cash, and savings detail pages (`group` + `opacity-0 group-hover:opacity-100`)
+- "Accounts" `<h2>` section header added before accounts list in `savings.component.html` and `cash.component.html`
+- 84/84 tests, lint clean, build 0 errors

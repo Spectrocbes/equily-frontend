@@ -76,7 +76,7 @@
                 {{ account.name }}
               </p>
               <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
-                {{ account.broker }} · {{ account.accountType }}
+                {{ account.broker }} · {{ ACCOUNT_TYPE_LABELS[account.accountType] }}
               </p>
             </div>
 

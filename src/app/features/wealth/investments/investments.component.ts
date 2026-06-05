@@ -2,7 +2,10 @@ import { Component, OnInit, inject, computed, signal } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AccountService } from '../../../core/services/account.service';
-import { AccountType, ACCOUNT_CATEGORY, FinancialAccount } from '../../../core/models/account.model';
+import {
+  AccountType, ACCOUNT_CATEGORY, FinancialAccount,
+  ACCOUNT_TYPE_LABELS,
+} from '../../../core/models/account.model';
 import { AddAccountModalComponent } from '../shared/add-account-modal.component';
 
 @Component({
@@ -18,6 +21,7 @@ export class InvestmentsComponent implements OnInit {
   protected readonly allowedTypes: AccountType[] = [
     'PEA', 'PEA_PME', 'COMPTE_TITRES', 'PER', 'ASSURANCE_VIE',
   ];
+  protected readonly ACCOUNT_TYPE_LABELS = ACCOUNT_TYPE_LABELS;
 
   protected readonly accounts = computed(() =>
     this.accountService.accounts().filter(
@@ -26,15 +30,23 @@ export class InvestmentsComponent implements OnInit {
   );
 
   protected readonly total = computed(() =>
-    this.accounts().reduce((s, a) => s + a.balance, 0)
+    this.accounts().reduce((s, a) => s + (a.portfolioValue ?? 0) + a.balance, 0)
+  );
+
+  protected readonly totalPortfolioValue = computed(() =>
+    this.accounts().reduce((sum, a) => sum + (a.portfolioValue ?? 0), 0)
+  );
+
+  protected readonly totalCash = computed(() =>
+    this.accounts().reduce((sum, a) => sum + a.balance, 0)
   );
 
   protected depositPercent(account: FinancialAccount): number {
     if (!account.depositLimit || account.depositLimit === 0) return 0;
-    return Math.min(
-      100,
-      ((account.totalDeposits ?? 0) / account.depositLimit) * 100
-    );
+    const isSavings = ['LIVRET_A', 'LDDS', 'LEP', 'LIVRET_JEUNE']
+      .includes(account.subType ?? '');
+    const used = isSavings ? account.balance : (account.totalDeposits ?? 0);
+    return Math.min(100, (used / account.depositLimit) * 100);
   }
 
   protected onAccountCreated(): void {

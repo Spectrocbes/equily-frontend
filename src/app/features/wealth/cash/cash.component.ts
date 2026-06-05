@@ -2,7 +2,7 @@ import { Component, OnInit, inject, computed, signal } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AccountService } from '../../../core/services/account.service';
-import { AccountType, ACCOUNT_CATEGORY } from '../../../core/models/account.model';
+import { AccountType, ACCOUNT_CATEGORY, ACCOUNT_TYPE_LABELS } from '../../../core/models/account.model';
 import { AddAccountModalComponent } from '../shared/add-account-modal.component';
 
 @Component({
@@ -16,6 +16,7 @@ export class CashComponent implements OnInit {
   protected readonly showModal = signal(false);
 
   protected readonly allowedTypes: AccountType[] = ['CASH_ACCOUNT'];
+  protected readonly ACCOUNT_TYPE_LABELS = ACCOUNT_TYPE_LABELS;
 
   protected readonly accounts = computed(() =>
     this.accountService.accounts().filter(

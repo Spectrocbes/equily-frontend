@@ -32,7 +32,7 @@ describe('AddAccountModalComponent', () => {
 
   it('submit button is disabled while modalLoading is true on step 2', () => {
     const form = fixture.componentInstance['form'];
-    form.setValue({ name: 'Test PEA', accountType: 'PEA', initialBalance: 1000, broker: 'Fortuneo', subType: null, openedAt: '2020-01-01' });
+    form.setValue({ name: 'Test PEA', accountType: 'PEA', initialBalance: 1000, broker: 'Fortuneo', subType: 'PEA', openedAt: '2020-01-01' });
     fixture.componentInstance['step'].set(2);
     modalLoadingSignal.set(true);
     fixture.detectChanges();
@@ -54,7 +54,7 @@ describe('AddAccountModalComponent', () => {
     fixture.componentInstance.created.subscribe(createdSpy);
 
     const form = fixture.componentInstance['form'];
-    form.setValue({ name: 'Test PEA', accountType: 'PEA', initialBalance: 1000, broker: 'Fortuneo', subType: null, openedAt: '2020-01-01' });
+    form.setValue({ name: 'Test PEA', accountType: 'PEA', initialBalance: 1000, broker: 'Fortuneo', subType: 'PEA', openedAt: '2020-01-01' });
     fixture.componentInstance['step'].set(2);
     fixture.detectChanges();
 
@@ -103,5 +103,34 @@ describe('AddAccountModalComponent', () => {
     expect(fixture.componentInstance['showSubType']()).toBe(false);
     const select = fixture.nativeElement.querySelector('select[formcontrolname="subType"]');
     expect(select).toBeFalsy();
+  });
+
+  it('auto-selects subType when only one option is available', () => {
+    const form = fixture.componentInstance['form'];
+    form.get('accountType')!.setValue('PEA');
+    fixture.detectChanges();
+    expect(form.get('subType')!.value).toBe('PEA');
+  });
+
+  it('marks subType as required when account type has sub-types', () => {
+    const form = fixture.componentInstance['form'];
+    form.get('accountType')!.setValue('SAVINGS_ACCOUNT');
+    form.get('subType')!.setValue(null);
+    fixture.detectChanges();
+    expect(form.get('subType')!.hasValidator).toBeTruthy();
+    expect(form.get('subType')!.invalid).toBe(true);
+  });
+
+  it('shows subType validation error on submit with no subType selected', () => {
+    const form = fixture.componentInstance['form'];
+    form.get('accountType')!.setValue('SAVINGS_ACCOUNT');
+    form.get('subType')!.setValue(null);
+    form.get('name')!.setValue('Test');
+    form.get('broker')!.setValue('Fortuneo');
+    fixture.detectChanges();
+    fixture.componentInstance['nextStep']();
+    fixture.detectChanges();
+    const error = fixture.nativeElement.querySelector('p.text-rose-500');
+    expect(error).toBeTruthy();
   });
 });

@@ -1,6 +1,7 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { CsvImportModalComponent } from './csv-import-modal.component';
 import { AccountService } from '../../../core/services/account.service';
+import { ToastService } from '../../../shared/toast/toast.service';
 import { of, throwError } from 'rxjs';
 import { CsvImportResponse } from '../../../core/models/account.model';
 
@@ -11,16 +12,19 @@ const mockResult: CsvImportResponse = {
 describe('CsvImportModalComponent', () => {
   let fixture: ComponentFixture<CsvImportModalComponent>;
   let mockService: Partial<AccountService>;
+  let mockToast: { error: jest.Mock };
 
   beforeEach(async () => {
     mockService = {
       importCsv: jest.fn().mockReturnValue(of(mockResult)),
     };
+    mockToast = { error: jest.fn() };
 
     await TestBed.configureTestingModule({
       imports: [CsvImportModalComponent],
       providers: [
         { provide: AccountService, useValue: mockService },
+        { provide: ToastService, useValue: mockToast },
       ],
     }).compileComponents();
 
@@ -56,7 +60,7 @@ describe('CsvImportModalComponent', () => {
     expect(fixture.componentInstance['result']()).toEqual(mockResult);
   });
 
-  it('shows error when import fails', () => {
+  it('shows error toast when import fails', () => {
     (mockService.importCsv as jest.Mock).mockReturnValue(
       throwError(() => ({ message: 'Server error' }))
     );
@@ -64,7 +68,7 @@ describe('CsvImportModalComponent', () => {
     fixture.componentInstance['selectedFile'].set(file);
     fixture.componentInstance.doImport();
     fixture.detectChanges();
-    expect(fixture.componentInstance['error']()).toBeTruthy();
+    expect(mockToast.error).toHaveBeenCalled();
     expect(fixture.componentInstance.step()).toBe('select');
   });
 

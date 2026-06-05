@@ -5,7 +5,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { AccountService } from '../../../core/services/account.service';
 import {
   AccountType, AccountSubType, TransactionType,
-  ALLOWED_TRANSACTION_TYPES
+  ALLOWED_TRANSACTION_TYPES, PeaSummary,
 } from '../../../core/models/account.model';
 import { ToastService } from '../../../shared/toast/toast.service';
 
@@ -30,12 +30,41 @@ export class AddTransactionModalComponent implements OnInit {
   protected readonly accountService = inject(AccountService);
   private readonly toastService = inject(ToastService);
 
-  protected readonly loading = signal(false);
-  protected readonly error   = signal<string | null>(null);
+  protected readonly loading    = signal(false);
+  protected readonly error      = signal<string | null>(null);
+  protected readonly peaSummary = signal<PeaSummary | null>(null);
 
   protected readonly allowedTypes = computed(() =>
     ALLOWED_TRANSACTION_TYPES[this.accountType()]
   );
+
+  protected readonly availableTransactionTypes = computed(() => {
+    const subType = this.accountSubType();
+    const isSavings = ['LIVRET_A', 'LDDS', 'LDD', 'LEP', 'LIVRET_JEUNE']
+      .includes(subType ?? '');
+    const isCash = subType === 'CASH_ACCOUNT';
+
+    if (isSavings) {
+      return [
+        { value: 'DEPOSIT'    as TransactionType, label: 'Deposit' },
+        { value: 'WITHDRAWAL' as TransactionType, label: 'Withdrawal' },
+        { value: 'INTEREST'   as TransactionType, label: 'Interest received' },
+      ];
+    }
+    if (isCash) {
+      return [
+        { value: 'DEPOSIT'    as TransactionType, label: 'Deposit' },
+        { value: 'WITHDRAWAL' as TransactionType, label: 'Withdrawal' },
+      ];
+    }
+    return [
+      { value: 'DEPOSIT'    as TransactionType, label: 'Deposit' },
+      { value: 'WITHDRAWAL' as TransactionType, label: 'Withdrawal' },
+      { value: 'BUY'        as TransactionType, label: 'Buy' },
+      { value: 'SELL'       as TransactionType, label: 'Sell' },
+      { value: 'DIVIDEND'   as TransactionType, label: 'Dividend' },
+    ];
+  });
 
   protected readonly step = signal<'form' | 'confirm'>('form');
   protected readonly selectedType = signal<TransactionType | ''>('');
@@ -87,6 +116,10 @@ export class AddTransactionModalComponent implements OnInit {
     }
     return null;
   });
+
+  protected readonly isSavingsSubType = computed(() =>
+    ['LIVRET_A', 'LDDS', 'LEP', 'LIVRET_JEUNE'].includes(this.accountSubType() ?? '')
+  );
 
   protected readonly showDepositWarning = computed(() => {
     const type = this.selectedType();
@@ -160,6 +193,9 @@ export class AddTransactionModalComponent implements OnInit {
   ngOnInit(): void {
     this.error.set(null);
     this.loading.set(false);
+    if (this.accountSubType() === 'PEA' || this.accountSubType() === 'PEA_PME') {
+      this.accountService.getPeaSummary().subscribe(s => this.peaSummary.set(s));
+    }
   }
 
   protected onTypeChange(type: TransactionType): void {
