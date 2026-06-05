@@ -284,15 +284,6 @@
             </div>
           }
 
-          @if (!isSingleAccountType() && form.value.subType) {
-            <div class="flex justify-between text-sm">
-              <span class="text-slate-500 dark:text-slate-400">Sub-type</span>
-              <span class="font-medium text-slate-900 dark:text-white">
-                {{ ACCOUNT_SUB_TYPE_LABELS[form.value.subType!] }}
-              </span>
-            </div>
-          }
-
           @if (form.value.openedAt && showOpenedAt()) {
             <div class="flex justify-between text-sm">
               <span class="text-slate-500 dark:text-slate-400">Opened</span>
