@@ -34,52 +34,71 @@
 
     <form [formGroup]="form()" (ngSubmit)="onSubmit()" class="space-y-4">
 
-      <!-- Total amount -->
-      <div>
-        <label for="edit-totalAmount"
-               class="block text-sm font-medium
-                       text-slate-700 dark:text-slate-300 mb-1.5">
-          Total amount (€)
-        </label>
-        <input id="edit-totalAmount" formControlName="totalAmount" type="number"
-               step="0.01" min="0.01"
-               class="w-full px-3 py-2 rounded-lg text-sm
-                      bg-slate-50 dark:bg-slate-900
-                      border border-slate-200 dark:border-slate-600
-                      text-slate-900 dark:text-white
-                      focus:outline-none focus:ring-2
-                      focus:ring-primary-500 transition-colors"/>
-        @if (showError('totalAmount')) {
-          <p class="text-rose-500 text-xs mt-1">Amount must be greater than 0</p>
-        }
-      </div>
-
-      <!-- Date -->
-      <div>
-        <label for="edit-date"
-               class="block text-sm font-medium
-                       text-slate-700 dark:text-slate-300 mb-1.5">
-          Date
-        </label>
-        <input id="edit-date" formControlName="date" type="date"
-               min="1900-01-01"
-               class="w-full px-3 py-2 rounded-lg text-sm
-                      bg-slate-50 dark:bg-slate-900
-                      border border-slate-200 dark:border-slate-600
-                      text-slate-900 dark:text-white
-                      focus:outline-none focus:ring-2
-                      focus:ring-primary-500 transition-colors"/>
-      </div>
-
-      <!-- Fees (BUY/SELL only) -->
-      @if (transaction().type === 'BUY' || transaction().type === 'SELL') {
+      <!-- For DEPOSIT / WITHDRAWAL / DIVIDEND / INTEREST: total amount field -->
+      @if (isSimpleAmount()) {
         <div>
-          <label for="edit-fees"
-                 class="block text-sm font-medium
+          <label class="block">
+            <span class="block text-sm font-medium
                          text-slate-700 dark:text-slate-300 mb-1.5">
-            Brokerage fees (€)
+              Amount (€)
+            </span>
+            <input formControlName="totalAmount" type="number"
+                   step="0.01" min="0.01"
+                   class="w-full px-3 py-2 rounded-lg text-sm
+                          bg-slate-50 dark:bg-slate-900
+                          border border-slate-200 dark:border-slate-600
+                          text-slate-900 dark:text-white
+                          focus:outline-none focus:ring-2
+                          focus:ring-primary-500 transition-colors"/>
           </label>
-          <input id="edit-fees" formControlName="fees" type="number"
+          @if (showError('totalAmount')) {
+            <p class="text-rose-500 text-xs mt-1">
+              Amount must be greater than 0
+            </p>
+          }
+        </div>
+      }
+
+      <!-- For BUY / SELL: quantity + price per unit -->
+      @if (isBuyOrSell()) {
+        <div class="grid grid-cols-2 gap-3">
+          <label class="block">
+            <span class="block text-sm font-medium
+                         text-slate-700 dark:text-slate-300 mb-1.5">
+              Quantity
+            </span>
+            <input formControlName="quantity" type="number"
+                   step="0.0001" min="0.0001"
+                   class="w-full px-3 py-2 rounded-lg text-sm
+                          bg-slate-50 dark:bg-slate-900
+                          border border-slate-200 dark:border-slate-600
+                          text-slate-900 dark:text-white
+                          focus:outline-none focus:ring-2
+                          focus:ring-primary-500 transition-colors"/>
+          </label>
+          <label class="block">
+            <span class="block text-sm font-medium
+                         text-slate-700 dark:text-slate-300 mb-1.5">
+              Price per unit (€)
+            </span>
+            <input formControlName="pricePerUnit" type="number"
+                   step="0.01" min="0.01"
+                   class="w-full px-3 py-2 rounded-lg text-sm
+                          bg-slate-50 dark:bg-slate-900
+                          border border-slate-200 dark:border-slate-600
+                          text-slate-900 dark:text-white
+                          focus:outline-none focus:ring-2
+                          focus:ring-primary-500 transition-colors"/>
+          </label>
+        </div>
+
+        <!-- Brokerage fees — only for BUY/SELL -->
+        <label class="block">
+          <span class="block text-sm font-medium
+                       text-slate-700 dark:text-slate-300 mb-1.5">
+            Brokerage fees (€)
+          </span>
+          <input formControlName="fees" type="number"
                  step="0.01" min="0"
                  class="w-full px-3 py-2 rounded-lg text-sm
                         bg-slate-50 dark:bg-slate-900
@@ -87,18 +106,58 @@
                         text-slate-900 dark:text-white
                         focus:outline-none focus:ring-2
                         focus:ring-primary-500 transition-colors"/>
-        </div>
+        </label>
+
+        <!-- Computed total — shown once qty × price is non-zero -->
+        @if (computedTotal() > 0) {
+          <div class="rounded-lg bg-slate-50 dark:bg-slate-900
+                      border border-slate-200 dark:border-slate-600
+                      px-3 py-2.5">
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-slate-500 dark:text-slate-400">
+                Total {{ transaction().type === 'BUY' ? 'cost' : 'proceeds' }}
+              </span>
+              <span class="text-sm font-semibold font-mono
+                           text-slate-900 dark:text-white">
+                {{ computedTotal() | currency:'EUR':'symbol':'1.2-2' }}
+              </span>
+            </div>
+            @if (liveFees() > 0) {
+              <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+                {{ transaction().type === 'BUY'
+                  ? 'includes ' : 'after deducting ' }}
+                {{ liveFees() | currency:'EUR':'symbol':'1.2-2' }}
+                fees
+              </p>
+            }
+          </div>
+        }
       }
 
+      <!-- Date -->
+      <label class="block">
+        <span class="block text-sm font-medium
+                     text-slate-700 dark:text-slate-300 mb-1.5">
+          Date
+        </span>
+        <input formControlName="date" type="date"
+               min="1900-01-01"
+               class="w-full px-3 py-2 rounded-lg text-sm
+                      bg-slate-50 dark:bg-slate-900
+                      border border-slate-200 dark:border-slate-600
+                      text-slate-900 dark:text-white
+                      focus:outline-none focus:ring-2
+                      focus:ring-primary-500 transition-colors"/>
+      </label>
+
       <!-- Description -->
-      <div>
-        <label for="edit-description"
-               class="block text-sm font-medium
-                       text-slate-700 dark:text-slate-300 mb-1.5">
+      <label class="block">
+        <span class="block text-sm font-medium
+                     text-slate-700 dark:text-slate-300 mb-1.5">
           Description
           <span class="text-slate-400 font-normal">(optional)</span>
-        </label>
-        <input id="edit-description" formControlName="description" type="text"
+        </span>
+        <input formControlName="description" type="text"
                placeholder="e.g. Monthly savings"
                class="w-full px-3 py-2 rounded-lg text-sm
                       bg-slate-50 dark:bg-slate-900
@@ -107,7 +166,7 @@
                       placeholder:text-slate-400
                       focus:outline-none focus:ring-2
                       focus:ring-primary-500 transition-colors"/>
-      </div>
+      </label>
 
       <!-- Actions -->
       <div class="flex gap-3 pt-1">

@@ -184,11 +184,11 @@ export class AccountService {
     accountId: string,
     transactionId: string,
     data: {
-      totalAmount: number;
-      date: string;
-      fees: number;
+      totalAmount?: number;
       quantity?: number;
       pricePerUnit?: number;
+      date: string;
+      fees: number;
       description?: string;
     }
   ): Observable<void> {
