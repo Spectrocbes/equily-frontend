@@ -221,6 +221,16 @@
 - Fix 7: `portfolioValue: number | null` added to `FinancialAccount`; `totalAccountValue()` helper exported from model; `investments.component` updated — account row shows portfolio value only (no cash), header total shows portfolio large + cash discrete, footer total shows portfolio only; `overview.component` uses `accounts()` + `portfolioValue` (not `totalInvested`) for all wealth computations; `loadAccounts()` called in `ngOnInit`
 - 84/84 tests, lint clean, build 0 errors
 
+## 2026-06-06 — EditTransactionModal: real-time total, frontend validation, UX hardening (complete)
+- BUY/SELL: quantity + pricePerUnit fields shown; DEPOSIT/WITHDRAWAL/DIVIDEND/INTEREST: totalAmount field shown; type shown as read-only badge
+- Live signals (`liveQuantity`, `livePricePerUnit`, `liveFees`) fed via `valueChanges` subscriptions in `ngOnInit` — `computedTotal` reacts in real time
+- `computedTotal` shown only when `> 0` (hidden while fields are empty)
+- Frontend validation before API call: qty > 0, price > 0, amount > 0, fees ≥ 0, date required — each failure shows a specific toast; no null values sent to backend
+- Generic error toast on API failure — internal error details not exposed to UI
+- Form validators: `Validators.min(0.01)` on amount/qty/price, `Validators.min(0)` on fees
+- Labels use wrap-control pattern (`<label><span>text</span><input/></label>`) — satisfies `label-has-associated-control` in both CLI ESLint and VS Code IDE plugin
+- 93/93 tests, lint clean, build 0 errors
+
 ## 2026-06-04 — Transaction edit, INTEREST type, PEA combined warning, UX fixes (complete)
 - Age badge in `InvestmentAccountDetailComponent` conditioned on `subType === 'PEA' || 'PEA_PME'` only (was shown for all investment accounts)
 - `AddAccountModal`: subType auto-selected when only one option available; `Validators.required` applied dynamically when sub-types exist; "(optional)" label removed; validation error shown on submit
