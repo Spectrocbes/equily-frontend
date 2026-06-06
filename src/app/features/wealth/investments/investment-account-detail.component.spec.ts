@@ -1,10 +1,18 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
+import { WritableSignal, Signal } from '@angular/core';
 import { InvestmentAccountDetailComponent } from './investment-account-detail.component';
 import { AccountService } from '../../../core/services/account.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
-import { FinancialAccount, Holding, Transaction } from '../../../core/models/account.model';
+import { EnrichedHolding, FinancialAccount, Holding, Transaction } from '../../../core/models/account.model';
+
+interface EnrichedSignals {
+  enrichedHoldings: WritableSignal<EnrichedHolding[]>;
+  totalMarketValue: Signal<number>;
+  totalUnrealizedPnl: Signal<number>;
+  hasSomeLivePrices: Signal<boolean>;
+}
 
 const mockAccount: FinancialAccount = {
   id: 'acc-1', name: 'Mon PEA', accountType: 'PEA',
@@ -25,6 +33,12 @@ const mockTransaction: Transaction = {
   date: '2026-01-15', fees: 5, description: null,
 };
 
+const mockEnrichedHolding: EnrichedHolding = {
+  ticker: 'AAPL', quantity: 10, averageCostPrice: 150, totalInvested: 1500,
+  totalFeesPaid: 5, currentPrice: 200, currency: 'USD',
+  marketValue: 2000, unrealizedPnl: 500, unrealizedPnlPct: 33.33, priceAvailable: true,
+};
+
 describe('InvestmentAccountDetailComponent', () => {
   let fixture: ComponentFixture<InvestmentAccountDetailComponent>;
 
@@ -36,11 +50,12 @@ describe('InvestmentAccountDetailComponent', () => {
         {
           provide: AccountService,
           useValue: {
-            getAccountById:  jest.fn().mockReturnValue(of(mockAccount)),
-            getHoldings:     jest.fn().mockReturnValue(of([mockHolding])),
-            getTransactions: jest.fn().mockReturnValue(of([mockTransaction])),
-            recordTransaction: jest.fn().mockReturnValue(of(undefined)),
-            loadAccounts: jest.fn(),
+            getAccountById:       jest.fn().mockReturnValue(of(mockAccount)),
+            getHoldings:          jest.fn().mockReturnValue(of([mockHolding])),
+            getTransactions:      jest.fn().mockReturnValue(of([mockTransaction])),
+            getEnrichedHoldings:  jest.fn().mockReturnValue(of([mockEnrichedHolding])),
+            recordTransaction:    jest.fn().mockReturnValue(of(undefined)),
+            loadAccounts:         jest.fn(),
           },
         },
         {
@@ -91,5 +106,68 @@ describe('InvestmentAccountDetailComponent', () => {
     expect(fixture.componentInstance.plMode()).toBe('percent');
     fixture.componentInstance.togglePlMode();
     expect(fixture.componentInstance.plMode()).toBe('euro');
+  });
+
+  // EnrichedHoldings computed tests
+
+  it('initializes enrichedHoldings signal as empty before ngOnInit', () => {
+    const freshFixture = TestBed.createComponent(InvestmentAccountDetailComponent);
+    expect((freshFixture.componentInstance as unknown as EnrichedSignals).enrichedHoldings()).toEqual([]);
+  });
+
+  it('totalMarketValue uses marketValue when priceAvailable', () => {
+    const comp = fixture.componentInstance as unknown as EnrichedSignals;
+    comp.enrichedHoldings.set([
+      { ticker: 'AAPL', quantity: 10, averageCostPrice: 150, totalInvested: 1500,
+        totalFeesPaid: 5, currentPrice: 200, currency: 'USD',
+        marketValue: 2000, unrealizedPnl: 500, unrealizedPnlPct: 33.33, priceAvailable: true },
+    ]);
+    expect(comp.totalMarketValue()).toBe(2000);
+  });
+
+  it('totalMarketValue falls back to totalInvested when price unavailable', () => {
+    const comp = fixture.componentInstance as unknown as EnrichedSignals;
+    comp.enrichedHoldings.set([
+      { ticker: 'MSFT', quantity: 5, averageCostPrice: 100, totalInvested: 500,
+        totalFeesPaid: 2, currentPrice: null, currency: null,
+        marketValue: null, unrealizedPnl: null, unrealizedPnlPct: null, priceAvailable: false },
+    ]);
+    expect(comp.totalMarketValue()).toBe(500);
+  });
+
+  it('totalUnrealizedPnl sums only priceAvailable holdings', () => {
+    const comp = fixture.componentInstance as unknown as EnrichedSignals;
+    comp.enrichedHoldings.set([
+      { ticker: 'AAPL', quantity: 10, averageCostPrice: 150, totalInvested: 1500,
+        totalFeesPaid: 5, currentPrice: 200, currency: 'USD',
+        marketValue: 2000, unrealizedPnl: 500, unrealizedPnlPct: 33.33, priceAvailable: true },
+      { ticker: 'MSFT', quantity: 5, averageCostPrice: 100, totalInvested: 500,
+        totalFeesPaid: 2, currentPrice: null, currency: null,
+        marketValue: null, unrealizedPnl: null, unrealizedPnlPct: null, priceAvailable: false },
+    ]);
+    expect(comp.totalUnrealizedPnl()).toBe(500);
+  });
+
+  it('hasSomeLivePrices returns true when at least one holding has price', () => {
+    const comp = fixture.componentInstance as unknown as EnrichedSignals;
+    comp.enrichedHoldings.set([
+      { ticker: 'AAPL', priceAvailable: true, quantity: 1, averageCostPrice: 100,
+        totalInvested: 100, totalFeesPaid: 0, currentPrice: 110, currency: 'USD',
+        marketValue: 110, unrealizedPnl: 10, unrealizedPnlPct: 10 },
+      { ticker: 'MSFT', priceAvailable: false, quantity: 1, averageCostPrice: 50,
+        totalInvested: 50, totalFeesPaid: 0, currentPrice: null, currency: null,
+        marketValue: null, unrealizedPnl: null, unrealizedPnlPct: null },
+    ]);
+    expect(comp.hasSomeLivePrices()).toBe(true);
+  });
+
+  it('hasSomeLivePrices returns false when no holdings have price', () => {
+    const comp = fixture.componentInstance as unknown as EnrichedSignals;
+    comp.enrichedHoldings.set([
+      { ticker: 'MSFT', priceAvailable: false, quantity: 1, averageCostPrice: 50,
+        totalInvested: 50, totalFeesPaid: 0, currentPrice: null, currency: null,
+        marketValue: null, unrealizedPnl: null, unrealizedPnlPct: null },
+    ]);
+    expect(comp.hasSomeLivePrices()).toBe(false);
   });
 });

@@ -221,6 +221,15 @@
 - Fix 7: `portfolioValue: number | null` added to `FinancialAccount`; `totalAccountValue()` helper exported from model; `investments.component` updated — account row shows portfolio value only (no cash), header total shows portfolio large + cash discrete, footer total shows portfolio only; `overview.component` uses `accounts()` + `portfolioValue` (not `totalInvested`) for all wealth computations; `loadAccounts()` called in `ngOnInit`
 - 84/84 tests, lint clean, build 0 errors
 
+## 2026-06-06 — Phase 2 frontend: live prices in holdings table (complete)
+- `EnrichedHolding` interface added to `account.model.ts` (ticker, quantity, averageCostPrice, totalInvested, totalFeesPaid, currentPrice, currency, marketValue, unrealizedPnl, unrealizedPnlPct, priceAvailable)
+- `AccountService.getEnrichedHoldings(accountId)` added — GET `/accounts/:id/holdings/enriched`
+- `InvestmentAccountDetailComponent`: `enrichedHoldings` + `pricesLoading` signals; `totalMarketValue`, `totalUnrealizedPnl`, `hasSomeLivePrices` computed signals
+- Holdings table replaced: 7 columns (Asset, Quantity, Avg cost, Live price, Market value, P&L); live price + % change per row when `priceAvailable`; "at cost" fallback with label when no price
+- Loading spinner shown during enriched price fetch; fails silently on error (table falls back to cost basis)
+- Summary footer: total market value + total unrealised P&L (colour-coded, shown only when at least one live price available)
+- 99/99 tests, lint clean, build 0 errors
+
 ## 2026-06-06 — EditTransactionModal: real-time total, frontend validation, UX hardening (complete)
 - BUY/SELL: quantity + pricePerUnit fields shown; DEPOSIT/WITHDRAWAL/DIVIDEND/INTEREST: totalAmount field shown; type shown as read-only badge
 - Live signals (`liveQuantity`, `livePricePerUnit`, `liveFees`) fed via `valueChanges` subscriptions in `ngOnInit` — `computedTotal` reacts in real time

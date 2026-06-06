@@ -5,6 +5,7 @@ import {
   FinancialAccount,
   Transaction,
   Holding,
+  EnrichedHolding,
   CreateAccountRequest,
   RecordTransactionRequest,
   AccountSummary,
@@ -165,6 +166,12 @@ export class AccountService {
 
   getHoldings(accountId: string): Observable<Holding[]> {
     return this.http.get<Holding[]>(`${this.apiUrl}/${accountId}/holdings`);
+  }
+
+  getEnrichedHoldings(accountId: string): Observable<EnrichedHolding[]> {
+    return this.http.get<EnrichedHolding[]>(
+      `${this.apiUrl}/${accountId}/holdings/enriched`
+    );
   }
 
   reset(): void {

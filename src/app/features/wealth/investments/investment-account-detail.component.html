@@ -258,123 +258,146 @@
       </button>
     </div>
 
-    <!-- Holdings tab -->
+    <!-- Holdings tab content -->
     @if (activeTab() === 'holdings') {
-      <div class="rounded-xl border border-slate-200 dark:border-slate-700
-                  bg-white dark:bg-slate-800 overflow-hidden">
+      <div class="overflow-x-auto">
 
-        @if (holdings().length === 0) {
-          <div class="p-8 text-center">
-            <p class="text-slate-400 text-sm">
-              No open positions — add a BUY transaction to see holdings
+        <!-- Loading indicator -->
+        @if (pricesLoading()) {
+          <div class="flex items-center gap-2 px-4 py-2
+                      text-xs text-slate-400 dark:text-slate-500
+                      border-b border-slate-100 dark:border-slate-800">
+            <div class="w-3 h-3 rounded-full border border-primary-400
+                        border-t-transparent animate-spin"></div>
+            Fetching live prices...
+          </div>
+        }
+
+        <!-- Table header -->
+        <div class="grid grid-cols-7 gap-4 px-4 py-2 text-xs font-medium
+                    text-slate-500 dark:text-slate-400 uppercase tracking-wide
+                    border-b border-slate-200 dark:border-slate-700 min-w-[640px]">
+          <span class="col-span-2">Asset</span>
+          <span class="text-right">Quantity</span>
+          <span class="text-right">Avg cost</span>
+          <span class="text-right">Live price</span>
+          <span class="text-right">Market value</span>
+          <span class="text-right">P&L</span>
+        </div>
+
+        <!-- Rows -->
+        @for (holding of enrichedHoldings(); track holding.ticker) {
+          <div class="grid grid-cols-7 gap-4 px-4 py-3 items-center
+                      border-b border-slate-100 dark:border-slate-800
+                      hover:bg-slate-50 dark:hover:bg-slate-800/50
+                      transition-colors min-w-[640px]">
+
+            <!-- Ticker -->
+            <div class="col-span-2">
+              <p class="text-sm font-semibold text-slate-900
+                         dark:text-white font-mono">
+                {{ holding.ticker }}
+              </p>
+            </div>
+
+            <!-- Quantity -->
+            <p class="text-right text-sm text-slate-600
+                       dark:text-slate-300 font-mono">
+              {{ holding.quantity | number:'1.0-4' }}
             </p>
-          </div>
-        } @else {
-          <div class="overflow-x-auto">
-          <div class="min-w-[640px]">
 
-          <!-- Table header -->
-          <div class="px-5 py-2.5 grid grid-cols-12 gap-3
-                      border-b border-slate-100 dark:border-slate-700
-                      text-xs font-medium text-slate-400 dark:text-slate-500
-                      uppercase tracking-wide">
-            <span class="col-span-3">Asset</span>
-            <span class="col-span-2 text-right">Quantity</span>
-            <span class="col-span-2 text-right">Avg Cost</span>
-            <span class="col-span-2 text-right">Invested</span>
-            <span class="col-span-3 text-right">
-              Market Value
-              <button type="button"
-                      (click)="togglePlMode()"
-                      class="ml-1 text-primary-400 hover:text-primary-500
-                             transition-colors normal-case tracking-normal font-normal">
-                P&L ({{ plMode() === 'euro' ? '€' : '%' }})
-              </button>
+            <!-- Avg cost price -->
+            <p class="text-right text-sm text-slate-600
+                       dark:text-slate-300 font-mono">
+              {{ holding.averageCostPrice | currency:'EUR':'symbol':'1.2-2' }}
+            </p>
+
+            <!-- Live price -->
+            <div class="text-right">
+              @if (holding.priceAvailable) {
+                <p class="text-sm font-medium text-slate-900
+                           dark:text-white font-mono">
+                  {{ holding.currentPrice |
+                     currency:(holding.currency ?? 'EUR'):'symbol':'1.2-2' }}
+                </p>
+                @if (holding.unrealizedPnlPct !== null) {
+                  <p class="text-xs font-mono mt-0.5"
+                     [class]="holding.unrealizedPnlPct >= 0
+                       ? 'text-emerald-500' : 'text-rose-500'">
+                    {{ holding.unrealizedPnlPct >= 0 ? '+' : '' }}{{
+                       holding.unrealizedPnlPct | number:'1.2-2' }}%
+                  </p>
+                }
+              } @else {
+                <p class="text-sm text-slate-400 dark:text-slate-500">—</p>
+                <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+                  no price
+                </p>
+              }
+            </div>
+
+            <!-- Market value -->
+            <div class="text-right">
+              @if (holding.priceAvailable) {
+                <p class="text-sm font-semibold text-slate-900
+                           dark:text-white font-mono">
+                  {{ holding.marketValue |
+                     currency:'EUR':'symbol':'1.2-2' }}
+                </p>
+              } @else {
+                <p class="text-sm text-slate-600 dark:text-slate-300 font-mono">
+                  {{ holding.totalInvested |
+                     currency:'EUR':'symbol':'1.2-2' }}
+                </p>
+                <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+                  at cost
+                </p>
+              }
+            </div>
+
+            <!-- P&L -->
+            <div class="text-right">
+              @if (holding.priceAvailable && holding.unrealizedPnl !== null) {
+                <p class="text-sm font-semibold font-mono"
+                   [class]="holding.unrealizedPnl >= 0
+                     ? 'text-emerald-500' : 'text-rose-500'">
+                  {{ holding.unrealizedPnl >= 0 ? '+' : '' }}{{
+                     holding.unrealizedPnl | currency:'EUR':'symbol':'1.2-2' }}
+                </p>
+              } @else {
+                <p class="text-sm text-slate-400 dark:text-slate-500">—</p>
+              }
+            </div>
+
+          </div>
+        }
+
+        <!-- Summary footer -->
+        @if (enrichedHoldings().length > 0) {
+          <div class="grid grid-cols-7 gap-4 px-4 py-3 min-w-[640px]
+                      border-t-2 border-slate-200 dark:border-slate-700
+                      bg-slate-50 dark:bg-slate-800/50">
+            <span class="col-span-2 text-sm font-semibold
+                         text-slate-900 dark:text-white">
+              Total
             </span>
-          </div>
-
-          <!-- Rows -->
-          <div class="divide-y divide-slate-100 dark:divide-slate-700">
-            @for (holding of holdings(); track holding.ticker) {
-              <div class="px-5 py-3.5 grid grid-cols-12 gap-3 items-center
-                          hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
-
-                <!-- Asset -->
-                <div class="col-span-3">
-                  <p class="text-sm font-bold font-mono text-slate-900 dark:text-white">
-                    {{ holding.ticker }}
-                  </p>
-                  <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
-                    Fees {{ holding.totalFeesPaid | currency:holding.currency:'symbol':'1.2-2' }}
-                  </p>
-                </div>
-
-                <!-- Quantity -->
-                <div class="col-span-2 text-right">
-                  <p class="text-sm font-mono text-slate-700 dark:text-slate-300">
-                    {{ holding.quantity | number:'1.0-8' }}
-                  </p>
-                </div>
-
-                <!-- Avg Cost -->
-                <div class="col-span-2 text-right">
-                  <p class="text-sm font-mono text-slate-700 dark:text-slate-300">
-                    {{ holding.averageCostPrice | currency:holding.currency:'symbol':'1.2-2' }}
-                  </p>
-                </div>
-
-                <!-- Invested -->
-                <div class="col-span-2 text-right">
-                  <p class="text-sm font-mono text-slate-700 dark:text-slate-300">
-                    {{ holding.totalInvested | currency:holding.currency:'symbol':'1.2-2' }}
-                  </p>
-                </div>
-
-                <!-- Market Value + P&L placeholder -->
-                <div class="col-span-3 text-right">
-                  <p class="text-sm font-mono text-slate-400 dark:text-slate-500">
-                    —
-                  </p>
-                  <button type="button"
-                          (click)="togglePlMode()"
-                          class="text-xs font-mono text-slate-400 dark:text-slate-500
-                                 hover:text-slate-600 dark:hover:text-slate-300
-                                 transition-colors mt-0.5">
-                    P&L —
-                  </button>
-                </div>
-
-              </div>
-            }
-          </div>
-
-          <!-- Footer -->
-          <div class="px-5 py-3 border-t border-slate-200 dark:border-slate-700
-                      bg-slate-50 dark:bg-slate-900/50 space-y-1.5">
-            <div class="flex justify-between text-xs">
-              <span class="text-slate-500 dark:text-slate-400">Position value</span>
-              <span class="font-mono font-semibold text-slate-900 dark:text-white">
-                {{ totalInvested() | currency:'EUR':'symbol':'1.2-2' }}
-              </span>
+            <span class="col-span-2"></span>
+            <span></span>
+            <p class="text-right text-sm font-bold
+                       text-slate-900 dark:text-white font-mono">
+              {{ totalMarketValue() | currency:'EUR':'symbol':'1.2-2' }}
+            </p>
+            <div class="text-right">
+              @if (hasSomeLivePrices()) {
+                <p class="text-sm font-bold font-mono"
+                   [class]="totalUnrealizedPnl() >= 0
+                     ? 'text-emerald-500' : 'text-rose-500'">
+                  {{ totalUnrealizedPnl() >= 0 ? '+' : '' }}{{
+                     totalUnrealizedPnl() |
+                     currency:'EUR':'symbol':'1.2-2' }}
+                </p>
+              }
             </div>
-            <div class="flex justify-between text-xs">
-              <span class="text-slate-500 dark:text-slate-400">Total fees paid</span>
-              <span class="font-mono text-amber-500 dark:text-amber-400">
-                {{ totalFeesPaid() | currency:'EUR':'symbol':'1.2-2' }}
-              </span>
-            </div>
-            <div class="flex justify-between text-xs pt-1.5
-                        border-t border-slate-200 dark:border-slate-700">
-              <span class="font-medium text-slate-600 dark:text-slate-300">
-                Total cash out
-              </span>
-              <span class="font-mono font-bold text-slate-900 dark:text-white">
-                {{ totalCashOut() | currency:'EUR':'symbol':'1.2-2' }}
-              </span>
-            </div>
-          </div>
-
-          </div>
           </div>
         }
       </div>

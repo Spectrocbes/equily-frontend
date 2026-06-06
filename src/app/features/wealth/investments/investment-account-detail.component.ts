@@ -6,7 +6,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { AccountService } from '../../../core/services/account.service';
 import {
-  FinancialAccount, Holding, Transaction, TransactionType, accountAgeYears,
+  FinancialAccount, Holding, EnrichedHolding, Transaction, TransactionType, accountAgeYears,
   ACCOUNT_TYPE_LABELS,
 } from '../../../core/models/account.model';
 import { AddTransactionModalComponent } from '../shared/add-transaction-modal.component';
@@ -41,6 +41,25 @@ export class InvestmentAccountDetailComponent implements OnInit {
   protected readonly editingTransaction   = signal<Transaction | null>(null);
   protected readonly activeTab           = signal<'holdings' | 'transactions'>('holdings');
   protected readonly plMode              = signal<'euro' | 'percent'>('euro');
+
+  protected readonly enrichedHoldings   = signal<EnrichedHolding[]>([]);
+  protected readonly pricesLoading      = signal(false);
+
+  protected readonly totalMarketValue = computed(() =>
+    this.enrichedHoldings().reduce(
+      (sum, h) => sum + (h.marketValue ?? h.totalInvested), 0
+    )
+  );
+
+  protected readonly totalUnrealizedPnl = computed(() =>
+    this.enrichedHoldings()
+      .filter(h => h.priceAvailable)
+      .reduce((sum, h) => sum + (h.unrealizedPnl ?? 0), 0)
+  );
+
+  protected readonly hasSomeLivePrices = computed(() =>
+    this.enrichedHoldings().some(h => h.priceAvailable)
+  );
 
   protected readonly cashDelta          = signal<number | null>(null);
   protected readonly cashDeltaPositive  = signal(true);
@@ -102,6 +121,17 @@ export class InvestmentAccountDetailComponent implements OnInit {
 
     this.accountService.getTransactions(id).subscribe({
       next: (t) => this.transactions.set(t),
+    });
+
+    this.pricesLoading.set(true);
+    this.accountService.getEnrichedHoldings(id).subscribe({
+      next: (h) => {
+        this.enrichedHoldings.set(h);
+        this.pricesLoading.set(false);
+      },
+      error: () => {
+        this.pricesLoading.set(false);
+      },
     });
   }
 

@@ -182,6 +182,20 @@ export interface Holding {
   totalFeesPaid: number;       // cumulative brokerage fees on BUY transactions
 }
 
+export interface EnrichedHolding {
+  ticker: string;
+  quantity: number;
+  averageCostPrice: number;
+  totalInvested: number;
+  totalFeesPaid: number;
+  currentPrice: number | null;
+  currency: string | null;
+  marketValue: number | null;
+  unrealizedPnl: number | null;
+  unrealizedPnlPct: number | null;
+  priceAvailable: boolean;
+}
+
 export interface RecordTransactionRequest {
   type: TransactionType;
   ticker?: string;
