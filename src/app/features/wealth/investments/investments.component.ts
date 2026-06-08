@@ -34,13 +34,30 @@ export class InvestmentsComponent implements OnInit {
     this.accounts().reduce((s, a) => s + (a.portfolioValue ?? 0) + a.balance, 0)
   );
 
-  protected readonly totalPortfolioValue = computed(() =>
-    this.accounts().reduce((sum, a) => sum + (a.portfolioValue ?? 0), 0)
-  );
+  protected readonly totalPortfolioValue = computed(() => {
+    const summaries  = this.accountService.portfolioSummaries();
+    const accountIds = new Set(this.accounts().map(a => a.id));
+    if (summaries.length > 0) {
+      return summaries
+        .filter(s => accountIds.has(s.accountId))
+        .reduce((sum, s) => sum + s.livePortfolioValue, 0);
+    }
+    return this.accounts().reduce((sum, a) => sum + (a.portfolioValue ?? 0), 0);
+  });
 
   protected readonly totalCash = computed(() =>
     this.accounts().reduce((sum, a) => sum + a.balance, 0)
   );
+
+  protected liveValue(accountId: string): number {
+    return this.accountService.getPortfolioSummary(accountId)
+      ?.livePortfolioValue ?? 0;
+  }
+
+  protected isPriceAvailable(accountId: string): boolean {
+    return this.accountService.getPortfolioSummary(accountId)
+      ?.priceAvailable ?? false;
+  }
 
   protected depositPercent(account: FinancialAccount): number {
     if (!account.depositLimit || account.depositLimit === 0) return 0;
@@ -67,6 +84,7 @@ export class InvestmentsComponent implements OnInit {
 
   ngOnInit(): void {
     this.accountService.loadAccounts();
+    this.accountService.loadPortfolioSummaries();
     this.accountService.getPeaSummary().subscribe(s => this.peaSummary.set(s));
   }
 }

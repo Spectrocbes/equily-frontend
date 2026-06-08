@@ -14,7 +14,7 @@
       <div class="text-right">
         <p class="text-xs text-slate-500 dark:text-slate-400 mb-1">Total</p>
         <p class="text-2xl font-bold font-mono text-slate-900 dark:text-white">
-          {{ total() | currency:'EUR':'symbol':'1.2-2' }}
+          {{ totalCryptoValue() | currency:'EUR':'symbol':'1.2-2' }}
         </p>
       </div>
       <button (click)="showModal.set(true)"
@@ -53,7 +53,8 @@
   <div class="rounded-xl border border-slate-200 dark:border-slate-700
               bg-white dark:bg-slate-800 overflow-hidden">
 
-    <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-700">
+    <div class="px-5 py-4 bg-slate-50 dark:bg-slate-800/80
+                border-b border-slate-200 dark:border-slate-700">
       <h2 class="font-medium text-slate-900 dark:text-white">Wallets</h2>
     </div>
 
@@ -66,7 +67,7 @@
         @for (account of accounts(); track account.id) {
           <a [routerLink]="['/wealth/crypto', account.id]"
              class="flex items-center justify-between px-5 py-4
-                    hover:bg-slate-50 dark:hover:bg-slate-700/50
+                    hover:bg-slate-50 dark:hover:bg-slate-800/30
                     transition-colors cursor-pointer no-underline group">
 
             <div>
@@ -84,10 +85,13 @@
               <div class="text-right">
                 <p class="text-sm font-semibold font-mono
                            text-slate-900 dark:text-white">
-                  {{ account.balance | currency:'EUR':'symbol':'1.2-2' }}
+                  {{ liveValue(account.id) | currency:'EUR':'symbol':'1.2-2' }}
                 </p>
-                <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
-                  P&L — coming soon
+                <p class="text-xs mt-0.5"
+                   [class]="isPriceAvailable(account.id)
+                     ? 'text-slate-400 dark:text-slate-500'
+                     : 'text-amber-500 dark:text-amber-400'">
+                  {{ isPriceAvailable(account.id) ? 'live' : 'at cost' }}
                 </p>
               </div>
               <svg class="w-4 h-4 text-slate-300 dark:text-slate-600
@@ -99,6 +103,18 @@
 
           </a>
         }
+      </div>
+
+      <!-- Total row -->
+      <div class="flex items-center justify-between px-5 py-3
+                  bg-primary-50/50 dark:bg-primary-900/10
+                  border-t-2 border-primary-100 dark:border-primary-900/30">
+        <span class="text-sm font-semibold text-primary-600 dark:text-primary-400">
+          Total crypto
+        </span>
+        <p class="text-sm font-bold font-mono text-primary-600 dark:text-primary-400">
+          {{ totalCryptoValue() | currency:'EUR':'symbol':'1.2-2' }}
+        </p>
       </div>
     }
   </div>

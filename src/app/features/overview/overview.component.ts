@@ -44,10 +44,18 @@ export class OverviewComponent implements OnInit {
       .reduce((sum, a) => sum + a.balance, 0)
   );
 
-  protected readonly totalWealth = computed(() =>
-    this.investmentTotal() + this.cryptoTotal() +
-    this.savingsTotal() + this.cashTotal()
-  );
+  protected readonly totalWealth = computed(() => {
+    const accounts = this.accountService.accounts();
+    return accounts.reduce((sum, account) => {
+      if (this.INVESTMENT_TYPES.includes(account.accountType)) {
+        const summary = this.accountService.getPortfolioSummary(account.id);
+        const portfolioVal = summary?.livePortfolioValue
+          ?? account.portfolioValue ?? 0;
+        return sum + portfolioVal + account.balance;
+      }
+      return sum + account.balance;
+    }, 0);
+  });
 
   protected readonly allocationData = computed(() => [
     { label: 'Investments', value: this.investmentTotal(), color: '#6366f1' },
@@ -59,6 +67,7 @@ export class OverviewComponent implements OnInit {
   ngOnInit(): void {
     this.accountService.loadSummaries();
     this.accountService.loadAccounts();
+    this.accountService.loadPortfolioSummaries();
   }
 
   protected onAccountCreated(): void {
