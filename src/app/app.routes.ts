@@ -78,6 +78,12 @@ export const routes: Routes = [
           import('./features/rebalance/rebalance.component')
             .then(m => m.RebalanceComponent),
       },
+      {
+        path: 'settings',
+        loadComponent: () =>
+          import('./features/settings/settings.component')
+            .then(m => m.SettingsComponent),
+      },
     ],
   },
   { path: '**', redirectTo: 'overview' },

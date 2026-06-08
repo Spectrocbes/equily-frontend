@@ -4,6 +4,7 @@ import { CryptoAccountDetailComponent } from './crypto-account-detail.component'
 import { AccountService } from '../../../core/services/account.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { provideRouter } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
 import { of } from 'rxjs';
 import { EnrichedHolding, FinancialAccount, Transaction } from '../../../core/models/account.model';
 
@@ -51,6 +52,7 @@ describe('CryptoAccountDetailComponent', () => {
       imports: [CryptoAccountDetailComponent],
       providers: [
         provideRouter([]),
+        provideHttpClient(),
         {
           provide: AccountService,
           useValue: {

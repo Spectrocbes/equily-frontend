@@ -16,11 +16,11 @@
           Total
         </p>
         <p class="text-xl font-bold font-mono text-primary-400">
-          {{ totalPortfolioValue() | currency:'EUR':'symbol':'1.2-2' }}
+          {{ totalPortfolioValue() | userCurrency }}
         </p>
         @if (totalCash() > 0) {
           <p class="text-xs text-slate-500 dark:text-slate-500 font-mono mt-0.5">
-            + {{ totalCash() | currency:'EUR':'symbol':'1.0-0' }} cash
+            + {{ totalCash() | userCurrency:'1.0-0' }} cash
           </p>
         }
       </div>
@@ -92,7 +92,7 @@
               <div class="flex items-center gap-4">
                 <div class="text-right flex-shrink-0">
                   <p class="text-sm font-semibold text-slate-900 dark:text-white font-mono">
-                    {{ liveValue(account.id) | currency:'EUR':'symbol':'1.2-2' }}
+                    {{ liveValue(account.id) | userCurrency }}
                   </p>
                   <p class="text-xs mt-0.5"
                      [class]="isPriceAvailable(account.id)
@@ -125,16 +125,16 @@
                 <div class="flex justify-between mt-1">
                   @if (account.subType === 'PEA' || account.subType === 'PEA_PME') {
                     <span class="text-xs text-slate-400">
-                      {{ (account.totalDeposits ?? 0) | currency:'EUR':'symbol':'1.0-0' }} deposited
+                      {{ (account.totalDeposits ?? 0) | userCurrency:'1.0-0' }} deposited
                     </span>
                   } @else {
                     <span class="text-xs text-slate-400">
-                      {{ account.balance | currency:'EUR':'symbol':'1.0-0' }} balance
+                      {{ account.balance | userCurrency:'1.0-0' }} balance
                     </span>
                   }
                   <span class="text-xs"
                         [class]="depositPercent(account) >= 90 ? 'text-amber-500' : 'text-slate-400'">
-                    {{ (account.remainingCapacity ?? 0) | currency:'EUR':'symbol':'1.0-0' }} remaining
+                    {{ (account.remainingCapacity ?? 0) | userCurrency:'1.0-0' }} remaining
                   </span>
                 </div>
               </div>
@@ -152,7 +152,7 @@
           Total investments
         </span>
         <p class="text-sm font-bold font-mono text-primary-600 dark:text-primary-400">
-          {{ totalPortfolioValue() | currency:'EUR':'symbol':'1.2-2' }}
+          {{ totalPortfolioValue() | userCurrency }}
         </p>
       </div>
     }

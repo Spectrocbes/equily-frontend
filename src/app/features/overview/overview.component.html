@@ -33,7 +33,7 @@
       <div class="h-9 w-48 bg-white/20 rounded animate-pulse mt-1"></div>
     } @else {
       <p class="text-4xl font-bold mt-1 font-mono">
-        {{ totalWealth() | currency:'EUR':'symbol':'1.2-2' }}
+        {{ totalWealth() | userCurrency }}
       </p>
     }
     <p class="text-primary-200 text-xs mt-2">
@@ -80,19 +80,19 @@
                 bg-white dark:bg-slate-800 p-6">
       <h2 class="font-medium text-slate-900 dark:text-white mb-4">Allocation</h2>
 
-      @if (allocationData().length === 0) {
+      @if (donutData().length === 0) {
         <div class="h-32 flex items-center justify-center">
           <p class="text-slate-400 text-sm">No accounts yet</p>
         </div>
       } @else {
         <div class="flex items-center gap-6">
           <app-donut-chart
-            [data]="allocationData()"
+            [data]="donutData()"
             [total]="totalWealth()" />
 
           <!-- Legend -->
           <div class="space-y-2 flex-1">
-            @for (item of allocationData(); track item.label) {
+            @for (item of donutData(); track item.label) {
               <a [routerLink]="'/wealth/' + item.label.toLowerCase()"
                  class="flex items-center justify-between group cursor-pointer">
                 <div class="flex items-center gap-2">
@@ -107,7 +107,7 @@
                 <div class="text-right">
                   <span class="text-sm font-medium font-mono
                                text-slate-900 dark:text-white">
-                    {{ item.value | currency:'EUR':'symbol':'1.0-0' }}
+                    {{ item.value | userCurrency:'1.0-0' }}
                   </span>
                   <span class="text-xs text-slate-400 ml-1.5">
                     {{ totalWealth() > 0

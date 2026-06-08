@@ -233,3 +233,17 @@ export interface CsvImportResponse {
   errors: number;
   errorDetails: string[];
 }
+
+export interface UserPreferences {
+  currency: string;
+  locale: string;
+  supportedCurrencies: string[];
+  eurToTargetRate: number;
+}
+
+export const CURRENCY_SYMBOLS: Record<string, string> = {
+  EUR: '€',
+  USD: '$',
+  GBP: '£',
+  CHF: 'CHF',
+};

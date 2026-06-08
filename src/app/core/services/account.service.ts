@@ -16,6 +16,7 @@ import {
   CsvImportResponse,
   PeaSummary,
 } from '../models/account.model';
+import { PreferencesService } from './preferences.service';
 
 @Injectable({ providedIn: 'root' })
 export class AccountService {
@@ -43,11 +44,13 @@ export class AccountService {
   );
 
   private readonly http = inject(HttpClient);
+  private readonly preferencesService = inject(PreferencesService);
 
   loadAccounts(): void {
+    const currency = this.preferencesService.currency();
     this._loading.set(true);
     this._error.set(null);
-    this.http.get<FinancialAccount[]>(this.apiUrl).pipe(
+    this.http.get<FinancialAccount[]>(this.apiUrl, { params: { currency } }).pipe(
       tap({
         next: (accounts) => {
           const sorted = [...accounts].sort((a, b) =>
@@ -89,7 +92,7 @@ export class AccountService {
         }
 
         const holdingRequests = investmentAccounts.map(a =>
-          this.http.get<EnrichedHolding[]>(`${this.apiUrl}/${a.id}/holdings/enriched`).pipe(
+          this.getEnrichedHoldings(a.id).pipe(
             map(holdings => ({
               account: a,
               totalInvested: holdings.reduce((s, h) => s + h.totalInvested, 0),
@@ -160,21 +163,27 @@ export class AccountService {
     return this.http.get<FinancialAccount>(`${this.apiUrl}/${id}`);
   }
 
-  getTransactions(accountId: string) {
+  getTransactions(accountId: string): Observable<Transaction[]> {
+    const currency = this.preferencesService.currency();
     return this.http.get<Transaction[]>(
-      `${this.apiUrl}/${accountId}/transactions`
+      `${this.apiUrl}/${accountId}/transactions`,
+      { params: { currency } }
     );
   }
 
   getEnrichedHoldings(accountId: string): Observable<EnrichedHolding[]> {
+    const currency = this.preferencesService.currency();
     return this.http.get<EnrichedHolding[]>(
-      `${this.apiUrl}/${accountId}/holdings/enriched`
+      `${this.apiUrl}/${accountId}/holdings/enriched`,
+      { params: { currency } }
     );
   }
 
   loadPortfolioSummaries(): void {
+    const currency = this.preferencesService.currency();
     this.http.get<AccountPortfolioSummary[]>(
-      `${this.apiUrl}/portfolio-summary`
+      `${this.apiUrl}/portfolio-summary`,
+      { params: { currency } }
     ).subscribe({
       next: (s) => this._portfolioSummaries.set(s),
       // eslint-disable-next-line @typescript-eslint/no-empty-function

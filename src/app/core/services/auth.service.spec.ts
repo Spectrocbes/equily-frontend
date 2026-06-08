@@ -6,6 +6,13 @@ import { Router } from '@angular/router';
 import { AuthService } from './auth.service';
 import { AccountService } from './account.service';
 import { AuthResponse } from '../models/auth.model';
+import { UserPreferences } from '../models/account.model';
+
+const mockPreferences: UserPreferences = {
+  currency: 'EUR',
+  locale: 'fr',
+  supportedCurrencies: ['EUR', 'USD', 'GBP', 'CHF'],
+};
 
 const ACCESS_TOKEN_KEY  = 'equily_access_token';
 const REFRESH_TOKEN_KEY = 'equily_refresh_token';
@@ -45,6 +52,7 @@ describe('AuthService', () => {
     service.login({ email: 'test@example.com', password: 'pass' }).subscribe();
     const req = httpMock.expectOne('/auth/login');
     req.flush(mockAuthResponse);
+    httpMock.expectOne('/api/v1/preferences').flush(mockPreferences);
 
     expect(localStorage.getItem(ACCESS_TOKEN_KEY)).toBe(mockAuthResponse.accessToken);
     expect(localStorage.getItem(REFRESH_TOKEN_KEY)).toBe(mockAuthResponse.refreshToken);
@@ -95,9 +103,28 @@ describe('AuthService', () => {
     }).subscribe();
     const req = httpMock.expectOne('/auth/register');
     req.flush(mockAuthResponse);
+    httpMock.expectOne('/api/v1/preferences').flush(mockPreferences);
 
     expect(localStorage.getItem(ACCESS_TOKEN_KEY)).toBe(mockAuthResponse.accessToken);
     expect(service.currentUser()?.email).toBe('test@example.com');
+  });
+
+  it('loadCurrentUser fetches /auth/me and loads preferences when token exists', () => {
+    localStorage.setItem(ACCESS_TOKEN_KEY, mockAuthResponse.accessToken);
+    service.loadCurrentUser();
+    const meReq = httpMock.expectOne('/auth/me');
+    meReq.flush({ email: 'test@example.com', displayName: 'Test User' });
+    httpMock.expectOne('/api/v1/preferences').flush(mockPreferences);
+
+    expect(service.currentUser()).toEqual({
+      email: 'test@example.com',
+      displayName: 'Test User',
+    });
+  });
+
+  it('loadCurrentUser does nothing when no token', () => {
+    service.loadCurrentUser();
+    httpMock.expectNone('/auth/me');
   });
 
   it('verifyEmail calls POST /auth/verify-email with token', () => {

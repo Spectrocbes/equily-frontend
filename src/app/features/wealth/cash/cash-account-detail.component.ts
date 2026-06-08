@@ -8,11 +8,12 @@ import {
 } from '../../../core/models/account.model';
 import { AddTransactionModalComponent } from '../shared/add-transaction-modal.component';
 import { EditTransactionModalComponent } from '../shared/edit-transaction-modal.component';
+import { UserCurrencyPipe } from '../../../shared/pipes/user-currency.pipe';
 
 @Component({
   selector: 'app-cash-account-detail',
   standalone: true,
-  imports: [CurrencyPipe, DatePipe, RouterLink, AddTransactionModalComponent, EditTransactionModalComponent],
+  imports: [CurrencyPipe, DatePipe, RouterLink, AddTransactionModalComponent, EditTransactionModalComponent, UserCurrencyPipe],
   templateUrl: './cash-account-detail.component.html',
 })
 export class CashAccountDetailComponent implements OnInit {

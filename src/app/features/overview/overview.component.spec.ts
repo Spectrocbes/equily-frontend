@@ -3,6 +3,7 @@ import { OverviewComponent } from './overview.component';
 import { AccountService } from '../../core/services/account.service';
 import { signal } from '@angular/core';
 import { provideRouter } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
 import { AccountSummary, FinancialAccount, AccountPortfolioSummary } from '../../core/models/account.model';
 
 const peaAccount: FinancialAccount = {
@@ -44,6 +45,7 @@ describe('OverviewComponent', () => {
       imports: [OverviewComponent],
       providers: [
         provideRouter([]),
+        provideHttpClient(),
         {
           provide: AccountService,
           useValue: {
