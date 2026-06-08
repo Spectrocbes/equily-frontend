@@ -173,13 +173,19 @@ export interface AccountSummary {
   totalFeesPaid: number;
 }
 
-export interface Holding {
+export interface EnrichedHolding {
   ticker: string;
   quantity: number;
-  averageCostPrice: number;    // pure fiscal price — excludes fees
-  currency: string;
-  totalInvested: number;       // quantity × averageCostPrice (no fees)
-  totalFeesPaid: number;       // cumulative brokerage fees on BUY transactions
+  averageCostPrice: number;
+  totalInvested: number;
+  totalFeesPaid: number;
+  currentPrice: number | null;
+  currency: string | null;
+  marketValue: number | null;
+  unrealizedPnl: number | null;
+  unrealizedPnlPct: number | null;
+  dayChangePercent: number | null;
+  priceAvailable: boolean;
 }
 
 export interface RecordTransactionRequest {
@@ -193,6 +199,15 @@ export interface RecordTransactionRequest {
   date: string;
   fees?: number;
   description?: string;
+}
+
+export interface AccountPortfolioSummary {
+  accountId: string;
+  livePortfolioValue: number;
+  costPortfolioValue: number;
+  unrealizedPnl: number;
+  unrealizedPnlPct: number;
+  priceAvailable: boolean;
 }
 
 export interface PeaSummary {

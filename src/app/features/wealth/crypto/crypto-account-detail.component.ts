@@ -5,7 +5,10 @@ import {
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { AccountService } from '../../../core/services/account.service';
-import { FinancialAccount, Holding, Transaction } from '../../../core/models/account.model';
+import {
+  FinancialAccount, EnrichedHolding, Transaction,
+  ACCOUNT_TYPE_LABELS,
+} from '../../../core/models/account.model';
 import { AddTransactionModalComponent } from '../shared/add-transaction-modal.component';
 import { CsvImportModalComponent } from '../shared/csv-import-modal.component';
 import { DonutChartComponent, DonutSlice } from '../../../shared/components/donut-chart/donut-chart.component';
@@ -20,20 +23,23 @@ import { DonutChartComponent, DonutSlice } from '../../../shared/components/donu
   templateUrl: './crypto-account-detail.component.html',
 })
 export class CryptoAccountDetailComponent implements OnInit, OnDestroy {
-  private readonly route    = inject(ActivatedRoute);
-  private readonly router   = inject(Router);
+  private readonly route          = inject(ActivatedRoute);
+  private readonly router         = inject(Router);
   private readonly accountService = inject(AccountService);
 
-  protected readonly account      = signal<FinancialAccount | null>(null);
-  protected readonly holdings     = signal<Holding[]>([]);
-  protected readonly transactions = signal<Transaction[]>([]);
-  protected readonly loading      = signal(false);
-  protected readonly error        = signal<string | null>(null);
+  protected readonly ACCOUNT_TYPE_LABELS = ACCOUNT_TYPE_LABELS;
+
+  protected readonly account          = signal<FinancialAccount | null>(null);
+  protected readonly enrichedHoldings = signal<EnrichedHolding[]>([]);
+  protected readonly transactions     = signal<Transaction[]>([]);
+  protected readonly loading          = signal(false);
+  protected readonly error            = signal<string | null>(null);
+  protected readonly pricesLoading    = signal(false);
 
   protected readonly showTransactionModal = signal(false);
   protected readonly showCsvModal        = signal(false);
   protected readonly activeTab           = signal<'holdings' | 'transactions'>('holdings');
-  protected readonly plMode              = signal<'euro' | 'percent'>('euro');
+  protected readonly pnlMode             = signal<'EUR' | 'PCT'>('EUR');
 
   protected readonly balanceDelta = signal<number | null>(null);
   protected readonly balanceFlash = signal<'gain' | 'loss' | null>(null);
@@ -41,14 +47,35 @@ export class CryptoAccountDetailComponent implements OnInit, OnDestroy {
   private deltaTimeout: ReturnType<typeof setTimeout> | null = null;
 
   protected readonly totalInvested = computed(() =>
-    this.holdings().reduce((s, h) => s + h.totalInvested, 0)
+    this.enrichedHoldings().reduce((s, h) => s + h.totalInvested, 0)
   );
   protected readonly totalFeesPaid = computed(() =>
-    this.holdings().reduce((s, h) => s + h.totalFeesPaid, 0)
+    this.enrichedHoldings().reduce((s, h) => s + h.totalFeesPaid, 0)
   );
-  protected readonly totalCashOut = computed(() =>
-    this.totalInvested() + this.totalFeesPaid()
+
+  protected readonly totalMarketValue = computed(() =>
+    this.enrichedHoldings().reduce(
+      (sum, h) => sum + (h.marketValue ?? h.totalInvested), 0
+    )
   );
+
+  protected readonly totalUnrealizedPnl = computed(() =>
+    this.enrichedHoldings()
+      .filter(h => h.priceAvailable)
+      .reduce((sum, h) => sum + (h.unrealizedPnl ?? 0), 0)
+  );
+
+  protected readonly hasSomeLivePrices = computed(() =>
+    this.enrichedHoldings().some(h => h.priceAvailable)
+  );
+
+  protected readonly totalUnrealizedPnlPct = computed(() => {
+    const holdings = this.enrichedHoldings().filter(h => h.priceAvailable);
+    if (holdings.length === 0) return 0;
+    const totalInvested = holdings.reduce((sum, h) => sum + h.totalInvested, 0);
+    if (totalInvested === 0) return 0;
+    return (this.totalUnrealizedPnl() / totalInvested) * 100;
+  });
 
   protected readonly donutData = computed((): DonutSlice[] => {
     const total = this.totalInvested();
@@ -57,7 +84,7 @@ export class CryptoAccountDetailComponent implements OnInit, OnDestroy {
       '#f59e0b','#6366f1','#10b981','#f43f5e',
       '#3b82f6','#8b5cf6','#ec4899','#14b8a6',
     ];
-    return this.holdings().map((h, i) => ({
+    return this.enrichedHoldings().map((h, i) => ({
       label: h.ticker,
       value: h.totalInvested,
       color: colors[i % colors.length],
@@ -100,8 +127,13 @@ export class CryptoAccountDetailComponent implements OnInit, OnDestroy {
       },
     });
 
-    this.accountService.getHoldings(id).subscribe({
-      next: (h) => this.holdings.set(h),
+    this.pricesLoading.set(true);
+    this.accountService.getEnrichedHoldings(id).subscribe({
+      next: (h) => {
+        this.enrichedHoldings.set(h);
+        this.pricesLoading.set(false);
+      },
+      error: () => this.pricesLoading.set(false),
     });
 
     this.accountService.getTransactions(id).subscribe({
@@ -119,8 +151,8 @@ export class CryptoAccountDetailComponent implements OnInit, OnDestroy {
     this.loadAll(id);
   }
 
-  protected togglePlMode(): void {
-    this.plMode.update(m => m === 'euro' ? 'percent' : 'euro');
+  protected togglePnlMode(): void {
+    this.pnlMode.set(this.pnlMode() === 'EUR' ? 'PCT' : 'EUR');
   }
 
   protected getBadgeClass(type: string): string {

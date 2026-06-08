@@ -4,10 +4,11 @@ import { Observable, tap, switchMap, forkJoin, map, of } from 'rxjs';
 import {
   FinancialAccount,
   Transaction,
-  Holding,
+  EnrichedHolding,
   CreateAccountRequest,
   RecordTransactionRequest,
   AccountSummary,
+  AccountPortfolioSummary,
   WealthCategory,
   ACCOUNT_CATEGORY,
   CsvBroker,
@@ -27,6 +28,7 @@ export class AccountService {
   private readonly _modalError = signal<string | null>(null);
   private readonly _summaries = signal<AccountSummary[]>([]);
   private readonly _summariesLoading = signal(false);
+  private readonly _portfolioSummaries = signal<AccountPortfolioSummary[]>([]);
 
   readonly accounts = this._accounts.asReadonly();
   readonly loading = this._loading.asReadonly();
@@ -35,6 +37,7 @@ export class AccountService {
   readonly modalError = this._modalError.asReadonly();
   readonly summaries = this._summaries.asReadonly();
   readonly summariesLoading = this._summariesLoading.asReadonly();
+  readonly portfolioSummaries = this._portfolioSummaries.asReadonly();
   readonly totalBalance = computed(() =>
     this._accounts().reduce((sum, a) => sum + a.balance, 0)
   );
@@ -86,7 +89,7 @@ export class AccountService {
         }
 
         const holdingRequests = investmentAccounts.map(a =>
-          this.http.get<Holding[]>(`${this.apiUrl}/${a.id}/holdings`).pipe(
+          this.http.get<EnrichedHolding[]>(`${this.apiUrl}/${a.id}/holdings/enriched`).pipe(
             map(holdings => ({
               account: a,
               totalInvested: holdings.reduce((s, h) => s + h.totalInvested, 0),
@@ -163,13 +166,30 @@ export class AccountService {
     );
   }
 
-  getHoldings(accountId: string): Observable<Holding[]> {
-    return this.http.get<Holding[]>(`${this.apiUrl}/${accountId}/holdings`);
+  getEnrichedHoldings(accountId: string): Observable<EnrichedHolding[]> {
+    return this.http.get<EnrichedHolding[]>(
+      `${this.apiUrl}/${accountId}/holdings/enriched`
+    );
+  }
+
+  loadPortfolioSummaries(): void {
+    this.http.get<AccountPortfolioSummary[]>(
+      `${this.apiUrl}/portfolio-summary`
+    ).subscribe({
+      next: (s) => this._portfolioSummaries.set(s),
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      error: () => {},
+    });
+  }
+
+  getPortfolioSummary(accountId: string): AccountPortfolioSummary | undefined {
+    return this._portfolioSummaries().find(s => s.accountId === accountId);
   }
 
   reset(): void {
     this._accounts.set([]);
     this._summaries.set([]);
+    this._portfolioSummaries.set([]);
     this._loading.set(false);
     this._error.set(null);
     this._modalLoading.set(false);

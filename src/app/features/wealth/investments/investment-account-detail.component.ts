@@ -6,7 +6,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { AccountService } from '../../../core/services/account.service';
 import {
-  FinancialAccount, Holding, Transaction, TransactionType, accountAgeYears,
+  FinancialAccount, EnrichedHolding, Transaction, TransactionType, accountAgeYears,
   ACCOUNT_TYPE_LABELS,
 } from '../../../core/models/account.model';
 import { AddTransactionModalComponent } from '../shared/add-transaction-modal.component';
@@ -30,7 +30,6 @@ export class InvestmentAccountDetailComponent implements OnInit {
   private readonly accountService = inject(AccountService);
 
   protected readonly account      = signal<FinancialAccount | null>(null);
-  protected readonly holdings     = signal<Holding[]>([]);
   protected readonly transactions = signal<Transaction[]>([]);
   protected readonly loading      = signal(false);
   protected readonly error        = signal<string | null>(null);
@@ -40,7 +39,34 @@ export class InvestmentAccountDetailComponent implements OnInit {
   protected readonly showCsvModal         = signal(false);
   protected readonly editingTransaction   = signal<Transaction | null>(null);
   protected readonly activeTab           = signal<'holdings' | 'transactions'>('holdings');
-  protected readonly plMode              = signal<'euro' | 'percent'>('euro');
+  protected readonly pnlMode             = signal<'EUR' | 'PCT'>('EUR');
+
+  protected readonly enrichedHoldings   = signal<EnrichedHolding[]>([]);
+  protected readonly pricesLoading      = signal(false);
+
+  protected readonly totalMarketValue = computed(() =>
+    this.enrichedHoldings().reduce(
+      (sum, h) => sum + (h.marketValue ?? h.totalInvested), 0
+    )
+  );
+
+  protected readonly totalUnrealizedPnl = computed(() =>
+    this.enrichedHoldings()
+      .filter(h => h.priceAvailable)
+      .reduce((sum, h) => sum + (h.unrealizedPnl ?? 0), 0)
+  );
+
+  protected readonly hasSomeLivePrices = computed(() =>
+    this.enrichedHoldings().some(h => h.priceAvailable)
+  );
+
+  protected readonly totalUnrealizedPnlPct = computed(() => {
+    const holdings = this.enrichedHoldings().filter(h => h.priceAvailable);
+    if (holdings.length === 0) return 0;
+    const totalInvested = holdings.reduce((sum, h) => sum + h.totalInvested, 0);
+    if (totalInvested === 0) return 0;
+    return (this.totalUnrealizedPnl() / totalInvested) * 100;
+  });
 
   protected readonly cashDelta          = signal<number | null>(null);
   protected readonly cashDeltaPositive  = signal(true);
@@ -48,10 +74,10 @@ export class InvestmentAccountDetailComponent implements OnInit {
   protected readonly portfolioDeltaPositive = signal(true);
 
   protected readonly totalInvested = computed(() =>
-    this.holdings().reduce((s, h) => s + h.totalInvested, 0)
+    this.enrichedHoldings().reduce((s, h) => s + h.totalInvested, 0)
   );
   protected readonly totalFeesPaid = computed(() =>
-    this.holdings().reduce((s, h) => s + h.totalFeesPaid, 0)
+    this.enrichedHoldings().reduce((s, h) => s + h.totalFeesPaid, 0)
   );
   protected readonly totalCashOut = computed(() =>
     this.totalInvested() + this.totalFeesPaid()
@@ -68,7 +94,7 @@ export class InvestmentAccountDetailComponent implements OnInit {
       '#6366f1','#10b981','#f59e0b','#f43f5e',
       '#3b82f6','#8b5cf6','#ec4899','#14b8a6',
     ];
-    return this.holdings().map((h, i) => ({
+    return this.enrichedHoldings().map((h, i) => ({
       label: h.ticker,
       value: h.totalInvested,
       color: colors[i % colors.length],
@@ -96,12 +122,19 @@ export class InvestmentAccountDetailComponent implements OnInit {
       },
     });
 
-    this.accountService.getHoldings(id).subscribe({
-      next: (h) => this.holdings.set(h),
-    });
-
     this.accountService.getTransactions(id).subscribe({
       next: (t) => this.transactions.set(t),
+    });
+
+    this.pricesLoading.set(true);
+    this.accountService.getEnrichedHoldings(id).subscribe({
+      next: (h) => {
+        this.enrichedHoldings.set(h);
+        this.pricesLoading.set(false);
+      },
+      error: () => {
+        this.pricesLoading.set(false);
+      },
     });
   }
 
@@ -154,8 +187,8 @@ export class InvestmentAccountDetailComponent implements OnInit {
     this.loadAll(id);
   }
 
-  protected togglePlMode(): void {
-    this.plMode.update(m => m === 'euro' ? 'percent' : 'euro');
+  protected togglePnlMode(): void {
+    this.pnlMode.set(this.pnlMode() === 'EUR' ? 'PCT' : 'EUR');
   }
 
   protected getBadgeClass(type: string): string {

@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { CurrencyPipe } from '@angular/common';
+import { CurrencyPipe, DatePipe } from '@angular/common';
 import { AccountService } from '../../../core/services/account.service';
 import {
   FinancialAccount, Transaction, TransactionType,
@@ -12,7 +12,7 @@ import { EditTransactionModalComponent } from '../shared/edit-transaction-modal.
 @Component({
   selector: 'app-cash-account-detail',
   standalone: true,
-  imports: [CurrencyPipe, RouterLink, AddTransactionModalComponent, EditTransactionModalComponent],
+  imports: [CurrencyPipe, DatePipe, RouterLink, AddTransactionModalComponent, EditTransactionModalComponent],
   templateUrl: './cash-account-detail.component.html',
 })
 export class CashAccountDetailComponent implements OnInit {
@@ -70,7 +70,7 @@ export class CashAccountDetailComponent implements OnInit {
     this.loadAll(id);
   }
 
-  protected getBadgeClass(type: string): string {
+  protected txTypeClass(type: string): string {
     const map: Record<string, string> = {
       DEPOSIT:    'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300',
       WITHDRAWAL: 'bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300',
