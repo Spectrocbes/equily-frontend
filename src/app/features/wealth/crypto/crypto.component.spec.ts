@@ -3,6 +3,7 @@ import { Signal } from '@angular/core';
 import { CryptoComponent } from './crypto.component';
 import { AccountService } from '../../../core/services/account.service';
 import { provideRouter } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
 import { signal } from '@angular/core';
 import { FinancialAccount } from '../../../core/models/account.model';
 
@@ -36,6 +37,7 @@ describe('CryptoComponent', () => {
       imports: [CryptoComponent],
       providers: [
         provideRouter([]),
+        provideHttpClient(),
         {
           provide: AccountService,
           useValue: {

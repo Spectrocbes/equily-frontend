@@ -4,6 +4,7 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
+import { UserCurrencyPipe } from '../../../shared/pipes/user-currency.pipe';
 import { AccountService } from '../../../core/services/account.service';
 import {
   FinancialAccount, EnrichedHolding, Transaction, TransactionType, accountAgeYears,
@@ -20,7 +21,7 @@ import { DonutChartComponent, DonutSlice } from '../../../shared/components/donu
   imports: [
     CurrencyPipe, DecimalPipe, RouterLink,
     AddTransactionModalComponent, EditTransactionModalComponent,
-    CsvImportModalComponent, DonutChartComponent,
+    CsvImportModalComponent, DonutChartComponent, UserCurrencyPipe,
   ],
   templateUrl: './investment-account-detail.component.html',
 })

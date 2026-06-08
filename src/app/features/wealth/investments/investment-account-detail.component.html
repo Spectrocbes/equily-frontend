@@ -71,13 +71,13 @@
             Portfolio Value
           </p>
           <p class="text-2xl font-bold font-mono text-slate-900 dark:text-white">
-            {{ totalMarketValue() | currency:'EUR':'symbol':'1.2-2' }}
+            {{ totalMarketValue() | userCurrency }}
           </p>
           @if (hasSomeLivePrices()) {
             <p class="text-sm font-mono mt-1"
                [class]="totalUnrealizedPnl() >= 0
                  ? 'text-emerald-500' : 'text-rose-500'">
-              {{ totalUnrealizedPnl() >= 0 ? '+' : '' }}{{ totalUnrealizedPnl() | currency:'EUR':'symbol':'1.2-2' }}
+              {{ totalUnrealizedPnl() >= 0 ? '+' : '' }}{{ totalUnrealizedPnl() | userCurrency }}
             </p>
           }
           @if (portfolioDelta() !== null) {
@@ -96,7 +96,7 @@
               <span class="text-sm font-medium font-mono animate-bounce"
                     [class]="portfolioDeltaPositive() ? 'text-emerald-500' : 'text-rose-500'">
                 {{ portfolioDeltaPositive() ? '↑' : '↓' }}
-                {{ portfolioDelta() | currency:'EUR':'symbol':'1.2-2' }}
+                {{ portfolioDelta() | userCurrency }}
               </span>
             </div>
           }
@@ -108,7 +108,7 @@
             Cash Available
           </p>
           <p class="text-lg font-semibold font-mono text-slate-500 dark:text-slate-400">
-            {{ account()!.balance | currency:account()!.currency:'symbol':'1.2-2' }}
+            {{ account()!.balance | userCurrency }}
           </p>
           <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
             Not invested
@@ -117,7 +117,7 @@
             <span class="text-sm font-medium font-mono animate-bounce"
                   [class]="cashDeltaPositive() ? 'text-emerald-500' : 'text-rose-500'">
               {{ cashDeltaPositive() ? '↑' : '↓' }}
-              {{ cashDelta() | currency:'EUR':'symbol':'1.2-2' }}
+              {{ cashDelta() | userCurrency }}
             </span>
           }
         </div>
@@ -321,7 +321,7 @@
             <!-- Avg cost price -->
             <p class="text-right text-sm text-slate-600
                        dark:text-slate-300 font-mono">
-              {{ holding.averageCostPrice | currency:'EUR':'symbol':'1.2-2' }}
+              {{ holding.averageCostPrice | userCurrency }}
             </p>
 
             <!-- Live price -->
@@ -350,13 +350,11 @@
               @if (holding.priceAvailable) {
                 <p class="text-sm font-semibold text-slate-900
                            dark:text-white font-mono">
-                  {{ holding.marketValue |
-                     currency:'EUR':'symbol':'1.2-2' }}
+                  {{ holding.marketValue | userCurrency }}
                 </p>
               } @else {
                 <p class="text-sm text-slate-600 dark:text-slate-300 font-mono">
-                  {{ holding.totalInvested |
-                     currency:'EUR':'symbol':'1.2-2' }}
+                  {{ holding.totalInvested | userCurrency }}
                 </p>
                 <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
                   at cost
@@ -372,7 +370,7 @@
                      [class]="holding.unrealizedPnl >= 0
                        ? 'text-emerald-500' : 'text-rose-500'">
                     {{ holding.unrealizedPnl >= 0 ? '+' : '' }}{{
-                       holding.unrealizedPnl | currency:'EUR':'symbol':'1.2-2' }}
+                       holding.unrealizedPnl | userCurrency }}
                   </p>
                 } @else {
                   <p class="text-sm font-semibold font-mono"
@@ -402,7 +400,7 @@
             <span></span>
             <p class="text-right text-sm font-bold
                        text-slate-900 dark:text-white font-mono">
-              {{ totalMarketValue() | currency:'EUR':'symbol':'1.2-2' }}
+              {{ totalMarketValue() | userCurrency }}
             </p>
             <div class="text-right">
               @if (hasSomeLivePrices()) {
@@ -411,7 +409,7 @@
                      [class]="totalUnrealizedPnl() >= 0
                        ? 'text-emerald-500' : 'text-rose-500'">
                     {{ totalUnrealizedPnl() >= 0 ? '+' : '' }}{{
-                       totalUnrealizedPnl() | currency:'EUR':'symbol':'1.2-2' }}
+                       totalUnrealizedPnl() | userCurrency }}
                   </p>
                 } @else {
                   <p class="text-sm font-bold font-mono"
@@ -487,15 +485,15 @@
                     <p class="text-sm font-medium font-mono"
                        [class]="tx.type === 'BUY' || tx.type === 'WITHDRAWAL'
                          ? 'text-rose-500' : 'text-emerald-500'">
-                      {{ tx.type === 'BUY' || tx.type === 'WITHDRAWAL' ? '-' : '+' }}{{ tx.totalAmount | currency:tx.currency:'symbol':'1.2-2' }}
+                      {{ tx.type === 'BUY' || tx.type === 'WITHDRAWAL' ? '-' : '+' }}{{ tx.totalAmount | userCurrency }}
                     </p>
                     @if (tx.quantity && tx.pricePerUnit) {
                       <p class="hidden sm:block text-xs text-slate-400 dark:text-slate-500">
-                        {{ tx.quantity }} × {{ tx.pricePerUnit | currency:tx.currency:'symbol':'1.2-2' }}
+                        {{ tx.quantity }} × {{ tx.pricePerUnit | userCurrency }}
                       </p>
                     }
                     <p class="hidden sm:block text-xs text-slate-400 dark:text-slate-500">
-                      Fees: {{ tx.fees | currency:tx.currency:'symbol':'1.2-2' }}
+                      Fees: {{ tx.fees | userCurrency }}
                     </p>
                   </div>
                 </div>

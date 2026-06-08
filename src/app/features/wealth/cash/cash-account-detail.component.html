@@ -148,7 +148,7 @@
 
                 <p class="text-sm font-medium font-mono w-28 text-right"
                    [class]="tx.type === 'WITHDRAWAL' ? 'text-rose-500' : 'text-emerald-500'">
-                  {{ tx.type === 'WITHDRAWAL' ? '-' : '+' }}{{ tx.totalAmount | currency:tx.currency:'symbol':'1.2-2' }}
+                  {{ tx.type === 'WITHDRAWAL' ? '-' : '+' }}{{ tx.totalAmount | userCurrency }}
                 </p>
               </div>
 

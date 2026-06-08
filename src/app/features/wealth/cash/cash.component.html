@@ -12,7 +12,7 @@
       <div class="text-right">
         <p class="text-xs text-slate-500 dark:text-slate-400">Total</p>
         <p class="text-2xl font-bold font-mono text-slate-900 dark:text-white">
-          {{ total() | currency:'EUR':'symbol':'1.2-2' }}
+          {{ total() | userCurrency }}
         </p>
       </div>
       <button (click)="showModal.set(true)"
@@ -72,7 +72,7 @@
             </div>
             <div class="flex items-center gap-4">
               <p class="text-sm font-semibold font-mono text-slate-900 dark:text-white">
-                {{ account.balance | currency:'EUR':'symbol':'1.2-2' }}
+                {{ account.balance | userCurrency }}
               </p>
               <svg class="w-4 h-4 text-slate-300 dark:text-slate-600
                            group-hover:text-primary-400 transition-colors flex-shrink-0"
@@ -92,7 +92,7 @@
           Total cash
         </span>
         <p class="text-sm font-bold font-mono text-primary-600 dark:text-primary-400">
-          {{ total() | currency:'EUR':'symbol':'1.2-2' }}
+          {{ total() | userCurrency }}
         </p>
       </div>
     }
