@@ -249,3 +249,19 @@
 - Hover-revealed edit button on transaction rows in investment, cash, and savings detail pages (`group` + `opacity-0 group-hover:opacity-100`)
 - "Accounts" `<h2>` section header added before accounts list in `savings.component.html` and `cash.component.html`
 - 84/84 tests, lint clean, build 0 errors
+
+## 2026-06-09 — feat/multi-currency-historical-fx: multi-currency UI complete
+- `AddTransactionModal`: `transactionCurrency` computed (EUR forced for French accounts); `isEurForced` shows EUR-only warning when user currency ≠ EUR; P&L toggle label uses user currency symbol
+- `AddAccountModal`: `initialBalanceCurrency` computed; currency passed in payload; initial balance field clears zero on focus, restores on blur
+- `RegisterComponent`: 2-step flow with currency selection
+- All monetary values use `userCurrency` pipe throughout
+- Currency audit: `AccountService.getAccount(id, currency)` added; 4 detail pages (investment, savings, cash, crypto) pass `?currency` param when loading account
+- 172/172 tests, lint clean, build 0 errors
+
+## 2026-06-08 — feat/multi-currency-historical-fx: multi-currency transaction UI (complete)
+- `Transaction` interface: `currency` replaced by `nativeCurrency`; added `totalAmountNative` (in original currency) and `feesNative` (fees in original currency)
+- `RecordTransactionRequest`: `priceCurrency`/`totalCurrency` replaced by single `currency` field
+- `AddTransactionModalComponent`: injects `PreferencesService`; amount, price-per-unit, and fees fields show dynamic currency label `(EUR)` and symbol suffix; `onSubmit` sends `currency: preferencesService.currency()` in payload
+- Transaction list in all 4 detail pages (investment, crypto, savings, cash): uses `isPositive()` for sign/colour; shows `totalAmountNative` as a secondary monospace line when `nativeCurrency !== userCurrency`
+- `RegisterComponent`: 2-step flow — step 1 collects name/email/password, step 2 selects currency preference (EUR/USD/GBP/CHF); `onSubmit` calls `authService.register()` then `preferencesService.update()` via `switchMap`
+- 161/161 tests, lint clean, build 0 errors

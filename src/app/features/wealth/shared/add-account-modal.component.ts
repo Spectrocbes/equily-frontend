@@ -6,7 +6,9 @@ import { AccountService } from '../../../core/services/account.service';
 import {
   AccountType, AccountSubType,
   ACCOUNT_TYPE_SUB_TYPES, ACCOUNT_SUB_TYPE_LABELS, ACCOUNT_TYPE_LABELS,
+  CURRENCY_SYMBOLS, isEurOnlyAccount,
 } from '../../../core/models/account.model';
+import { PreferencesService } from '../../../core/services/preferences.service';
 import { ToastService } from '../../../shared/toast/toast.service';
 
 @Component({
@@ -22,6 +24,7 @@ export class AddAccountModalComponent implements OnInit {
 
   private readonly fb = inject(FormBuilder);
   private readonly accountService = inject(AccountService);
+  private readonly preferencesService = inject(PreferencesService);
   private readonly toastService = inject(ToastService);
 
   protected readonly loading = this.accountService.modalLoading;
@@ -110,8 +113,32 @@ export class AddAccountModalComponent implements OnInit {
       .includes(type);
   });
 
+  protected readonly initialBalanceCurrency = computed(() => {
+    const type    = this.formValue().accountType as AccountType;
+    const subType = this.formValue().subType as AccountSubType;
+    if (isEurOnlyAccount(type, subType ?? null)) return 'EUR';
+    return this.preferencesService.currency();
+  });
+
+  protected readonly initialBalanceCurrencySymbol = computed(() =>
+    CURRENCY_SYMBOLS[this.initialBalanceCurrency()] ?? this.initialBalanceCurrency()
+  );
+
   protected today(): string {
     return new Date().toISOString().split('T')[0];
+  }
+
+  protected onInitialBalanceFocus(): void {
+    if (this.form.get('initialBalance')?.value === 0) {
+      this.form.get('initialBalance')?.setValue(null);
+    }
+  }
+
+  protected onInitialBalanceBlur(): void {
+    const current = this.form.get('initialBalance')?.value;
+    if (current === null || current === undefined) {
+      this.form.get('initialBalance')?.setValue(0);
+    }
   }
 
   constructor() {
@@ -166,7 +193,7 @@ export class AddAccountModalComponent implements OnInit {
       name: name!,
       accountType: accountType as AccountType,
       initialBalance: initialBalance!,
-      currency: 'EUR',
+      currency: this.initialBalanceCurrency(),
       broker: broker!,
       subType: subType as AccountSubType | null,
       openedAt: openedAt ?? null,

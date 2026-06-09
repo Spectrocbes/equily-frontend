@@ -73,10 +73,12 @@ export interface Transaction {
   ticker: string | null;
   quantity: number | null;
   pricePerUnit: number | null;
-  totalAmount: number;
-  currency: string;
+  totalAmount: number;        // in user's display currency
+  totalAmountNative: number;  // in transaction's original currency
+  nativeCurrency: string;     // e.g. 'USD', 'EUR'
   date: string;
   fees: number;
+  feesNative: number;         // fees in original currency
   description: string | null;
 }
 
@@ -193,9 +195,8 @@ export interface RecordTransactionRequest {
   ticker?: string;
   quantity?: number;
   pricePerUnit?: number;
-  priceCurrency?: string;
   totalAmount: number;
-  totalCurrency: string;
+  currency: string;
   date: string;
   fees?: number;
   description?: string;
@@ -241,9 +242,26 @@ export interface UserPreferences {
   eurToTargetRate: number;
 }
 
-export const CURRENCY_SYMBOLS: Record<string, string> = {
+export const CURRENCY_SYMBOLS: Partial<Record<string, string>> = {
   EUR: '€',
   USD: '$',
   GBP: '£',
   CHF: 'CHF',
 };
+
+export const EUR_ONLY_ACCOUNT_TYPES: AccountType[] = [
+  'PEA', 'PEA_PME', 'COMPTE_TITRES', 'PER', 'ASSURANCE_VIE',
+];
+
+export const EUR_ONLY_SUB_TYPES: string[] = [
+  'PEA', 'PEA_PME', 'LIVRET_A', 'LDDS', 'LDD',
+  'LEP', 'LIVRET_JEUNE', 'PER', 'ASSURANCE_VIE',
+];
+
+export function isEurOnlyAccount(
+  accountType: AccountType,
+  subType: AccountSubType | null
+): boolean {
+  return EUR_ONLY_ACCOUNT_TYPES.includes(accountType)
+    || (subType !== null && EUR_ONLY_SUB_TYPES.includes(subType));
+}

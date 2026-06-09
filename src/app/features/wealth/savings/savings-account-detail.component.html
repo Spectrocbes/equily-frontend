@@ -58,14 +58,14 @@
           <p class="text-xs text-slate-500 dark:text-slate-400 mb-0.5">Balance</p>
           <div class="relative">
             <p class="text-2xl font-bold font-mono text-slate-900 dark:text-white">
-              {{ account()!.balance | currency:account()!.currency:'symbol':'1.2-2' }}
+              {{ account()!.balance | userCurrency }}
             </p>
             @if (savingsDelta() !== null) {
               <span class="text-sm font-mono animate-bounce"
                     [class]="savingsDeltaPositive()
                       ? 'text-emerald-500' : 'text-rose-500'">
                 {{ savingsDeltaPositive() ? '↑ +' : '↓ -' }}
-                {{ savingsDelta()! | currency:'EUR':'symbol':'1.2-2' }}
+                {{ savingsDelta()! | userCurrency }}
               </span>
             }
           </div>
@@ -146,10 +146,17 @@
                   </svg>
                 </button>
 
-                <p class="text-sm font-medium font-mono w-28 text-right"
-                   [class]="tx.type === 'WITHDRAWAL' ? 'text-rose-500' : 'text-emerald-500'">
-                  {{ tx.type === 'WITHDRAWAL' ? '-' : '+' }}{{ tx.totalAmount | userCurrency }}
-                </p>
+                <div class="w-28 text-right">
+                  <p class="text-sm font-semibold font-mono"
+                     [class]="isPositive(tx.type) ? 'text-emerald-500' : 'text-rose-500'">
+                    {{ isPositive(tx.type) ? '+' : '-' }}{{ tx.totalAmount | userCurrency }}
+                  </p>
+                  @if (tx.nativeCurrency !== preferencesService.currency()) {
+                    <p class="text-xs text-slate-400 dark:text-slate-500 font-mono mt-0.5">
+                      {{ tx.totalAmountNative | currency:tx.nativeCurrency:'symbol':'1.2-2' }}
+                    </p>
+                  }
+                </div>
               </div>
 
             </div>

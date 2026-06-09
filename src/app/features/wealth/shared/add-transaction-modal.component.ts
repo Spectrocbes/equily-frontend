@@ -3,9 +3,11 @@ import { AbstractControl, FormBuilder, ReactiveFormsModule, Validators } from '@
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { AccountService } from '../../../core/services/account.service';
+import { PreferencesService } from '../../../core/services/preferences.service';
 import {
   AccountType, AccountSubType, TransactionType,
-  ALLOWED_TRANSACTION_TYPES, PeaSummary,
+  ALLOWED_TRANSACTION_TYPES, PeaSummary, CURRENCY_SYMBOLS,
+  isEurOnlyAccount,
 } from '../../../core/models/account.model';
 import { ToastService } from '../../../shared/toast/toast.service';
 
@@ -29,7 +31,20 @@ export class AddTransactionModalComponent implements OnInit {
 
   private readonly fb = inject(FormBuilder);
   protected readonly accountService = inject(AccountService);
+  protected readonly preferencesService = inject(PreferencesService);
   private readonly toastService = inject(ToastService);
+
+  protected readonly transactionCurrency = computed(() =>
+    isEurOnlyAccount(this.accountType(), this.accountSubType())
+      ? 'EUR'
+      : this.preferencesService.currency()
+  );
+
+  protected readonly isEurForced = computed(() =>
+    isEurOnlyAccount(this.accountType(), this.accountSubType())
+  );
+
+  protected readonly CURRENCY_SYMBOLS = CURRENCY_SYMBOLS;
 
   protected readonly loading    = signal(false);
   protected readonly error      = signal<string | null>(null);
@@ -285,18 +300,18 @@ export class AddTransactionModalComponent implements OnInit {
     this.loading.set(true);
     this.error.set(null);
 
-    this.accountService.recordTransaction(this.accountId(), {
+    const payload = {
       type,
-      ticker:        needsTicker ? v.ticker ?? undefined : undefined,
-      quantity:      needsAsset  ? v.quantity ?? undefined : undefined,
-      pricePerUnit:  needsAsset  ? v.pricePerUnit ?? undefined : undefined,
-      priceCurrency: needsAsset  ? 'EUR' : undefined,
+      ticker:       needsTicker ? v.ticker ?? undefined : undefined,
+      quantity:     needsAsset  ? v.quantity ?? undefined : undefined,
+      pricePerUnit: needsAsset  ? v.pricePerUnit ?? undefined : undefined,
       totalAmount,
-      totalCurrency: 'EUR',
-      fees:          v.fees ?? 0,
-      date:          v.date!,
-      description:   v.description || undefined,
-    }).subscribe({
+      currency:     this.transactionCurrency(),
+      fees:         v.fees ?? 0,
+      date:         v.date!,
+      description:  v.description || undefined,
+    };
+    this.accountService.recordTransaction(this.accountId(), payload).subscribe({
       next: () => {
         this.created.emit({ type, amount: totalAmount });
         this.closed.emit();

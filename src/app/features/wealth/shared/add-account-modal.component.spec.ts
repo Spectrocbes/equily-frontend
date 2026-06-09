@@ -1,12 +1,14 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { AddAccountModalComponent } from './add-account-modal.component';
 import { AccountService } from '../../../core/services/account.service';
+import { PreferencesService } from '../../../core/services/preferences.service';
 import { signal, WritableSignal } from '@angular/core';
 import { of } from 'rxjs';
 
 describe('AddAccountModalComponent', () => {
   let fixture: ComponentFixture<AddAccountModalComponent>;
   let mockAccountService: Partial<AccountService>;
+  let mockPrefsService: { currency: WritableSignal<string> };
   let modalLoadingSignal: WritableSignal<boolean>;
 
   beforeEach(async () => {
@@ -16,10 +18,14 @@ describe('AddAccountModalComponent', () => {
       modalError: signal<string | null>(null),
       createAccount: jest.fn().mockReturnValue(of({ id: 'new-id' })),
     };
+    mockPrefsService = { currency: signal('EUR') };
 
     await TestBed.configureTestingModule({
       imports: [AddAccountModalComponent],
-      providers: [{ provide: AccountService, useValue: mockAccountService }],
+      providers: [
+        { provide: AccountService, useValue: mockAccountService },
+        { provide: PreferencesService, useValue: mockPrefsService },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(AddAccountModalComponent);
@@ -132,5 +138,31 @@ describe('AddAccountModalComponent', () => {
     fixture.detectChanges();
     const error = fixture.nativeElement.querySelector('p.text-rose-500');
     expect(error).toBeTruthy();
+  });
+
+  it('initialBalanceCurrency returns EUR for PEA regardless of user preference', () => {
+    mockPrefsService.currency.set('USD');
+    fixture.componentInstance['form'].get('accountType')!.setValue('PEA');
+    fixture.detectChanges();
+    expect(fixture.componentInstance['initialBalanceCurrency']()).toBe('EUR');
+  });
+
+  it('initialBalanceCurrency returns user currency for CRYPTO_WALLET', () => {
+    mockPrefsService.currency.set('USD');
+    fixture.componentInstance['form'].get('accountType')!.setValue('CRYPTO_WALLET');
+    fixture.detectChanges();
+    expect(fixture.componentInstance['initialBalanceCurrency']()).toBe('USD');
+  });
+
+  it('passes dynamic currency to createAccount', () => {
+    mockPrefsService.currency.set('USD');
+    const form = fixture.componentInstance['form'];
+    form.setValue({ name: 'My Crypto', accountType: 'CRYPTO_WALLET', initialBalance: 500, broker: 'Binance', subType: 'CRYPTO_WALLET', openedAt: null });
+    fixture.componentInstance['step'].set(2);
+    fixture.detectChanges();
+    fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
+    expect(mockAccountService.createAccount).toHaveBeenCalledWith(
+      expect.objectContaining({ currency: 'USD' })
+    );
   });
 });
