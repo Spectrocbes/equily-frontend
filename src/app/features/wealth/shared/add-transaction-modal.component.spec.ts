@@ -1,20 +1,27 @@
+import { signal } from '@angular/core';
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { AddTransactionModalComponent } from './add-transaction-modal.component';
 import { AccountService } from '../../../core/services/account.service';
+import { PreferencesService } from '../../../core/services/preferences.service';
 import { of } from 'rxjs';
 
 describe('AddTransactionModalComponent', () => {
   let fixture: ComponentFixture<AddTransactionModalComponent>;
   let mockService: Partial<AccountService>;
+  let mockPrefsService: { currency: ReturnType<typeof signal<string>> };
 
   beforeEach(async () => {
     mockService = {
       recordTransaction: jest.fn().mockReturnValue(of(undefined)),
     };
+    mockPrefsService = { currency: signal('EUR') };
 
     await TestBed.configureTestingModule({
       imports: [AddTransactionModalComponent],
-      providers: [{ provide: AccountService, useValue: mockService }],
+      providers: [
+        { provide: AccountService, useValue: mockService },
+        { provide: PreferencesService, useValue: mockPrefsService },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(AddTransactionModalComponent);
@@ -132,5 +139,72 @@ describe('AddTransactionModalComponent', () => {
     fixture.componentInstance['form'].patchValue({ totalAmount: 6000, date: '2026-01-15' });
     fixture.detectChanges();
     expect(fixture.componentInstance.isFormValid()).toBe(false);
+  });
+
+  it('shows currency label on amount field', () => {
+    fixture.componentInstance.onTypeChange('DEPOSIT');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('(EUR)');
+  });
+
+  it('sends currency in request payload on DEPOSIT submit', () => {
+    fixture.componentInstance.onTypeChange('DEPOSIT');
+    fixture.componentInstance['form'].patchValue({
+      totalAmount: 500,
+      date: '2026-01-15',
+    });
+    fixture.detectChanges();
+    fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
+    expect(mockService.recordTransaction).toHaveBeenCalledWith(
+      'acc-1',
+      expect.objectContaining({ currency: 'EUR' })
+    );
+  });
+
+  it('sends currency in request payload on BUY submit', () => {
+    fixture.componentInstance.onTypeChange('BUY');
+    fixture.componentInstance['form'].patchValue({
+      ticker: 'AAPL', quantity: 5, pricePerUnit: 200, date: '2026-01-15',
+    });
+    fixture.detectChanges();
+    fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
+    expect(mockService.recordTransaction).toHaveBeenCalledWith(
+      'acc-1',
+      expect.objectContaining({ currency: 'EUR' })
+    );
+  });
+
+  it('transactionCurrency returns EUR for PEA account regardless of user preference', () => {
+    mockPrefsService.currency.set('USD');
+    fixture.componentRef.setInput('accountType', 'PEA');
+    fixture.detectChanges();
+    expect(fixture.componentInstance['transactionCurrency']()).toBe('EUR');
+  });
+
+  it('transactionCurrency returns user currency for CRYPTO_WALLET', async () => {
+    mockPrefsService.currency.set('USD');
+    fixture.componentRef.setInput('accountType', 'CRYPTO_WALLET');
+    fixture.detectChanges();
+    expect(fixture.componentInstance['transactionCurrency']()).toBe('USD');
+  });
+
+  it('isEurForced returns true for PEA', () => {
+    fixture.componentRef.setInput('accountType', 'PEA');
+    fixture.detectChanges();
+    expect(fixture.componentInstance['isEurForced']()).toBe(true);
+  });
+
+  it('isEurForced returns false for CRYPTO_WALLET', () => {
+    fixture.componentRef.setInput('accountType', 'CRYPTO_WALLET');
+    fixture.detectChanges();
+    expect(fixture.componentInstance['isEurForced']()).toBe(false);
+  });
+
+  it('shows EUR only warning when user currency is USD and account is PEA', () => {
+    mockPrefsService.currency.set('USD');
+    fixture.componentRef.setInput('accountType', 'PEA');
+    fixture.componentInstance.onTypeChange('DEPOSIT');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('EUR only');
   });
 });

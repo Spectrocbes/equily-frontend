@@ -56,6 +56,7 @@ describe('CryptoAccountDetailComponent', () => {
         {
           provide: AccountService,
           useValue: {
+            getAccount:          jest.fn().mockReturnValue(of(mockAccount)),
             getAccountById:      jest.fn().mockReturnValue(of(mockAccount)),
             getTransactions:     jest.fn().mockReturnValue(of([mockTransaction])),
             getEnrichedHoldings: jest.fn().mockReturnValue(of([mockHoldingWithPrice])),

@@ -6,9 +6,10 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { UserCurrencyPipe } from '../../../shared/pipes/user-currency.pipe';
 import { AccountService } from '../../../core/services/account.service';
+import { PreferencesService } from '../../../core/services/preferences.service';
 import {
   FinancialAccount, EnrichedHolding, Transaction, TransactionType, accountAgeYears,
-  ACCOUNT_TYPE_LABELS,
+  ACCOUNT_TYPE_LABELS, CURRENCY_SYMBOLS,
 } from '../../../core/models/account.model';
 import { AddTransactionModalComponent } from '../shared/add-transaction-modal.component';
 import { EditTransactionModalComponent } from '../shared/edit-transaction-modal.component';
@@ -29,18 +30,26 @@ export class InvestmentAccountDetailComponent implements OnInit {
   private readonly route    = inject(ActivatedRoute);
   private readonly router   = inject(Router);
   private readonly accountService = inject(AccountService);
+  protected readonly preferencesService = inject(PreferencesService);
 
   protected readonly account      = signal<FinancialAccount | null>(null);
   protected readonly transactions = signal<Transaction[]>([]);
   protected readonly loading      = signal(false);
   protected readonly error        = signal<string | null>(null);
 
-  protected readonly ACCOUNT_TYPE_LABELS   = ACCOUNT_TYPE_LABELS;
+  protected readonly ACCOUNT_TYPE_LABELS = ACCOUNT_TYPE_LABELS;
+  protected readonly CURRENCY_SYMBOLS    = CURRENCY_SYMBOLS;
   protected readonly showTransactionModal  = signal(false);
   protected readonly showCsvModal         = signal(false);
   protected readonly editingTransaction   = signal<Transaction | null>(null);
   protected readonly activeTab           = signal<'holdings' | 'transactions'>('holdings');
   protected readonly pnlMode             = signal<'EUR' | 'PCT'>('EUR');
+
+  protected readonly pnlLabel = computed(() => {
+    const sym = CURRENCY_SYMBOLS[this.preferencesService.currency()]
+      ?? this.preferencesService.currency();
+    return this.pnlMode() === 'EUR' ? `(${sym})` : '(%)';
+  });
 
   protected readonly enrichedHoldings   = signal<EnrichedHolding[]>([]);
   protected readonly pricesLoading      = signal(false);
@@ -111,8 +120,9 @@ export class InvestmentAccountDetailComponent implements OnInit {
   private loadAll(id: string): void {
     this.loading.set(true);
     this.error.set(null);
+    const currency = this.preferencesService.currency();
 
-    this.accountService.getAccountById(id).subscribe({
+    this.accountService.getAccount(id, currency).subscribe({
       next: (acc) => {
         this.account.set(acc);
         this.loading.set(false);
@@ -190,6 +200,10 @@ export class InvestmentAccountDetailComponent implements OnInit {
 
   protected togglePnlMode(): void {
     this.pnlMode.set(this.pnlMode() === 'EUR' ? 'PCT' : 'EUR');
+  }
+
+  protected isPositive(type: TransactionType): boolean {
+    return ['DEPOSIT', 'DIVIDEND', 'INTEREST', 'SELL'].includes(type);
   }
 
   protected getBadgeClass(type: string): string {

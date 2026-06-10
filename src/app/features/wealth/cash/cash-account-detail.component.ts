@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { AccountService } from '../../../core/services/account.service';
+import { PreferencesService } from '../../../core/services/preferences.service';
 import {
   FinancialAccount, Transaction, TransactionType,
   ACCOUNT_TYPE_LABELS, ACCOUNT_SUB_TYPE_LABELS,
@@ -20,6 +21,7 @@ export class CashAccountDetailComponent implements OnInit {
   private readonly route          = inject(ActivatedRoute);
   private readonly router         = inject(Router);
   private readonly accountService = inject(AccountService);
+  protected readonly preferencesService = inject(PreferencesService);
 
   protected readonly account      = signal<FinancialAccount | null>(null);
   protected readonly transactions = signal<Transaction[]>([]);
@@ -42,7 +44,8 @@ export class CashAccountDetailComponent implements OnInit {
   private loadAll(id: string): void {
     this.loading.set(true);
     this.error.set(null);
-    this.accountService.getAccountById(id).subscribe({
+    const currency = this.preferencesService.currency();
+    this.accountService.getAccount(id, currency).subscribe({
       next: (acc) => { this.account.set(acc); this.loading.set(false); },
       error: (err) => {
         this.error.set(err.message ?? 'Failed to load account');
@@ -69,6 +72,10 @@ export class CashAccountDetailComponent implements OnInit {
   protected onTransactionUpdated(): void {
     const id = this.route.snapshot.paramMap.get('id')!;
     this.loadAll(id);
+  }
+
+  protected isPositive(type: TransactionType): boolean {
+    return ['DEPOSIT', 'DIVIDEND', 'INTEREST', 'SELL'].includes(type);
   }
 
   protected txTypeClass(type: string): string {

@@ -159,6 +159,13 @@ export class AccountService {
     );
   }
 
+  getAccount(id: string, currency?: string): Observable<FinancialAccount> {
+    const url = `${this.apiUrl}/${id}`;
+    return currency
+      ? this.http.get<FinancialAccount>(url, { params: { currency } })
+      : this.http.get<FinancialAccount>(url);
+  }
+
   getAccountById(id: string): Observable<FinancialAccount> {
     return this.http.get<FinancialAccount>(`${this.apiUrl}/${id}`);
   }

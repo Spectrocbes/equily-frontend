@@ -6,9 +6,10 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { UserCurrencyPipe } from '../../../shared/pipes/user-currency.pipe';
 import { AccountService } from '../../../core/services/account.service';
+import { PreferencesService } from '../../../core/services/preferences.service';
 import {
-  FinancialAccount, EnrichedHolding, Transaction,
-  ACCOUNT_TYPE_LABELS,
+  FinancialAccount, EnrichedHolding, Transaction, TransactionType,
+  ACCOUNT_TYPE_LABELS, CURRENCY_SYMBOLS,
 } from '../../../core/models/account.model';
 import { AddTransactionModalComponent } from '../shared/add-transaction-modal.component';
 import { CsvImportModalComponent } from '../shared/csv-import-modal.component';
@@ -27,8 +28,10 @@ export class CryptoAccountDetailComponent implements OnInit, OnDestroy {
   private readonly route          = inject(ActivatedRoute);
   private readonly router         = inject(Router);
   private readonly accountService = inject(AccountService);
+  protected readonly preferencesService = inject(PreferencesService);
 
   protected readonly ACCOUNT_TYPE_LABELS = ACCOUNT_TYPE_LABELS;
+  protected readonly CURRENCY_SYMBOLS    = CURRENCY_SYMBOLS;
 
   protected readonly account          = signal<FinancialAccount | null>(null);
   protected readonly enrichedHoldings = signal<EnrichedHolding[]>([]);
@@ -41,6 +44,12 @@ export class CryptoAccountDetailComponent implements OnInit, OnDestroy {
   protected readonly showCsvModal        = signal(false);
   protected readonly activeTab           = signal<'holdings' | 'transactions'>('holdings');
   protected readonly pnlMode             = signal<'EUR' | 'PCT'>('EUR');
+
+  protected readonly pnlLabel = computed(() => {
+    const sym = CURRENCY_SYMBOLS[this.preferencesService.currency()]
+      ?? this.preferencesService.currency();
+    return this.pnlMode() === 'EUR' ? `(${sym})` : '(%)';
+  });
 
   protected readonly balanceDelta = signal<number | null>(null);
   protected readonly balanceFlash = signal<'gain' | 'loss' | null>(null);
@@ -106,7 +115,8 @@ export class CryptoAccountDetailComponent implements OnInit, OnDestroy {
     this.loading.set(true);
     this.error.set(null);
 
-    this.accountService.getAccountById(id).subscribe({
+    const currency = this.preferencesService.currency();
+    this.accountService.getAccount(id, currency).subscribe({
       next: (acc) => {
         if (this.previousBalance !== null && this.previousBalance !== acc.balance) {
           const delta = acc.balance - this.previousBalance;
@@ -154,6 +164,10 @@ export class CryptoAccountDetailComponent implements OnInit, OnDestroy {
 
   protected togglePnlMode(): void {
     this.pnlMode.set(this.pnlMode() === 'EUR' ? 'PCT' : 'EUR');
+  }
+
+  protected isPositive(type: TransactionType): boolean {
+    return ['DEPOSIT', 'DIVIDEND', 'INTEREST', 'SELL'].includes(type);
   }
 
   protected getBadgeClass(type: string): string {
