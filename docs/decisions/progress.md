@@ -258,6 +258,23 @@
 - Currency audit: `AccountService.getAccount(id, currency)` added; 4 detail pages (investment, savings, cash, crypto) pass `?currency` param when loading account
 - 172/172 tests, lint clean, build 0 errors
 
+## 2026-06-15 — PEA closure rules, SELL UX, UI polish (complete)
+- PEA ≥5y withdrawal: two-step UX via `PeaWithdrawalBreakdownModalComponent` — displays gain ratio, taxable gain, PS 17.2% tax, IR exempt confirmation; amount calculated on withdrawal amount from `peaOver5yWithdrawalRequested` event
+- `AddTransactionModal`: SELL ticker replaced with dropdown limited to held positions (`holdings` input → `heldTickers` computed); quantity field shows `(max: N)` hint, validates with `Validators.max()` via `onSellTickerChange()`; `isFormValid` rejects quantity exceeding held amount
+- `[holdings]="enrichedHoldings()"` wired to `AddTransactionModal` in investment and crypto detail pages
+- UI fixes: SELL ticker `<select>` uses `appearance-none` + SVG chevron wrapper for consistent arrow positioning; Active/Closed tab bar rewritten with `flex items-center gap-2`, `leading-none` badges, `-mb-px` alignment; removed stray `mb-3` from active accounts list
+- `AddAccountModal.onSubmit()`: success toast added; error handling updated to `typeof err.error === 'string'` check for 422 plain-string bodies (cardinality/deposit cap violations)
+- 256/256 tests, lint clean, build 0 errors
+
+## 2026-06-12 — Session B frontend: PEA closure UX redesign (complete)
+- `AddTransactionModal`: `peaWithdrawalForcedClosure` computed — triggers when PEA/PEA-PME account is <5 years old, has 0 holdings, and WITHDRAWAL is selected; shows amber warning, forces `totalAmount = account.balance`, changes submit button to "Continue →" which opens the closure modal directly
+- 3-dot account menu on `InvestmentAccountDetailComponent`: "Close PEA" action; hidden for non-PEA/PEA-PME accounts and already-closed accounts
+- `PeaClosureModalComponent`: adapts display for <5y (full closure — flat tax 31.4%, irreversible warning) vs ≥5y (partial withdrawal — PS 17.2% only, IR exempt); `PeaWithdrawalSimulation` interface fields renamed from French to English (`valeurLiquidative` → `liquidationValue`, `enPerte` → `atLoss`, etc.)
+- Tax accordion: IR (12.8%) + PS (17.2%) breakdown for <5y; PS only with "IR exempt ✓" for ≥5y; no-tax banner when `atLoss`
+- Closed accounts: Holdings tab, Allocation donut, and Geographical Exposure sections hidden; "Closed" rose badge shown in account header; detail page defaults to Transactions tab
+- `InvestmentsComponent`: open and closed accounts rendered in separate labelled sections
+- 222/222 tests, lint clean, build 0 errors
+
 ## 2026-06-08 — feat/multi-currency-historical-fx: multi-currency transaction UI (complete)
 - `Transaction` interface: `currency` replaced by `nativeCurrency`; added `totalAmountNative` (in original currency) and `feesNative` (fees in original currency)
 - `RecordTransactionRequest`: `priceCurrency`/`totalCurrency` replaced by single `currency` field

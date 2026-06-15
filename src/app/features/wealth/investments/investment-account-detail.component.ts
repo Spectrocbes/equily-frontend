@@ -3,26 +3,31 @@ import {
   signal, computed, WritableSignal
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { CurrencyPipe, DecimalPipe } from '@angular/common';
+import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { UserCurrencyPipe } from '../../../shared/pipes/user-currency.pipe';
 import { AccountService } from '../../../core/services/account.service';
 import { PreferencesService } from '../../../core/services/preferences.service';
+import { ToastService } from '../../../shared/toast/toast.service';
 import {
   FinancialAccount, EnrichedHolding, Transaction, TransactionType, accountAgeYears,
-  ACCOUNT_TYPE_LABELS, CURRENCY_SYMBOLS,
+  ACCOUNT_TYPE_LABELS, CURRENCY_SYMBOLS, PeaWithdrawalSimulation,
 } from '../../../core/models/account.model';
 import { AddTransactionModalComponent } from '../shared/add-transaction-modal.component';
 import { EditTransactionModalComponent } from '../shared/edit-transaction-modal.component';
 import { CsvImportModalComponent } from '../shared/csv-import-modal.component';
+import { PeaClosureModalComponent } from '../shared/pea-closure-modal.component';
+import { PeaWithdrawalBreakdownModalComponent } from '../shared/pea-withdrawal-breakdown-modal.component';
 import { DonutChartComponent, DonutSlice } from '../../../shared/components/donut-chart/donut-chart.component';
 
 @Component({
   selector: 'app-investment-account-detail',
   standalone: true,
   imports: [
-    CurrencyPipe, DecimalPipe, RouterLink,
+    CurrencyPipe, DatePipe, DecimalPipe, RouterLink,
     AddTransactionModalComponent, EditTransactionModalComponent,
-    CsvImportModalComponent, DonutChartComponent, UserCurrencyPipe,
+    CsvImportModalComponent, PeaClosureModalComponent,
+    PeaWithdrawalBreakdownModalComponent,
+    DonutChartComponent, UserCurrencyPipe,
   ],
   templateUrl: './investment-account-detail.component.html',
 })
@@ -31,6 +36,7 @@ export class InvestmentAccountDetailComponent implements OnInit {
   private readonly router   = inject(Router);
   private readonly accountService = inject(AccountService);
   protected readonly preferencesService = inject(PreferencesService);
+  private readonly toastService = inject(ToastService);
 
   protected readonly account      = signal<FinancialAccount | null>(null);
   protected readonly transactions = signal<Transaction[]>([]);
@@ -97,6 +103,28 @@ export class InvestmentAccountDetailComponent implements OnInit {
     accountAgeYears(this.account()?.openedAt ?? null)
   );
 
+  protected readonly isPea = computed(() =>
+    this.account()?.subType === 'PEA' || this.account()?.subType === 'PEA_PME'
+  );
+
+  protected readonly isClosed = computed(() =>
+    this.account()?.status === 'CLOSED'
+  );
+
+  protected readonly peaUnder5Years = computed(() => {
+    if (!this.isPea()) return false;
+    const years = accountAgeYears(this.account()?.openedAt ?? null);
+    return years !== null && years < 5;
+  });
+
+  protected readonly showClosureModal             = signal(false);
+  protected readonly simulation                   = signal<PeaWithdrawalSimulation | null>(null);
+  protected readonly closureLoading               = signal(false);
+  protected readonly accountMenuOpen              = signal(false);
+  protected readonly showWithdrawalBreakdownModal = signal(false);
+  protected readonly withdrawalBreakdown          = signal<PeaWithdrawalSimulation | null>(null);
+  protected readonly withdrawalLoading            = signal(false);
+
   protected readonly donutData = computed((): DonutSlice[] => {
     const total = this.totalInvested();
     if (total === 0) return [];
@@ -125,6 +153,9 @@ export class InvestmentAccountDetailComponent implements OnInit {
     this.accountService.getAccount(id, currency).subscribe({
       next: (acc) => {
         this.account.set(acc);
+        if (acc.status === 'CLOSED') {
+          this.activeTab.set('transactions');
+        }
         this.loading.set(false);
       },
       error: (err) => {
@@ -191,6 +222,89 @@ export class InvestmentAccountDetailComponent implements OnInit {
     deltaSignal.set(amount);
     positiveSignal.set(positive);
     setTimeout(() => deltaSignal.set(null), 4000);
+  }
+
+  protected onPeaClosureRequested(): void {
+    this.showTransactionModal.set(false);
+    setTimeout(() => this.loadClosureSimulation(), 150);
+  }
+
+  protected onPeaOver5yWithdrawalRequested(amount: number): void {
+    const id = this.route.snapshot.paramMap.get('id')!;
+    this.showTransactionModal.set(false);
+    this.withdrawalLoading.set(true);
+    this.accountService.getPeaClosureSimulation(id, amount).subscribe({
+      next: (sim) => {
+        this.withdrawalBreakdown.set(sim);
+        this.withdrawalLoading.set(false);
+        this.showWithdrawalBreakdownModal.set(true);
+      },
+      error: (err) => {
+        const msg = typeof err.error === 'string' ? err.error : 'Cannot simulate withdrawal';
+        this.toastService.error(msg);
+        this.withdrawalLoading.set(false);
+      },
+    });
+  }
+
+  protected loadClosureSimulation(): void {
+    const id = this.route.snapshot.paramMap.get('id')!;
+    this.accountService.getPeaClosureSimulation(id).subscribe({
+      next: (s) => {
+        this.simulation.set(s);
+        this.showClosureModal.set(true);
+      },
+      error: (err) => {
+        const msg = typeof err.error === 'string' ? err.error : 'Cannot simulate closure';
+        this.toastService.error(msg);
+      },
+    });
+  }
+
+  protected confirmWithdrawal(): void {
+    const id     = this.route.snapshot.paramMap.get('id')!;
+    const amount = this.withdrawalBreakdown()!.withdrawalAmount;
+    this.withdrawalLoading.set(true);
+    this.accountService.recordTransaction(id, {
+      type: 'WITHDRAWAL',
+      totalAmount: amount,
+      currency: 'EUR',
+      fees: 0,
+      date: new Date().toISOString().split('T')[0],
+    }).subscribe({
+      next: () => {
+        this.toastService.success('Withdrawal recorded');
+        this.showWithdrawalBreakdownModal.set(false);
+        this.withdrawalBreakdown.set(null);
+        this.withdrawalLoading.set(false);
+        this.loadAll(id);
+      },
+      error: (err) => {
+        const msg = typeof err.error === 'string' ? err.error : 'Failed to record withdrawal';
+        this.toastService.error(msg);
+        this.withdrawalLoading.set(false);
+      },
+    });
+  }
+
+  protected confirmClosure(): void {
+    const id = this.route.snapshot.paramMap.get('id')!;
+    this.closureLoading.set(true);
+    this.accountService.closePea(id).subscribe({
+      next: () => {
+        this.toastService.success('PEA closed successfully');
+        this.showClosureModal.set(false);
+        this.showTransactionModal.set(false);
+        this.simulation.set(null);
+        this.closureLoading.set(false);
+        this.loadAll(id);
+      },
+      error: (err) => {
+        const msg = typeof err.error === 'string' ? err.error : 'Failed to close PEA';
+        this.toastService.error(msg);
+        this.closureLoading.set(false);
+      },
+    });
   }
 
   protected onCsvImported(): void {

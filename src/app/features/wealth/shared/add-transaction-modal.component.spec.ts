@@ -3,7 +3,21 @@ import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { AddTransactionModalComponent } from './add-transaction-modal.component';
 import { AccountService } from '../../../core/services/account.service';
 import { PreferencesService } from '../../../core/services/preferences.service';
+import { EnrichedHolding } from '../../../core/models/account.model';
 import { of } from 'rxjs';
+
+const mockHoldings: EnrichedHolding[] = [
+  {
+    ticker: 'AAPL', quantity: 10, averageCostPrice: 150, totalInvested: 1500,
+    totalFeesPaid: 5, currentPrice: 180, currency: 'USD', marketValue: 1800,
+    unrealizedPnl: 300, unrealizedPnlPct: 20, dayChangePercent: 1.5, priceAvailable: true,
+  },
+  {
+    ticker: 'MSFT', quantity: 5, averageCostPrice: 300, totalInvested: 1500,
+    totalFeesPaid: 3, currentPrice: 350, currency: 'USD', marketValue: 1750,
+    unrealizedPnl: 250, unrealizedPnlPct: 16.67, dayChangePercent: 0.5, priceAvailable: true,
+  },
+];
 
 describe('AddTransactionModalComponent', () => {
   let fixture: ComponentFixture<AddTransactionModalComponent>;
@@ -13,6 +27,7 @@ describe('AddTransactionModalComponent', () => {
   beforeEach(async () => {
     mockService = {
       recordTransaction: jest.fn().mockReturnValue(of(undefined)),
+      getPeaSummary: jest.fn().mockReturnValue(of(null)),
     };
     mockPrefsService = { currency: signal('EUR') };
 
@@ -206,5 +221,242 @@ describe('AddTransactionModalComponent', () => {
     fixture.componentInstance.onTypeChange('DEPOSIT');
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('EUR only');
+  });
+
+  it('withdrawalBlocked is false when not a PEA account', () => {
+    fixture.componentRef.setInput('accountType', 'COMPTE_TITRES');
+    fixture.componentRef.setInput('accountSubType', 'COMPTE_TITRES');
+    fixture.componentRef.setInput('peaUnder5Years', true);
+    fixture.componentRef.setInput('hasHoldings', true);
+    fixture.detectChanges();
+    expect(fixture.componentInstance['withdrawalBlocked']()).toBe(false);
+  });
+
+  it('withdrawalBlocked is false when PEA under 5y but no holdings', () => {
+    fixture.componentRef.setInput('accountSubType', 'PEA');
+    fixture.componentRef.setInput('peaUnder5Years', true);
+    fixture.componentRef.setInput('hasHoldings', false);
+    fixture.detectChanges();
+    expect(fixture.componentInstance['withdrawalBlocked']()).toBe(false);
+  });
+
+  it('withdrawalBlocked is true when PEA under 5y with holdings', () => {
+    fixture.componentRef.setInput('accountSubType', 'PEA');
+    fixture.componentRef.setInput('peaUnder5Years', true);
+    fixture.componentRef.setInput('hasHoldings', true);
+    fixture.detectChanges();
+    expect(fixture.componentInstance['withdrawalBlocked']()).toBe(true);
+  });
+
+  it('renders DEPOSIT and WITHDRAWAL only for CASH_ACCOUNT sub-type', () => {
+    fixture.componentRef.setInput('accountType', 'CASH_ACCOUNT');
+    fixture.componentRef.setInput('accountSubType', 'CASH_ACCOUNT');
+    fixture.detectChanges();
+    const text = fixture.nativeElement.textContent;
+    expect(text).toContain('Deposit');
+    expect(text).toContain('Withdrawal');
+    expect(text).not.toContain('Interest received');
+    expect(text).not.toContain('Buy');
+  });
+
+  it('Withdrawal button is disabled when withdrawalBlocked', () => {
+    fixture.componentRef.setInput('accountSubType', 'PEA');
+    fixture.componentRef.setInput('peaUnder5Years', true);
+    fixture.componentRef.setInput('hasHoldings', true);
+    fixture.detectChanges();
+    const buttons: HTMLButtonElement[] = Array.from(
+      fixture.nativeElement.querySelectorAll('button[type="button"]')
+    );
+    const withdrawalBtn = buttons.find(b => b.textContent?.trim() === 'Withdrawal');
+    expect(withdrawalBtn).toBeTruthy();
+    expect(withdrawalBtn!.disabled).toBe(true);
+  });
+
+  it('calls getPeaSummary in ngOnInit when accountSubType is PEA', () => {
+    const localFixture = TestBed.createComponent(AddTransactionModalComponent);
+    localFixture.componentRef.setInput('accountId', 'acc-2');
+    localFixture.componentRef.setInput('accountType', 'PEA');
+    localFixture.componentRef.setInput('accountSubType', 'PEA');
+    localFixture.detectChanges();
+    expect(mockService.getPeaSummary).toHaveBeenCalled();
+  });
+
+  it('peaWithdrawalForcedClosure is true for PEA <5y with 0 holdings and WITHDRAWAL selected', () => {
+    fixture.componentRef.setInput('accountSubType', 'PEA');
+    fixture.componentRef.setInput('peaUnder5Years', true);
+    fixture.componentRef.setInput('hasHoldings', false);
+    fixture.componentInstance.onTypeChange('WITHDRAWAL');
+    fixture.detectChanges();
+    expect(fixture.componentInstance['peaWithdrawalForcedClosure']()).toBe(true);
+  });
+
+  it('submit button shows "Continue" for forced closure', () => {
+    fixture.componentRef.setInput('accountSubType', 'PEA');
+    fixture.componentRef.setInput('peaUnder5Years', true);
+    fixture.componentRef.setInput('hasHoldings', false);
+    fixture.componentRef.setInput('currentBalance', 5000);
+    fixture.componentInstance.onTypeChange('WITHDRAWAL');
+    fixture.detectChanges();
+    const submitBtn: HTMLButtonElement = fixture.nativeElement.querySelector('button[type="submit"]');
+    expect(submitBtn.textContent?.trim()).toContain('Continue');
+  });
+
+  it('onSubmit emits peaClosureRequested instead of calling API for forced closure', () => {
+    fixture.componentRef.setInput('accountSubType', 'PEA');
+    fixture.componentRef.setInput('peaUnder5Years', true);
+    fixture.componentRef.setInput('hasHoldings', false);
+    fixture.componentRef.setInput('currentBalance', 5000);
+    fixture.componentInstance.onTypeChange('WITHDRAWAL');
+    fixture.detectChanges();
+
+    const spy = jest.fn();
+    fixture.componentInstance.peaClosureRequested.subscribe(spy);
+    fixture.componentInstance['onSubmit']();
+
+    expect(spy).toHaveBeenCalled();
+    expect(mockService.recordTransaction).not.toHaveBeenCalled();
+  });
+
+  it('totalAmount is disabled and pre-filled when forced closure is active', () => {
+    fixture.componentRef.setInput('accountSubType', 'PEA');
+    fixture.componentRef.setInput('peaUnder5Years', true);
+    fixture.componentRef.setInput('hasHoldings', false);
+    fixture.componentRef.setInput('currentBalance', 5000);
+    fixture.componentInstance.onTypeChange('WITHDRAWAL');
+    fixture.detectChanges();
+
+    const control = fixture.componentInstance['form'].get('totalAmount');
+    expect(control?.disabled).toBe(true);
+    expect(control?.value).toBe(5000);
+  });
+
+  it('isPeaOver5Years returns true for PEA with peaUnder5Years=false', () => {
+    fixture.componentRef.setInput('accountSubType', 'PEA');
+    fixture.componentRef.setInput('peaUnder5Years', false);
+    fixture.detectChanges();
+    expect(fixture.componentInstance['isPeaOver5Years']()).toBe(true);
+  });
+
+  it('isPeaOver5Years returns false for non-PEA account', () => {
+    fixture.componentRef.setInput('accountType', 'COMPTE_TITRES');
+    fixture.componentRef.setInput('accountSubType', 'COMPTE_TITRES');
+    fixture.componentRef.setInput('peaUnder5Years', false);
+    fixture.detectChanges();
+    expect(fixture.componentInstance['isPeaOver5Years']()).toBe(false);
+  });
+
+  it('peaOver5yWithdrawal is true for PEA ≥5y WITHDRAWAL', () => {
+    fixture.componentRef.setInput('accountSubType', 'PEA');
+    fixture.componentRef.setInput('peaUnder5Years', false);
+    fixture.componentInstance.onTypeChange('WITHDRAWAL');
+    fixture.detectChanges();
+    expect(fixture.componentInstance['peaOver5yWithdrawal']()).toBe(true);
+  });
+
+  it('submit button shows "Continue →" for PEA ≥5y WITHDRAWAL', () => {
+    fixture.componentRef.setInput('accountSubType', 'PEA');
+    fixture.componentRef.setInput('peaUnder5Years', false);
+    fixture.componentInstance.onTypeChange('WITHDRAWAL');
+    fixture.componentInstance['form'].patchValue({ totalAmount: 1000, date: '2026-01-15' });
+    fixture.detectChanges();
+    const btn: HTMLButtonElement = fixture.nativeElement.querySelector('button[type="submit"]');
+    expect(btn.textContent?.trim()).toContain('Continue');
+  });
+
+  it('onSubmit emits peaOver5yWithdrawalRequested with amount for PEA ≥5y', () => {
+    fixture.componentRef.setInput('accountSubType', 'PEA');
+    fixture.componentRef.setInput('peaUnder5Years', false);
+    fixture.componentInstance.onTypeChange('WITHDRAWAL');
+    fixture.componentInstance['form'].patchValue({ totalAmount: 2000, date: '2026-01-15' });
+    fixture.detectChanges();
+
+    const spy = jest.fn();
+    fixture.componentInstance.peaOver5yWithdrawalRequested.subscribe(spy);
+    fixture.componentInstance['onSubmit']();
+
+    expect(spy).toHaveBeenCalledWith(2000);
+    expect(mockService.recordTransaction).not.toHaveBeenCalled();
+  });
+
+  // --- SELL ticker dropdown + max quantity ---
+
+  it('heldTickers returns mapped list from holdings input', () => {
+    fixture.componentRef.setInput('holdings', mockHoldings);
+    fixture.detectChanges();
+    expect(fixture.componentInstance['heldTickers']()).toEqual([
+      { symbol: 'AAPL', quantity: 10 },
+      { symbol: 'MSFT', quantity: 5 },
+    ]);
+  });
+
+  it('SELL shows a ticker dropdown populated with held tickers', () => {
+    fixture.componentRef.setInput('holdings', mockHoldings);
+    fixture.componentInstance.onTypeChange('SELL');
+    fixture.detectChanges();
+    const select: HTMLSelectElement = fixture.nativeElement.querySelector('select[formControlName="ticker"]');
+    expect(select).toBeTruthy();
+    const options: HTMLOptionElement[] = Array.from(select.querySelectorAll('option'));
+    expect(options.some(o => o.value === 'AAPL')).toBe(true);
+    expect(options.some(o => o.value === 'MSFT')).toBe(true);
+  });
+
+  it('BUY shows free-text ticker input, not a dropdown', () => {
+    fixture.componentInstance.onTypeChange('BUY');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('select[formControlName="ticker"]')).toBeNull();
+    expect(fixture.nativeElement.querySelector('input[formControlName="ticker"]')).toBeTruthy();
+  });
+
+  it('onSellTickerChange resets quantity and activates max validator', () => {
+    fixture.componentRef.setInput('holdings', mockHoldings);
+    fixture.componentInstance.onTypeChange('SELL');
+    fixture.componentInstance['form'].get('ticker')?.setValue('AAPL');
+    fixture.componentInstance['onSellTickerChange']();
+    fixture.detectChanges();
+
+    const qtyControl = fixture.componentInstance['form'].get('quantity');
+    expect(qtyControl?.value).toBeNull();
+
+    qtyControl?.setValue(15);
+    expect(qtyControl?.hasError('max')).toBe(true);
+  });
+
+  it('maxSellQuantity returns the quantity of the selected holding', () => {
+    fixture.componentRef.setInput('holdings', mockHoldings);
+    fixture.componentInstance.onTypeChange('SELL');
+    fixture.componentInstance['form'].get('ticker')?.setValue('MSFT');
+    fixture.componentInstance['onSellTickerChange']();
+    fixture.detectChanges();
+    expect(fixture.componentInstance['maxSellQuantity']()).toBe(5);
+  });
+
+  it('quantity label shows max hint for SELL after selecting a ticker', () => {
+    fixture.componentRef.setInput('holdings', mockHoldings);
+    fixture.componentInstance.onTypeChange('SELL');
+    fixture.componentInstance['form'].get('ticker')?.setValue('AAPL');
+    fixture.componentInstance['onSellTickerChange']();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('max: 10');
+  });
+
+  it('isFormValid is false when SELL quantity exceeds held quantity', () => {
+    fixture.componentRef.setInput('holdings', mockHoldings);
+    fixture.componentInstance.onTypeChange('SELL');
+    fixture.componentInstance['form'].get('ticker')?.setValue('AAPL');
+    fixture.componentInstance['onSellTickerChange']();
+    fixture.componentInstance['form'].patchValue({
+      quantity: 20,
+      pricePerUnit: 150,
+      date: '2026-01-15',
+    });
+    fixture.detectChanges();
+    expect(fixture.componentInstance.isFormValid()).toBe(false);
+  });
+
+  it('shows "No holdings available to sell" when holdings is empty for SELL', () => {
+    fixture.componentRef.setInput('holdings', []);
+    fixture.componentInstance.onTypeChange('SELL');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('No holdings available to sell');
   });
 });

@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, computed, signal } from '@angular/core';
-import { CurrencyPipe } from '@angular/common';
+import { CurrencyPipe, DatePipe } from '@angular/common';
 import { UserCurrencyPipe } from '../../../shared/pipes/user-currency.pipe';
 import { RouterLink } from '@angular/router';
 import { AccountService } from '../../../core/services/account.service';
@@ -12,13 +12,14 @@ import { AddAccountModalComponent } from '../shared/add-account-modal.component'
 @Component({
   selector: 'app-investments',
   standalone: true,
-  imports: [CurrencyPipe, RouterLink, AddAccountModalComponent, UserCurrencyPipe],
+  imports: [CurrencyPipe, DatePipe, RouterLink, AddAccountModalComponent, UserCurrencyPipe],
   templateUrl: './investments.component.html',
 })
 export class InvestmentsComponent implements OnInit {
   protected readonly accountService = inject(AccountService);
-  protected readonly showModal   = signal(false);
-  protected readonly peaSummary = signal<PeaSummary | null>(null);
+  protected readonly showModal        = signal(false);
+  protected readonly peaSummary      = signal<PeaSummary | null>(null);
+  protected readonly activeAccountTab = signal<'active' | 'closed'>('active');
 
   protected readonly allowedTypes: AccountType[] = [
     'PEA', 'PEA_PME', 'COMPTE_TITRES', 'PER', 'ASSURANCE_VIE',
@@ -31,23 +32,31 @@ export class InvestmentsComponent implements OnInit {
     )
   );
 
+  protected readonly openAccounts = computed(() =>
+    this.accounts().filter(a => a.status !== 'CLOSED')
+  );
+
+  protected readonly closedAccounts = computed(() =>
+    this.accounts().filter(a => a.status === 'CLOSED')
+  );
+
   protected readonly total = computed(() =>
-    this.accounts().reduce((s, a) => s + (a.portfolioValue ?? 0) + a.balance, 0)
+    this.openAccounts().reduce((s, a) => s + (a.portfolioValue ?? 0) + a.balance, 0)
   );
 
   protected readonly totalPortfolioValue = computed(() => {
     const summaries  = this.accountService.portfolioSummaries();
-    const accountIds = new Set(this.accounts().map(a => a.id));
+    const accountIds = new Set(this.openAccounts().map(a => a.id));
     if (summaries.length > 0) {
       return summaries
         .filter(s => accountIds.has(s.accountId))
         .reduce((sum, s) => sum + s.livePortfolioValue, 0);
     }
-    return this.accounts().reduce((sum, a) => sum + (a.portfolioValue ?? 0), 0);
+    return this.openAccounts().reduce((sum, a) => sum + (a.portfolioValue ?? 0), 0);
   });
 
   protected readonly totalCash = computed(() =>
-    this.accounts().reduce((sum, a) => sum + a.balance, 0)
+    this.openAccounts().reduce((sum, a) => sum + a.balance, 0)
   );
 
   protected liveValue(accountId: string): number {

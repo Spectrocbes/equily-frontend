@@ -7,7 +7,7 @@ import { PreferencesService } from '../../../core/services/preferences.service';
 import {
   AccountType, AccountSubType, TransactionType,
   ALLOWED_TRANSACTION_TYPES, PeaSummary, CURRENCY_SYMBOLS,
-  isEurOnlyAccount,
+  isEurOnlyAccount, EnrichedHolding,
 } from '../../../core/models/account.model';
 import { ToastService } from '../../../shared/toast/toast.service';
 
@@ -25,9 +25,14 @@ export class AddTransactionModalComponent implements OnInit {
   depositLimit      = input<number | null>(null);
   totalDeposits     = input<number | null>(null);
   currentBalance    = input<number | null>(null);
+  peaUnder5Years    = input<boolean>(false);
+  hasHoldings       = input<boolean>(false);
+  holdings          = input<EnrichedHolding[]>([]);
 
-  closed  = output<void>();
-  created = output<{ type: TransactionType; amount: number }>();
+  closed                       = output<void>();
+  created                      = output<{ type: TransactionType; amount: number }>();
+  peaClosureRequested          = output<void>();
+  peaOver5yWithdrawalRequested = output<number>();
 
   private readonly fb = inject(FormBuilder);
   protected readonly accountService = inject(AccountService);
@@ -42,6 +47,46 @@ export class AddTransactionModalComponent implements OnInit {
 
   protected readonly isEurForced = computed(() =>
     isEurOnlyAccount(this.accountType(), this.accountSubType())
+  );
+
+  protected readonly heldTickers = computed(() =>
+    this.holdings().map(h => ({ symbol: h.ticker, quantity: h.quantity }))
+  );
+
+  protected readonly maxSellQuantity = computed(() => {
+    if (this.selectedType() !== 'SELL') return null;
+    const symbol = this.formValue().ticker;
+    if (!symbol) return null;
+    const holding = this.heldTickers().find(h => h.symbol === symbol);
+    return holding?.quantity ?? null;
+  });
+
+  protected readonly isPeaUnder5Years = computed(() => {
+    const subType = this.accountSubType();
+    if (subType !== 'PEA' && subType !== 'PEA_PME') return false;
+    return this.peaUnder5Years();
+  });
+
+  protected readonly isPeaOver5Years = computed(() => {
+    const subType = this.accountSubType();
+    if (subType !== 'PEA' && subType !== 'PEA_PME') return false;
+    return !this.peaUnder5Years();
+  });
+
+  protected readonly peaOver5yWithdrawal = computed(() =>
+    this.isPeaOver5Years() &&
+    this.selectedType() === 'WITHDRAWAL' &&
+    !this.peaWithdrawalForcedClosure()
+  );
+
+  protected readonly withdrawalBlocked = computed(() =>
+    this.isPeaUnder5Years() && this.hasHoldings()
+  );
+
+  protected readonly peaWithdrawalForcedClosure = computed(() =>
+    this.isPeaUnder5Years() &&
+    !this.hasHoldings() &&
+    this.selectedType() === 'WITHDRAWAL'
   );
 
   protected readonly CURRENCY_SYMBOLS = CURRENCY_SYMBOLS;
@@ -208,6 +253,10 @@ export class AddTransactionModalComponent implements OnInit {
   });
 
   protected readonly isFormValid = computed(() => {
+    if (this.peaWithdrawalForcedClosure()) {
+      return (this.currentBalance() ?? 0) > 0;
+    }
+
     const type = this.selectedType();
     if (!type) return false;
     if (this.wouldExceedLimit()) return false;
@@ -216,8 +265,11 @@ export class AddTransactionModalComponent implements OnInit {
     const dateValid = !!v.date && this.form.get('date')?.valid !== false;
 
     if (type === 'BUY' || type === 'SELL') {
+      const maxQty = this.maxSellQuantity();
+      const qtyExceedsMax = type === 'SELL' && maxQty !== null && (v.quantity ?? 0) > maxQty;
       return !!(v.ticker?.trim()) &&
              (v.quantity ?? 0) > 0 &&
+             !qtyExceedsMax &&
              (v.pricePerUnit ?? 0) > 0 &&
              dateValid;
     }
@@ -234,6 +286,17 @@ export class AddTransactionModalComponent implements OnInit {
       this.selectedType();
       this.error.set(null);
     }, { allowSignalWrites: true });
+
+    effect(() => {
+      const control = this.form.get('totalAmount');
+      if (!control) return;
+      if (this.peaWithdrawalForcedClosure()) {
+        control.setValue(this.currentBalance(), { emitEvent: false });
+        control.disable({ emitEvent: false });
+      } else {
+        control.enable({ emitEvent: false });
+      }
+    });
   }
 
   ngOnInit(): void {
@@ -246,6 +309,8 @@ export class AddTransactionModalComponent implements OnInit {
 
   protected onTypeChange(type: TransactionType): void {
     this.selectedType.set(type);
+    const qtyControl = this.form.get('quantity');
+    qtyControl?.setValidators([Validators.min(0.000001)]);
     this.form.patchValue({
       ticker: '',
       quantity: null,
@@ -253,6 +318,25 @@ export class AddTransactionModalComponent implements OnInit {
       totalAmount: null,
       fees: 0,
     });
+    qtyControl?.updateValueAndValidity({ emitEvent: false });
+  }
+
+  protected onSellTickerChange(): void {
+    const symbol = this.form.get('ticker')?.value as string;
+    const holding = this.heldTickers().find(h => h.symbol === symbol);
+    const max = holding?.quantity ?? null;
+    const qtyControl = this.form.get('quantity');
+    if (max !== null) {
+      qtyControl?.setValidators([
+        Validators.required,
+        Validators.min(0.000001),
+        Validators.max(max),
+      ]);
+    } else {
+      qtyControl?.setValidators([Validators.min(0.000001)]);
+    }
+    qtyControl?.setValue(null);
+    qtyControl?.updateValueAndValidity();
   }
 
   protected mouseDownOnBackdrop = false;
@@ -283,6 +367,22 @@ export class AddTransactionModalComponent implements OnInit {
 
   protected onSubmit(): void {
     if (!this.isFormValid()) return;
+
+    if (this.peaWithdrawalForcedClosure()) {
+      this.peaClosureRequested.emit();
+      return;
+    }
+
+    if (this.peaOver5yWithdrawal()) {
+      const amount: number = this.form.get('totalAmount')!.value as number;
+      this.peaOver5yWithdrawalRequested.emit(amount);
+      return;
+    }
+
+    this.submitTransaction();
+  }
+
+  private submitTransaction(): void {
     const v    = this.form.getRawValue();
     const type = this.selectedType() as TransactionType;
     const needsAsset  = type === 'BUY' || type === 'SELL';

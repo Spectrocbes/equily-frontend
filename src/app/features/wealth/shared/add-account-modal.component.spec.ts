@@ -2,13 +2,15 @@ import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { AddAccountModalComponent } from './add-account-modal.component';
 import { AccountService } from '../../../core/services/account.service';
 import { PreferencesService } from '../../../core/services/preferences.service';
+import { ToastService } from '../../../shared/toast/toast.service';
 import { signal, WritableSignal } from '@angular/core';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 
 describe('AddAccountModalComponent', () => {
   let fixture: ComponentFixture<AddAccountModalComponent>;
   let mockAccountService: Partial<AccountService>;
   let mockPrefsService: { currency: WritableSignal<string> };
+  let mockToastService: { success: jest.Mock; error: jest.Mock };
   let modalLoadingSignal: WritableSignal<boolean>;
 
   beforeEach(async () => {
@@ -19,12 +21,14 @@ describe('AddAccountModalComponent', () => {
       createAccount: jest.fn().mockReturnValue(of({ id: 'new-id' })),
     };
     mockPrefsService = { currency: signal('EUR') };
+    mockToastService = { success: jest.fn(), error: jest.fn() };
 
     await TestBed.configureTestingModule({
       imports: [AddAccountModalComponent],
       providers: [
         { provide: AccountService, useValue: mockAccountService },
         { provide: PreferencesService, useValue: mockPrefsService },
+        { provide: ToastService, useValue: mockToastService },
       ],
     }).compileComponents();
 
@@ -164,5 +168,41 @@ describe('AddAccountModalComponent', () => {
     expect(mockAccountService.createAccount).toHaveBeenCalledWith(
       expect.objectContaining({ currency: 'USD' })
     );
+  });
+
+  it('shows success toast and emits created on successful submit', () => {
+    const createdSpy = jest.fn();
+    fixture.componentInstance.created.subscribe(createdSpy);
+    const form = fixture.componentInstance['form'];
+    form.setValue({ name: 'Test PEA', accountType: 'PEA', initialBalance: 1000, broker: 'Fortuneo', subType: 'PEA', openedAt: '2020-01-01' });
+    fixture.componentInstance['step'].set(2);
+    fixture.detectChanges();
+    fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
+    expect(mockToastService.success).toHaveBeenCalledWith('Account created');
+    expect(createdSpy).toHaveBeenCalled();
+  });
+
+  it('shows plain-string 422 error via toast', () => {
+    (mockAccountService.createAccount as jest.Mock).mockReturnValue(
+      throwError(() => ({ error: 'PEA deposit limit already reached' }))
+    );
+    const form = fixture.componentInstance['form'];
+    form.setValue({ name: 'Test PEA', accountType: 'PEA', initialBalance: 1000, broker: 'Fortuneo', subType: 'PEA', openedAt: '2020-01-01' });
+    fixture.componentInstance['step'].set(2);
+    fixture.detectChanges();
+    fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
+    expect(mockToastService.error).toHaveBeenCalledWith('PEA deposit limit already reached');
+  });
+
+  it('shows fallback error message when error body is not a string', () => {
+    (mockAccountService.createAccount as jest.Mock).mockReturnValue(
+      throwError(() => ({ error: { code: 500 }, status: 500 }))
+    );
+    const form = fixture.componentInstance['form'];
+    form.setValue({ name: 'Test PEA', accountType: 'PEA', initialBalance: 1000, broker: 'Fortuneo', subType: 'PEA', openedAt: '2020-01-01' });
+    fixture.componentInstance['step'].set(2);
+    fixture.detectChanges();
+    fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
+    expect(mockToastService.error).toHaveBeenCalledWith('Failed to create account');
   });
 });
