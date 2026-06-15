@@ -54,6 +54,23 @@ export interface FinancialAccount {
   remainingCapacity: number | null;
   openedAt: string | null; // ISO date string 'YYYY-MM-DD'
   portfolioValue: number | null; // null for savings/cash/real-estate
+  status: 'ACTIVE' | 'CLOSED';
+  closedAt: string | null;
+}
+
+export interface PeaWithdrawalSimulation {
+  liquidationValue: number;
+  totalDeposits: number;
+  netGain: number;
+  gainRatio: number;
+  taxableGain: number;
+  irTax: number;
+  psTax: number;
+  totalTax: number;
+  netAmount: number;
+  withdrawalAmount: number;
+  atLoss: boolean;
+  peaOlderThan5Years: boolean;
 }
 
 export type AccountType =

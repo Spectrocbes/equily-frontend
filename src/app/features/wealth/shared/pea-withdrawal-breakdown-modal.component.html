@@ -1,0 +1,167 @@
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4"
+     role="presentation"
+     tabindex="0"
+     (mousedown)="onBackdropMouseDown($event)"
+     (mouseup)="onBackdropMouseUp($event)"
+     (keydown.escape)="closed.emit()">
+  <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+
+  <div class="relative w-full max-w-lg rounded-2xl
+              bg-white dark:bg-slate-800 shadow-2xl
+              border border-slate-200 dark:border-slate-700 p-6">
+
+    <!-- Header -->
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/30
+                  flex items-center justify-center flex-shrink-0">
+        <svg class="w-5 h-5 text-primary-500" fill="none"
+             viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/>
+        </svg>
+      </div>
+      <div>
+        <h2 class="text-lg font-semibold text-slate-900 dark:text-white">
+          PEA Withdrawal Breakdown
+        </h2>
+        <p class="text-sm text-slate-500 dark:text-slate-400">
+          ≥ 5 years — PS 18.6% only (IR exempt)
+        </p>
+      </div>
+    </div>
+
+    <!-- Summary table -->
+    <div class="space-y-3 mb-6">
+
+      <div class="flex justify-between text-sm">
+        <span class="text-slate-500 dark:text-slate-400">Withdrawal amount</span>
+        <span class="font-mono font-medium text-slate-900 dark:text-white">
+          {{ simulation().withdrawalAmount | currency:'EUR':'symbol':'1.2-2' }}
+        </span>
+      </div>
+
+      <div class="flex justify-between text-sm border-t
+                  border-slate-200 dark:border-slate-700 pt-3">
+        <span class="font-medium"
+              [class]="simulation().atLoss ? 'text-rose-500' : 'text-emerald-500'">
+          Net gain
+        </span>
+        <span class="font-mono font-semibold"
+              [class]="simulation().atLoss ? 'text-rose-500' : 'text-emerald-500'">
+          {{ simulation().atLoss ? '' : '+' }}{{ simulation().netGain | currency:'EUR':'symbol':'1.2-2' }} 
+          ({{ simulation().atLoss ? '-' : '+' }}{{ (simulation().gainRatio * 100) | number:'1.2-2' }}%)
+        </span>
+      </div>
+
+      @if (!simulation().atLoss) {
+
+        <!-- PS-only breakdown -->
+        <div class="rounded-xl bg-slate-50 dark:bg-slate-800/50
+                    border border-slate-200 dark:border-slate-700
+                    px-4 py-3 space-y-2 text-sm">
+          <p class="text-xs font-medium text-slate-500 dark:text-slate-400
+                    uppercase tracking-wide">
+            Tax calculation
+          </p>
+
+          <div class="flex justify-between">
+            <span class="text-slate-500">Withdrawal amount</span>
+            <span class="font-mono">
+              {{ simulation().withdrawalAmount | currency:'EUR':'symbol':'1.2-2' }}
+            </span>
+          </div>
+
+          <div class="flex justify-between">
+            <span class="text-slate-500">
+              Gain ratio
+              <span class="text-xs ml-1 text-slate-400">
+                ({{ (simulation().gainRatio * 100) | number:'1.2-2' }}% of PEA is gain)
+              </span>
+            </span>
+            <span class="font-mono text-slate-600 dark:text-slate-300">
+              × {{ (simulation().gainRatio * 100) | number:'1.4-4' }}%
+            </span>
+          </div>
+
+          <div class="flex justify-between border-t
+                      border-slate-200 dark:border-slate-700 pt-2">
+            <span class="text-slate-500">Taxable gain in withdrawal</span>
+            <span class="font-mono font-medium">
+              {{ simulation().taxableGain | currency:'EUR':'symbol':'1.2-2' }}
+            </span>
+          </div>
+
+          <div class="flex justify-between">
+            <span class="text-slate-500">
+              PS (18.6%)
+              <span class="text-xs text-emerald-500 ml-1">IR exempt ✓</span>
+            </span>
+            <span class="font-mono text-rose-500">
+              − {{ simulation().psTax | currency:'EUR':'symbol':'1.2-2' }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Net amount -->
+        <div class="flex justify-between text-base border-t-2
+                    border-slate-200 dark:border-slate-700 pt-4">
+          <span class="font-semibold text-slate-900 dark:text-white">
+            You will receive
+          </span>
+          <div class="text-right">
+            <p class="font-bold font-mono text-emerald-500 text-lg">
+              {{ simulation().netAmount | currency:'EUR':'symbol':'1.2-2' }}
+            </p>
+            <p class="text-xs text-slate-400 mt-0.5">
+              {{ simulation().withdrawalAmount | currency:'EUR':'symbol':'1.2-2' }}
+              − {{ simulation().psTax | currency:'EUR':'symbol':'1.2-2' }} PS
+            </p>
+          </div>
+        </div>
+
+      } @else {
+
+        <!-- At loss: no tax due -->
+        <div class="rounded-xl bg-emerald-50 dark:bg-emerald-900/20
+                    border border-emerald-200 dark:border-emerald-800
+                    px-4 py-3 text-sm text-emerald-600 dark:text-emerald-400">
+          ✓ No tax due — your PEA is at a loss.
+        </div>
+
+        <!-- Net amount at loss -->
+        <div class="flex justify-between text-base border-t-2
+                    border-slate-200 dark:border-slate-700 pt-4">
+          <span class="font-semibold text-slate-900 dark:text-white">You will receive</span>
+          <span class="font-bold font-mono text-emerald-500 text-lg">
+            {{ simulation().netAmount | currency:'EUR':'symbol':'1.2-2' }}
+          </span>
+        </div>
+
+      }
+    </div>
+
+    <!-- Actions -->
+    <div class="flex gap-3">
+      <button type="button"
+              (click)="closed.emit()"
+              class="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium
+                     border border-slate-200 dark:border-slate-600
+                     text-slate-700 dark:text-slate-300
+                     hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+        Cancel
+      </button>
+      <button type="button"
+              (click)="confirmed.emit()"
+              [disabled]="loading()"
+              class="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium
+                     bg-primary-500 hover:bg-primary-600
+                     disabled:opacity-50 text-white transition-colors">
+        @if (loading()) {
+          Processing...
+        } @else {
+          Confirm withdrawal
+        }
+      </button>
+    </div>
+  </div>
+</div>

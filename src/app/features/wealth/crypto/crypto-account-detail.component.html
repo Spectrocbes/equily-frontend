@@ -481,6 +481,7 @@
       [depositLimit]="account()!.depositLimit"
       [totalDeposits]="account()!.totalDeposits"
       [remainingCapacity]="account()!.remainingCapacity"
+      [holdings]="enrichedHoldings()"
       (closed)="showTransactionModal.set(false)"
       (created)="onTransactionCreated()" />
   }

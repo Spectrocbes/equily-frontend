@@ -199,12 +199,15 @@ export class AddAccountModalComponent implements OnInit {
       openedAt: openedAt ?? null,
     }).subscribe({
       next: () => {
+        this.toastService.success('Account created');
         this.created.emit();
         this.closed.emit();
       },
       error: (err) => {
-        const message = err.error?.message ?? err.message ?? 'Failed to create account';
-        this.toastService.error(message);
+        const msg = typeof err.error === 'string'
+          ? err.error
+          : 'Failed to create account';
+        this.toastService.error(msg);
       },
     });
   }

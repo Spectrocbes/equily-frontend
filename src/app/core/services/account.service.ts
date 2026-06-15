@@ -15,6 +15,7 @@ import {
   CsvMode,
   CsvImportResponse,
   PeaSummary,
+  PeaWithdrawalSimulation,
 } from '../models/account.model';
 import { PreferencesService } from './preferences.service';
 
@@ -232,6 +233,21 @@ export class AccountService {
       `${this.apiUrl}/${accountId}/transactions/${transactionId}`,
       data
     );
+  }
+
+  getPeaClosureSimulation(accountId: string, withdrawalAmount?: number): Observable<PeaWithdrawalSimulation> {
+    const params: Record<string, string> = {};
+    if (withdrawalAmount != null) {
+      params['withdrawalAmount'] = withdrawalAmount.toString();
+    }
+    return this.http.get<PeaWithdrawalSimulation>(
+      `${this.apiUrl}/${accountId}/pea-closure-simulation`,
+      { params }
+    );
+  }
+
+  closePea(accountId: string): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/${accountId}/close`, {});
   }
 
   importCsv(
