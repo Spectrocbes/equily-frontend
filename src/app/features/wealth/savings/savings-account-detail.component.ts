@@ -40,6 +40,7 @@ export class SavingsAccountDetailComponent implements OnInit {
 
   protected readonly isClosed            = computed(() => this.account()?.status === 'CLOSED');
   protected readonly txMenuOpenId        = signal<string | null>(null);
+  protected readonly txMenuPosition      = signal<{ top: number; right: number } | null>(null);
   protected readonly deletingTransaction = signal<Transaction | null>(null);
   protected readonly deletingTxId        = computed(() => this.deletingTransaction()?.id ?? null);
   protected readonly deleteLoading       = signal(false);
@@ -83,9 +84,28 @@ export class SavingsAccountDetailComponent implements OnInit {
     this.loadAll(id);
   }
 
-  protected openTxMenu(txId: string, event: Event): void {
+  protected openTxMenu(txId: string, event: MouseEvent): void {
     event.stopPropagation();
-    this.txMenuOpenId.set(this.txMenuOpenId() === txId ? null : txId);
+    if (this.txMenuOpenId() === txId) {
+      this.txMenuOpenId.set(null);
+      this.txMenuPosition.set(null);
+      return;
+    }
+    const button     = event.currentTarget as HTMLElement;
+    const rect       = button.getBoundingClientRect();
+    const menuHeight = 90;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
+    let top: number;
+    if (spaceBelow >= menuHeight) {
+      top = rect.bottom + 4;
+    } else if (spaceAbove >= menuHeight) {
+      top = rect.top - menuHeight - 4;
+    } else {
+      top = Math.max(8, window.innerHeight / 2 - menuHeight / 2);
+    }
+    this.txMenuOpenId.set(txId);
+    this.txMenuPosition.set({ top, right: window.innerWidth - rect.right });
   }
 
   protected requestDeleteTransaction(tx: Transaction): void {

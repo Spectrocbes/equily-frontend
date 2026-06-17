@@ -486,25 +486,51 @@ describe('InvestmentAccountDetailComponent', () => {
 
   // --- Delete transaction tests ---
 
-  it('openTxMenu sets txMenuOpenId', () => {
+  it('openTxMenu opens downward when enough space below', () => {
     const comp = fixture.componentInstance as unknown as {
       txMenuOpenId: WritableSignal<string | null>;
-      openTxMenu: (id: string, e: Event) => void;
+      txMenuPosition: WritableSignal<{ top: number; right: number } | null>;
+      openTxMenu: (id: string, e: MouseEvent) => void;
     };
-    const event = { stopPropagation: jest.fn() } as unknown as Event;
+    // bottom=100, innerHeight=768 → spaceBelow=668 ≥ 90
+    const mockButton = {
+      getBoundingClientRect: () => ({ bottom: 100, right: 200, top: 80, left: 150, width: 50, height: 20 }),
+    } as HTMLElement;
+    const event = { stopPropagation: jest.fn(), currentTarget: mockButton } as unknown as MouseEvent;
     comp.openTxMenu('tx-1', event);
     expect(comp.txMenuOpenId()).toBe('tx-1');
+    expect(comp.txMenuPosition()).toEqual({ top: 104, right: window.innerWidth - 200 });
+  });
+
+  it('openTxMenu opens upward when not enough space below but enough above', () => {
+    const comp = fixture.componentInstance as unknown as {
+      txMenuOpenId: WritableSignal<string | null>;
+      txMenuPosition: WritableSignal<{ top: number; right: number } | null>;
+      openTxMenu: (id: string, e: MouseEvent) => void;
+    };
+    // bottom near viewport bottom → spaceBelow < 90, but top=700 → spaceAbove ≥ 90
+    const mockButton = {
+      getBoundingClientRect: () => ({ bottom: 750, right: 200, top: 730, left: 150, width: 50, height: 20 }),
+    } as HTMLElement;
+    const event = { stopPropagation: jest.fn(), currentTarget: mockButton } as unknown as MouseEvent;
+    comp.openTxMenu('tx-1', event);
+    expect(comp.txMenuPosition()!.top).toBe(730 - 90 - 4);
   });
 
   it('openTxMenu closes when same id clicked twice', () => {
     const comp = fixture.componentInstance as unknown as {
       txMenuOpenId: WritableSignal<string | null>;
-      openTxMenu: (id: string, e: Event) => void;
+      txMenuPosition: WritableSignal<{ top: number; right: number } | null>;
+      openTxMenu: (id: string, e: MouseEvent) => void;
     };
-    const event = { stopPropagation: jest.fn() } as unknown as Event;
+    const mockButton = {
+      getBoundingClientRect: () => ({ bottom: 100, right: 200, top: 80, left: 150, width: 50, height: 20 }),
+    } as HTMLElement;
+    const event = { stopPropagation: jest.fn(), currentTarget: mockButton } as unknown as MouseEvent;
     comp.openTxMenu('tx-1', event);
     comp.openTxMenu('tx-1', event);
     expect(comp.txMenuOpenId()).toBeNull();
+    expect(comp.txMenuPosition()).toBeNull();
   });
 
   it('requestDeleteTransaction sets deletingTxId and clears menu', () => {

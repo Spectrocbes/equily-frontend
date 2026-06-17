@@ -282,3 +282,14 @@
 - Transaction list in all 4 detail pages (investment, crypto, savings, cash): uses `isPositive()` for sign/colour; shows `totalAmountNative` as a secondary monospace line when `nativeCurrency !== userCurrency`
 - `RegisterComponent`: 2-step flow — step 1 collects name/email/password, step 2 selects currency preference (EUR/USD/GBP/CHF); `onSubmit` calls `authService.register()` then `preferencesService.update()` via `switchMap`
 - 161/161 tests, lint clean, build 0 errors
+
+## 2026-06-17 — feat/delete-transaction: delete transaction UI (complete)
+- `DeleteTransactionModalComponent`: confirmation modal with permanent-deletion warning, transaction details (type, date, amount), loading state
+- 3-dot menu (⋮) on transaction rows: Edit + Delete actions; Edit wired to existing `EditTransactionModal`
+- Fixed-position dropdown via `getBoundingClientRect` — escapes `overflow-hidden` ancestors entirely; `txMenuPosition` signal stores `{ top, right }` calculated from button coords
+- Smart vertical positioning: opens downward when `spaceBelow ≥ 90px`, upward when not, centers as fallback
+- Hover animation: amount div shifts left (`group-hover:mr-9`) to reveal ⋮ button which fades + slides in from right (`translate-x-2 → translate-x-0`); button is `w-8 h-8`
+- 3-dot menu and delete confirmation hidden on CLOSED accounts
+- Crypto detail gained full edit transaction support (`editingTransaction` signal, `onTransactionEditClick`, `EditTransactionModalComponent`) to match other 3 components
+- Applied to all 4 detail components (investment, crypto, savings, cash)
+- 279/279 tests, lint clean, build 0 errors
