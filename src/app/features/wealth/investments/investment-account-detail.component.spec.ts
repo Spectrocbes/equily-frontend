@@ -55,6 +55,7 @@ describe('InvestmentAccountDetailComponent', () => {
             getTransactions:            jest.fn().mockReturnValue(of([mockTransaction])),
             getEnrichedHoldings:        jest.fn().mockReturnValue(of([mockEnrichedHolding])),
             recordTransaction:          jest.fn().mockReturnValue(of(undefined)),
+            deleteTransaction:          jest.fn().mockReturnValue(of(undefined)),
             loadAccounts:               jest.fn(),
             getPeaClosureSimulation:    jest.fn().mockReturnValue(of({})),
             closePea:                   jest.fn().mockReturnValue(of(undefined)),
@@ -481,5 +482,119 @@ describe('InvestmentAccountDetailComponent', () => {
     comp.confirmWithdrawal();
     expect(toastService.error).toHaveBeenCalledWith('Record failed');
     expect(comp.withdrawalLoading()).toBe(false);
+  });
+
+  // --- Delete transaction tests ---
+
+  it('openTxMenu opens downward when enough space below', () => {
+    const comp = fixture.componentInstance as unknown as {
+      txMenuOpenId: WritableSignal<string | null>;
+      txMenuPosition: WritableSignal<{ top: number; right: number } | null>;
+      openTxMenu: (id: string, e: MouseEvent) => void;
+    };
+    // bottom=100, innerHeight=768 → spaceBelow=668 ≥ 90
+    const mockButton = {
+      getBoundingClientRect: () => ({ bottom: 100, right: 200, top: 80, left: 150, width: 50, height: 20 }),
+    } as HTMLElement;
+    const event = { stopPropagation: jest.fn(), currentTarget: mockButton } as unknown as MouseEvent;
+    comp.openTxMenu('tx-1', event);
+    expect(comp.txMenuOpenId()).toBe('tx-1');
+    expect(comp.txMenuPosition()).toEqual({ top: 104, right: window.innerWidth - 200 });
+  });
+
+  it('openTxMenu opens upward when not enough space below but enough above', () => {
+    const comp = fixture.componentInstance as unknown as {
+      txMenuOpenId: WritableSignal<string | null>;
+      txMenuPosition: WritableSignal<{ top: number; right: number } | null>;
+      openTxMenu: (id: string, e: MouseEvent) => void;
+    };
+    // bottom near viewport bottom → spaceBelow < 90, but top=700 → spaceAbove ≥ 90
+    const mockButton = {
+      getBoundingClientRect: () => ({ bottom: 750, right: 200, top: 730, left: 150, width: 50, height: 20 }),
+    } as HTMLElement;
+    const event = { stopPropagation: jest.fn(), currentTarget: mockButton } as unknown as MouseEvent;
+    comp.openTxMenu('tx-1', event);
+    expect(comp.txMenuPosition()!.top).toBe(730 - 90 - 4);
+  });
+
+  it('openTxMenu closes when same id clicked twice', () => {
+    const comp = fixture.componentInstance as unknown as {
+      txMenuOpenId: WritableSignal<string | null>;
+      txMenuPosition: WritableSignal<{ top: number; right: number } | null>;
+      openTxMenu: (id: string, e: MouseEvent) => void;
+    };
+    const mockButton = {
+      getBoundingClientRect: () => ({ bottom: 100, right: 200, top: 80, left: 150, width: 50, height: 20 }),
+    } as HTMLElement;
+    const event = { stopPropagation: jest.fn(), currentTarget: mockButton } as unknown as MouseEvent;
+    comp.openTxMenu('tx-1', event);
+    comp.openTxMenu('tx-1', event);
+    expect(comp.txMenuOpenId()).toBeNull();
+    expect(comp.txMenuPosition()).toBeNull();
+  });
+
+  it('requestDeleteTransaction sets deletingTxId and clears menu', () => {
+    const comp = fixture.componentInstance as unknown as {
+      txMenuOpenId: WritableSignal<string | null>;
+      deletingTxId: Signal<string | null>;
+      requestDeleteTransaction: (tx: Transaction) => void;
+    };
+    comp.txMenuOpenId.set('tx-1');
+    comp.requestDeleteTransaction(mockTransaction);
+    expect(comp.deletingTxId()).toBe('tx-1');
+    expect(comp.txMenuOpenId()).toBeNull();
+  });
+
+  it('confirmDeleteTransaction calls accountService.deleteTransaction', () => {
+    const accountService = TestBed.inject(AccountService);
+    const comp = fixture.componentInstance as unknown as {
+      deletingTransaction: WritableSignal<Transaction | null>;
+      confirmDeleteTransaction: () => void;
+    };
+    comp.deletingTransaction.set(mockTransaction);
+    comp.confirmDeleteTransaction();
+    expect(accountService.deleteTransaction).toHaveBeenCalledWith('acc-1', 'tx-1');
+  });
+
+  it('confirmDeleteTransaction shows success toast and reloads', () => {
+    const toastService = TestBed.inject(ToastService);
+    const comp = fixture.componentInstance as unknown as {
+      deletingTransaction: WritableSignal<Transaction | null>;
+      deleteLoading: WritableSignal<boolean>;
+      confirmDeleteTransaction: () => void;
+    };
+    comp.deletingTransaction.set(mockTransaction);
+    comp.confirmDeleteTransaction();
+    expect(toastService.success).toHaveBeenCalledWith('Transaction deleted');
+    expect(comp.deletingTransaction()).toBeNull();
+    expect(comp.deleteLoading()).toBe(false);
+  });
+
+  it('confirmDeleteTransaction shows error toast on failure', () => {
+    const accountService = TestBed.inject(AccountService);
+    (accountService.deleteTransaction as jest.Mock).mockReturnValue(
+      throwError(() => ({ error: 'Cannot delete' }))
+    );
+    const toastService = TestBed.inject(ToastService);
+    const comp = fixture.componentInstance as unknown as {
+      deletingTransaction: WritableSignal<Transaction | null>;
+      deleteLoading: WritableSignal<boolean>;
+      confirmDeleteTransaction: () => void;
+    };
+    comp.deletingTransaction.set(mockTransaction);
+    comp.confirmDeleteTransaction();
+    expect(toastService.error).toHaveBeenCalledWith('Cannot delete');
+    expect(comp.deleteLoading()).toBe(false);
+  });
+
+  it('3-dot delete menu hidden when account is closed', () => {
+    const comp = fixture.componentInstance as unknown as {
+      account: WritableSignal<FinancialAccount | null>;
+      txMenuOpenId: WritableSignal<string | null>;
+    };
+    comp.account.set({ ...mockAccount, status: 'CLOSED', closedAt: '2026-06-01' });
+    comp.txMenuOpenId.set('tx-1');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).not.toContain('Delete');
   });
 });

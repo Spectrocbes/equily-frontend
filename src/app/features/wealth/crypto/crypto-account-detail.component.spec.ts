@@ -2,10 +2,11 @@ import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { WritableSignal, Signal } from '@angular/core';
 import { CryptoAccountDetailComponent } from './crypto-account-detail.component';
 import { AccountService } from '../../../core/services/account.service';
+import { ToastService } from '../../../shared/toast/toast.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { EnrichedHolding, FinancialAccount, Transaction } from '../../../core/models/account.model';
 
 interface CryptoSignals {
@@ -20,14 +21,14 @@ const mockAccount: FinancialAccount = {
   id: 'crypto-1', name: 'My Wallet', accountType: 'CRYPTO_WALLET',
   subType: 'CRYPTO_WALLET', balance: 100, currency: 'EUR', transactionCount: 2,
   broker: 'Ledger', depositLimit: null, totalDeposits: null, remainingCapacity: null,
-  openedAt: null, portfolioValue: null,
+  openedAt: null, portfolioValue: null, status: 'ACTIVE', closedAt: null,
 };
 
 const mockTransaction: Transaction = {
   id: 'tx-1', type: 'BUY', ticker: 'BTC',
   quantity: 0.5, pricePerUnit: 30000,
-  totalAmount: 15000, currency: 'EUR',
-  date: '2026-01-10', fees: 10, description: null,
+  totalAmount: 15000, totalAmountNative: 15000, nativeCurrency: 'EUR',
+  date: '2026-01-10', fees: 10, feesNative: 10, description: null,
 };
 
 const mockHoldingWithPrice: EnrichedHolding = {
@@ -60,8 +61,13 @@ describe('CryptoAccountDetailComponent', () => {
             getAccountById:      jest.fn().mockReturnValue(of(mockAccount)),
             getTransactions:     jest.fn().mockReturnValue(of([mockTransaction])),
             getEnrichedHoldings: jest.fn().mockReturnValue(of([mockHoldingWithPrice])),
+            deleteTransaction:   jest.fn().mockReturnValue(of(undefined)),
             loadAccounts:        jest.fn(),
           },
+        },
+        {
+          provide: ToastService,
+          useValue: { error: jest.fn(), success: jest.fn() },
         },
         {
           provide: ActivatedRoute,
@@ -147,6 +153,105 @@ describe('CryptoAccountDetailComponent', () => {
     const comp = fixture.componentInstance as unknown as CryptoSignals;
     comp.enrichedHoldings.set([mockHoldingNoPrice]);
     expect(comp.totalUnrealizedPnlPct()).toBe(0);
+  });
+
+  it('openTxMenu opens downward when enough space below', () => {
+    const comp = fixture.componentInstance as unknown as {
+      txMenuOpenId: WritableSignal<string | null>;
+      txMenuPosition: WritableSignal<{ top: number; right: number } | null>;
+      openTxMenu: (id: string, e: MouseEvent) => void;
+    };
+    const mockButton = {
+      getBoundingClientRect: () => ({ bottom: 100, right: 200, top: 80, left: 150, width: 50, height: 20 }),
+    } as HTMLElement;
+    const event = { stopPropagation: jest.fn(), currentTarget: mockButton } as unknown as MouseEvent;
+    comp.openTxMenu('tx-1', event);
+    expect(comp.txMenuOpenId()).toBe('tx-1');
+    expect(comp.txMenuPosition()).toEqual({ top: 104, right: window.innerWidth - 200 });
+  });
+
+  it('openTxMenu opens upward when not enough space below but enough above', () => {
+    const comp = fixture.componentInstance as unknown as {
+      txMenuOpenId: WritableSignal<string | null>;
+      txMenuPosition: WritableSignal<{ top: number; right: number } | null>;
+      openTxMenu: (id: string, e: MouseEvent) => void;
+    };
+    const mockButton = {
+      getBoundingClientRect: () => ({ bottom: 750, right: 200, top: 730, left: 150, width: 50, height: 20 }),
+    } as HTMLElement;
+    const event = { stopPropagation: jest.fn(), currentTarget: mockButton } as unknown as MouseEvent;
+    comp.openTxMenu('tx-1', event);
+    expect(comp.txMenuPosition()!.top).toBe(730 - 90 - 4);
+  });
+
+  it('openTxMenu toggles off when same id clicked twice', () => {
+    const comp = fixture.componentInstance as unknown as {
+      txMenuOpenId: WritableSignal<string | null>;
+      txMenuPosition: WritableSignal<{ top: number; right: number } | null>;
+      openTxMenu: (id: string, e: MouseEvent) => void;
+    };
+    const mockButton = {
+      getBoundingClientRect: () => ({ bottom: 100, right: 200, top: 80, left: 150, width: 50, height: 20 }),
+    } as HTMLElement;
+    const event = { stopPropagation: jest.fn(), currentTarget: mockButton } as unknown as MouseEvent;
+    comp.openTxMenu('tx-1', event);
+    comp.openTxMenu('tx-1', event);
+    expect(comp.txMenuOpenId()).toBeNull();
+    expect(comp.txMenuPosition()).toBeNull();
+  });
+
+  it('requestDeleteTransaction sets deletingTxId and clears menu', () => {
+    const comp = fixture.componentInstance as unknown as {
+      txMenuOpenId: WritableSignal<string | null>;
+      deletingTxId: Signal<string | null>;
+      requestDeleteTransaction: (tx: Transaction) => void;
+    };
+    comp.txMenuOpenId.set('tx-1');
+    comp.requestDeleteTransaction(mockTransaction);
+    expect(comp.deletingTxId()).toBe('tx-1');
+    expect(comp.txMenuOpenId()).toBeNull();
+  });
+
+  it('confirmDeleteTransaction calls accountService.deleteTransaction', () => {
+    const accountService = TestBed.inject(AccountService);
+    const comp = fixture.componentInstance as unknown as {
+      deletingTransaction: WritableSignal<Transaction | null>;
+      confirmDeleteTransaction: () => void;
+    };
+    comp.deletingTransaction.set(mockTransaction);
+    comp.confirmDeleteTransaction();
+    expect(accountService.deleteTransaction).toHaveBeenCalledWith('crypto-1', 'tx-1');
+  });
+
+  it('confirmDeleteTransaction shows success toast on success', () => {
+    const toastService = TestBed.inject(ToastService);
+    const comp = fixture.componentInstance as unknown as {
+      deletingTransaction: WritableSignal<Transaction | null>;
+      deleteLoading: WritableSignal<boolean>;
+      confirmDeleteTransaction: () => void;
+    };
+    comp.deletingTransaction.set(mockTransaction);
+    comp.confirmDeleteTransaction();
+    expect(toastService.success).toHaveBeenCalledWith('Transaction deleted');
+    expect(comp.deletingTransaction()).toBeNull();
+    expect(comp.deleteLoading()).toBe(false);
+  });
+
+  it('confirmDeleteTransaction shows error toast on failure', () => {
+    const accountService = TestBed.inject(AccountService);
+    (accountService.deleteTransaction as jest.Mock).mockReturnValue(
+      throwError(() => ({ error: 'Delete failed' }))
+    );
+    const toastService = TestBed.inject(ToastService);
+    const comp = fixture.componentInstance as unknown as {
+      deletingTransaction: WritableSignal<Transaction | null>;
+      deleteLoading: WritableSignal<boolean>;
+      confirmDeleteTransaction: () => void;
+    };
+    comp.deletingTransaction.set(mockTransaction);
+    comp.confirmDeleteTransaction();
+    expect(toastService.error).toHaveBeenCalledWith('Delete failed');
+    expect(comp.deleteLoading()).toBe(false);
   });
 
   it('pnlMode defaults to EUR', () => {
