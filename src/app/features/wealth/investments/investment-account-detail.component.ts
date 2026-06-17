@@ -14,6 +14,7 @@ import {
 } from '../../../core/models/account.model';
 import { AddTransactionModalComponent } from '../shared/add-transaction-modal.component';
 import { EditTransactionModalComponent } from '../shared/edit-transaction-modal.component';
+import { DeleteTransactionModalComponent } from '../shared/delete-transaction-modal.component';
 import { CsvImportModalComponent } from '../shared/csv-import-modal.component';
 import { PeaClosureModalComponent } from '../shared/pea-closure-modal.component';
 import { PeaWithdrawalBreakdownModalComponent } from '../shared/pea-withdrawal-breakdown-modal.component';
@@ -25,6 +26,7 @@ import { DonutChartComponent, DonutSlice } from '../../../shared/components/donu
   imports: [
     CurrencyPipe, DatePipe, DecimalPipe, RouterLink,
     AddTransactionModalComponent, EditTransactionModalComponent,
+    DeleteTransactionModalComponent,
     CsvImportModalComponent, PeaClosureModalComponent,
     PeaWithdrawalBreakdownModalComponent,
     DonutChartComponent, UserCurrencyPipe,
@@ -117,6 +119,11 @@ export class InvestmentAccountDetailComponent implements OnInit {
     return years !== null && years < 5;
   });
 
+  protected readonly txMenuOpenId          = signal<string | null>(null);
+  protected readonly deletingTransaction   = signal<Transaction | null>(null);
+  protected readonly deletingTxId          = computed(() => this.deletingTransaction()?.id ?? null);
+  protected readonly deleteLoading         = signal(false);
+
   protected readonly showClosureModal             = signal(false);
   protected readonly simulation                   = signal<PeaWithdrawalSimulation | null>(null);
   protected readonly closureLoading               = signal(false);
@@ -206,6 +213,37 @@ export class InvestmentAccountDetailComponent implements OnInit {
 
   protected onTransactionEditClick(tx: Transaction): void {
     this.editingTransaction.set(tx);
+  }
+
+  protected openTxMenu(txId: string, event: Event): void {
+    event.stopPropagation();
+    this.txMenuOpenId.set(this.txMenuOpenId() === txId ? null : txId);
+  }
+
+  protected requestDeleteTransaction(tx: Transaction): void {
+    this.txMenuOpenId.set(null);
+    this.deletingTransaction.set(tx);
+  }
+
+  protected confirmDeleteTransaction(): void {
+    const tx        = this.deletingTransaction();
+    const accountId = this.route.snapshot.paramMap.get('id')!;
+    if (!tx) return;
+
+    this.deleteLoading.set(true);
+    this.accountService.deleteTransaction(accountId, tx.id).subscribe({
+      next: () => {
+        this.toastService.success('Transaction deleted');
+        this.deletingTransaction.set(null);
+        this.deleteLoading.set(false);
+        this.loadAll(accountId);
+      },
+      error: (err) => {
+        const msg = typeof err.error === 'string' ? err.error : 'Failed to delete transaction';
+        this.toastService.error(msg);
+        this.deleteLoading.set(false);
+      },
+    });
   }
 
   protected onTransactionUpdated(): void {

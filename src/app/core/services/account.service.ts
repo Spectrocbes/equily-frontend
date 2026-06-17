@@ -250,6 +250,12 @@ export class AccountService {
     return this.http.post<void>(`${this.apiUrl}/${accountId}/close`, {});
   }
 
+  deleteTransaction(accountId: string, transactionId: string): Observable<void> {
+    return this.http.delete<void>(
+      `${this.apiUrl}/${accountId}/transactions/${transactionId}`
+    );
+  }
+
   importCsv(
     accountId: string,
     file: File,

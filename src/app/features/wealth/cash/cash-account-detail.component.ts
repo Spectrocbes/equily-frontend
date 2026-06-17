@@ -1,26 +1,29 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { AccountService } from '../../../core/services/account.service';
 import { PreferencesService } from '../../../core/services/preferences.service';
+import { ToastService } from '../../../shared/toast/toast.service';
 import {
   FinancialAccount, Transaction, TransactionType,
   ACCOUNT_TYPE_LABELS, ACCOUNT_SUB_TYPE_LABELS,
 } from '../../../core/models/account.model';
 import { AddTransactionModalComponent } from '../shared/add-transaction-modal.component';
 import { EditTransactionModalComponent } from '../shared/edit-transaction-modal.component';
+import { DeleteTransactionModalComponent } from '../shared/delete-transaction-modal.component';
 import { UserCurrencyPipe } from '../../../shared/pipes/user-currency.pipe';
 
 @Component({
   selector: 'app-cash-account-detail',
   standalone: true,
-  imports: [CurrencyPipe, DatePipe, RouterLink, AddTransactionModalComponent, EditTransactionModalComponent, UserCurrencyPipe],
+  imports: [CurrencyPipe, DatePipe, RouterLink, AddTransactionModalComponent, EditTransactionModalComponent, DeleteTransactionModalComponent, UserCurrencyPipe],
   templateUrl: './cash-account-detail.component.html',
 })
 export class CashAccountDetailComponent implements OnInit {
-  private readonly route          = inject(ActivatedRoute);
-  private readonly router         = inject(Router);
-  private readonly accountService = inject(AccountService);
+  private readonly route           = inject(ActivatedRoute);
+  private readonly router          = inject(Router);
+  private readonly accountService  = inject(AccountService);
+  private readonly toastService    = inject(ToastService);
   protected readonly preferencesService = inject(PreferencesService);
 
   protected readonly account      = signal<FinancialAccount | null>(null);
@@ -34,6 +37,12 @@ export class CashAccountDetailComponent implements OnInit {
   protected readonly cashDelta               = signal<number | null>(null);
   protected readonly cashDeltaPositive       = signal<boolean>(true);
   protected readonly allowedTypes: TransactionType[] = ['DEPOSIT', 'WITHDRAWAL'];
+
+  protected readonly isClosed            = computed(() => this.account()?.status === 'CLOSED');
+  protected readonly txMenuOpenId        = signal<string | null>(null);
+  protected readonly deletingTransaction = signal<Transaction | null>(null);
+  protected readonly deletingTxId        = computed(() => this.deletingTransaction()?.id ?? null);
+  protected readonly deleteLoading       = signal(false);
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -72,6 +81,37 @@ export class CashAccountDetailComponent implements OnInit {
   protected onTransactionUpdated(): void {
     const id = this.route.snapshot.paramMap.get('id')!;
     this.loadAll(id);
+  }
+
+  protected openTxMenu(txId: string, event: Event): void {
+    event.stopPropagation();
+    this.txMenuOpenId.set(this.txMenuOpenId() === txId ? null : txId);
+  }
+
+  protected requestDeleteTransaction(tx: Transaction): void {
+    this.txMenuOpenId.set(null);
+    this.deletingTransaction.set(tx);
+  }
+
+  protected confirmDeleteTransaction(): void {
+    const tx        = this.deletingTransaction();
+    const accountId = this.route.snapshot.paramMap.get('id')!;
+    if (!tx) return;
+
+    this.deleteLoading.set(true);
+    this.accountService.deleteTransaction(accountId, tx.id).subscribe({
+      next: () => {
+        this.toastService.success('Transaction deleted');
+        this.deletingTransaction.set(null);
+        this.deleteLoading.set(false);
+        this.loadAll(accountId);
+      },
+      error: (err) => {
+        const msg = typeof err.error === 'string' ? err.error : 'Failed to delete transaction';
+        this.toastService.error(msg);
+        this.deleteLoading.set(false);
+      },
+    });
   }
 
   protected isPositive(type: TransactionType): boolean {

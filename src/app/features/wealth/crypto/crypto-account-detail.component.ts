@@ -7,11 +7,13 @@ import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { UserCurrencyPipe } from '../../../shared/pipes/user-currency.pipe';
 import { AccountService } from '../../../core/services/account.service';
 import { PreferencesService } from '../../../core/services/preferences.service';
+import { ToastService } from '../../../shared/toast/toast.service';
 import {
   FinancialAccount, EnrichedHolding, Transaction, TransactionType,
   ACCOUNT_TYPE_LABELS, CURRENCY_SYMBOLS,
 } from '../../../core/models/account.model';
 import { AddTransactionModalComponent } from '../shared/add-transaction-modal.component';
+import { DeleteTransactionModalComponent } from '../shared/delete-transaction-modal.component';
 import { CsvImportModalComponent } from '../shared/csv-import-modal.component';
 import { DonutChartComponent, DonutSlice } from '../../../shared/components/donut-chart/donut-chart.component';
 
@@ -20,14 +22,16 @@ import { DonutChartComponent, DonutSlice } from '../../../shared/components/donu
   standalone: true,
   imports: [
     CurrencyPipe, DecimalPipe, RouterLink,
-    AddTransactionModalComponent, CsvImportModalComponent, DonutChartComponent, UserCurrencyPipe,
+    AddTransactionModalComponent, DeleteTransactionModalComponent,
+    CsvImportModalComponent, DonutChartComponent, UserCurrencyPipe,
   ],
   templateUrl: './crypto-account-detail.component.html',
 })
 export class CryptoAccountDetailComponent implements OnInit, OnDestroy {
-  private readonly route          = inject(ActivatedRoute);
-  private readonly router         = inject(Router);
-  private readonly accountService = inject(AccountService);
+  private readonly route           = inject(ActivatedRoute);
+  private readonly router          = inject(Router);
+  private readonly accountService  = inject(AccountService);
+  private readonly toastService    = inject(ToastService);
   protected readonly preferencesService = inject(PreferencesService);
 
   protected readonly ACCOUNT_TYPE_LABELS = ACCOUNT_TYPE_LABELS;
@@ -44,6 +48,12 @@ export class CryptoAccountDetailComponent implements OnInit, OnDestroy {
   protected readonly showCsvModal        = signal(false);
   protected readonly activeTab           = signal<'holdings' | 'transactions'>('holdings');
   protected readonly pnlMode             = signal<'EUR' | 'PCT'>('EUR');
+
+  protected readonly isClosed            = computed(() => this.account()?.status === 'CLOSED');
+  protected readonly txMenuOpenId        = signal<string | null>(null);
+  protected readonly deletingTransaction = signal<Transaction | null>(null);
+  protected readonly deletingTxId        = computed(() => this.deletingTransaction()?.id ?? null);
+  protected readonly deleteLoading       = signal(false);
 
   protected readonly pnlLabel = computed(() => {
     const sym = CURRENCY_SYMBOLS[this.preferencesService.currency()]
@@ -155,6 +165,37 @@ export class CryptoAccountDetailComponent implements OnInit, OnDestroy {
   protected onTransactionCreated(): void {
     const id = this.route.snapshot.paramMap.get('id')!;
     this.loadAll(id);
+  }
+
+  protected openTxMenu(txId: string, event: Event): void {
+    event.stopPropagation();
+    this.txMenuOpenId.set(this.txMenuOpenId() === txId ? null : txId);
+  }
+
+  protected requestDeleteTransaction(tx: Transaction): void {
+    this.txMenuOpenId.set(null);
+    this.deletingTransaction.set(tx);
+  }
+
+  protected confirmDeleteTransaction(): void {
+    const tx        = this.deletingTransaction();
+    const accountId = this.route.snapshot.paramMap.get('id')!;
+    if (!tx) return;
+
+    this.deleteLoading.set(true);
+    this.accountService.deleteTransaction(accountId, tx.id).subscribe({
+      next: () => {
+        this.toastService.success('Transaction deleted');
+        this.deletingTransaction.set(null);
+        this.deleteLoading.set(false);
+        this.loadAll(accountId);
+      },
+      error: (err) => {
+        const msg = typeof err.error === 'string' ? err.error : 'Failed to delete transaction';
+        this.toastService.error(msg);
+        this.deleteLoading.set(false);
+      },
+    });
   }
 
   protected onCsvImported(): void {
