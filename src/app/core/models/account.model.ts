@@ -56,6 +56,7 @@ export interface FinancialAccount {
   portfolioValue: number | null; // null for savings/cash/real-estate
   status: 'ACTIVE' | 'CLOSED';
   closedAt: string | null;
+  linkedCheckingAccountId: string | null;
 }
 
 export interface PeaWithdrawalSimulation {
@@ -97,6 +98,10 @@ export interface Transaction {
   fees: number;
   feesNative: number;         // fees in original currency
   description: string | null;
+  transferId: string | null;
+  linkedAccountId: string | null;
+  externalAddress: string | null;
+  transferDirection: 'INCOMING' | 'OUTGOING' | null;
 }
 
 export type TransactionType =
@@ -105,7 +110,19 @@ export type TransactionType =
   | 'DIVIDEND'
   | 'DEPOSIT'
   | 'WITHDRAWAL'
-  | 'INTEREST';
+  | 'PAYMENT'
+  | 'INTEREST'
+  | 'TRANSFER';
+
+export interface TransferRequest {
+  fromAccountId: string;
+  toAccountId: string | null;
+  amount: number;
+  currency: string;
+  date: string;
+  description: string | null;
+  externalAddress: string | null;
+}
 
 export interface CreateAccountRequest {
   name: string;
@@ -115,6 +132,7 @@ export interface CreateAccountRequest {
   broker: string;
   subType: AccountSubType | null;
   openedAt: string | null;
+  linkedCheckingAccountId: string | null;
 }
 
 export function totalAccountValue(account: FinancialAccount): number {
@@ -184,6 +202,14 @@ export const ALLOWED_TRANSACTION_TYPES: Record<AccountType, TransactionType[]> =
   CASH_ACCOUNT:    ['DEPOSIT', 'WITHDRAWAL'],
   CRYPTO_WALLET:   ['BUY', 'SELL', 'DEPOSIT', 'WITHDRAWAL'],
   REAL_ESTATE:     ['DEPOSIT', 'WITHDRAWAL'],
+};
+
+export const ALLOWED_TX_TYPES: Record<string, TransactionType[]> = {
+  INVESTMENT:      ['BUY', 'SELL', 'DIVIDEND', 'TRANSFER'],
+  SAVINGS_ACCOUNT: ['TRANSFER', 'INTEREST'],
+  CRYPTO_WALLET:   ['BUY', 'SELL', 'DIVIDEND', 'TRANSFER'],
+  CASH_ACCOUNT:    ['DEPOSIT', 'WITHDRAWAL', 'PAYMENT', 'TRANSFER',
+                    'BUY', 'SELL', 'INTEREST'],
 };
 
 export interface AccountSummary {

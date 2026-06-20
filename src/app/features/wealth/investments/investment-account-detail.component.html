@@ -491,81 +491,88 @@
             <p class="text-slate-400 text-sm">No transactions yet</p>
           </div>
         } @else {
-          <div class="divide-y divide-slate-100 dark:divide-slate-700">
+          <div class="divide-y divide-slate-200 dark:divide-slate-700">
             @for (tx of transactions(); track tx.id) {
-              <div class="group px-5 py-3.5 flex items-center justify-between
-                          hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+              <div class="flex items-center gap-0 min-h-[52px] px-6
+                          hover:bg-slate-50 dark:hover:bg-slate-800/30
+                          transition-colors group relative">
 
-                <div class="flex items-center gap-3">
-                  <span class="inline-flex items-center px-2 py-0.5 rounded
-                               text-xs font-medium"
+                <!-- Date -->
+                <div class="w-16 flex-shrink-0 mr-3">
+                  <span class="text-xs text-slate-400 dark:text-slate-500 tabular-nums">
+                    {{ tx.date | date:'dd/MM/yy' }}
+                  </span>
+                </div>
+
+                <!-- Badge -->
+                <div class="w-20 flex-shrink-0 flex items-center mr-4">
+                  <span class="inline-flex items-center justify-center
+                               px-2 py-0.5 rounded-md text-xs font-semibold w-full"
                         [class]="getBadgeClass(tx.type)">
                     {{ tx.type }}
                   </span>
-                  <div>
-                    @if (tx.ticker) {
-                      <p class="text-sm font-medium font-mono
-                                 text-slate-900 dark:text-white">
-                        {{ tx.ticker }}
-                      </p>
-                    }
-                    <p class="text-xs text-slate-400 dark:text-slate-500">
-                      {{ tx.date }}
-                    </p>
-                    @if (tx.description) {
-                      <p class="text-xs text-slate-400 italic mt-0.5">
-                        {{ tx.description }}
-                      </p>
-                    }
-                  </div>
                 </div>
 
-                <div class="flex items-center gap-0">
+                <!-- Content -->
+                <div class="flex-1 min-w-0 mr-4">
+                  @if (tx.ticker) {
+                    <p class="text-xs font-mono font-medium
+                               text-slate-700 dark:text-slate-300 truncate">
+                      {{ tx.ticker }}
+                    </p>
+                  }
+                  @if (tx.description) {
+                    <p class="text-xs text-slate-600 dark:text-slate-300 truncate">
+                      {{ tx.description }}
+                    </p>
+                  }
+                  @if (tx.type === 'TRANSFER' && tx.linkedAccountId) {
+                    <p class="text-xs text-slate-400 dark:text-slate-500"
+                       [class.mt-0.5]="tx.description">
+                      ⇄ {{ getLinkedAccountName(tx.linkedAccountId) ?? 'Unknown' }}
+                    </p>
+                  }
+                  @if ((tx.type === 'TRANSFER' || tx.type === 'PAYMENT') && tx.externalAddress) {
+                    <p class="text-xs text-slate-400 dark:text-slate-500"
+                       [class.mt-0.5]="tx.description">
+                      → {{ tx.externalAddress }}
+                    </p>
+                  }
+                </div>
 
-                  <!-- Amount: shifts left on hover to make room for 3-dot button -->
-                  <div class="flex flex-col items-end
-                              transition-all duration-200
-                              group-hover:mr-9">
-                    <p class="text-sm font-semibold font-mono"
-                       [class]="isPositive(tx.type) ? 'text-emerald-500' : 'text-rose-500'">
-                      {{ isPositive(tx.type) ? '+' : '-' }}{{ tx.totalAmount | userCurrency }}
+                <!-- Amount + 3-dot -->
+                <div class="flex items-center gap-1 flex-shrink-0">
+                  <div class="text-right w-[120px]">
+                    <p class="text-sm font-semibold font-mono tabular-nums"
+                       [class]="isPositive(tx.type, tx.transferDirection) ? 'text-emerald-500' : 'text-rose-500'">
+                      {{ isPositive(tx.type, tx.transferDirection) ? '+' : '-' }}{{ tx.totalAmount | userCurrency }}
                     </p>
                     @if (tx.nativeCurrency !== preferencesService.currency()) {
-                      <p class="text-xs text-slate-400 dark:text-slate-500 font-mono mt-0.5">
+                      <p class="text-xs text-slate-400 dark:text-slate-500 font-mono tabular-nums mt-0.5">
                         {{ tx.totalAmountNative | currency:tx.nativeCurrency:'symbol':'1.2-2' }}
                       </p>
                     }
                     @if (tx.quantity && tx.pricePerUnit) {
-                      <p class="hidden sm:block text-xs text-slate-400 dark:text-slate-500">
+                      <p class="text-xs text-slate-400 dark:text-slate-500 font-mono mt-0.5">
                         {{ tx.quantity }} × {{ tx.pricePerUnit | userCurrency }}
                       </p>
                     }
-                    <p class="hidden sm:block text-xs text-slate-400 dark:text-slate-500">
-                      Fees: {{ tx.fees | userCurrency }}
-                    </p>
                   </div>
-
-                  <!-- 3-dot menu: slides in from right on hover -->
-                  @if (!isClosed()) {
-                    <div class="relative">
+                  <div class="relative w-6 flex-shrink-0">
+                    @if (!isClosed()) {
                       <button type="button"
                               (click)="openTxMenu(tx.id, $event)"
-                              class="absolute right-0 top-1/2 -translate-y-1/2
-                                     w-6 h-6 rounded-lg
-                                     flex items-center justify-center
-                                     text-slate-400 hover:text-slate-600
-                                     dark:hover:text-slate-200
+                              class="w-6 h-6 rounded-lg flex items-center justify-center
+                                     text-slate-400 hover:text-slate-600 dark:hover:text-slate-200
                                      hover:bg-slate-100 dark:hover:bg-slate-700
                                      transition-all duration-200
-                                     opacity-0 group-hover:opacity-100
-                                     translate-x-2 group-hover:translate-x-0">
+                                     opacity-0 group-hover:opacity-100">
                         <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
                           <circle cx="12" cy="5" r="1.5"/>
                           <circle cx="12" cy="12" r="1.5"/>
                           <circle cx="12" cy="19" r="1.5"/>
                         </svg>
                       </button>
-
                       @if (txMenuOpenId() === tx.id && txMenuPosition()) {
                         <div class="fixed inset-0 z-40"
                              role="button"
@@ -577,7 +584,6 @@
                                     bg-white dark:bg-slate-800 shadow-lg overflow-hidden"
                              [style.top.px]="txMenuPosition()!.top"
                              [style.right.px]="txMenuPosition()!.right">
-                          <!-- Edit -->
                           <button type="button"
                                   (click)="onTransactionEditClick(tx); txMenuOpenId.set(null); txMenuPosition.set(null)"
                                   class="w-full flex items-center gap-2 px-3 py-2.5
@@ -593,9 +599,7 @@
                             </svg>
                             Edit
                           </button>
-                          <!-- Divider -->
                           <div class="border-t border-slate-100 dark:border-slate-700"></div>
-                          <!-- Delete -->
                           <button type="button"
                                   (click)="requestDeleteTransaction(tx)"
                                   class="w-full flex items-center gap-2 px-3 py-2.5
@@ -613,9 +617,8 @@
                           </button>
                         </div>
                       }
-                    </div>
-                  }
-
+                    }
+                  </div>
                 </div>
 
               </div>

@@ -15,6 +15,10 @@ describe('Transaction', () => {
       fees: 4.50,
       feesNative: 5.00,
       description: null,
+      transferId: null,
+      linkedAccountId: null,
+      externalAddress: null,
+      transferDirection: null,
     };
     expect(tx.nativeCurrency).toBe('USD');
     expect(tx.totalAmountNative).toBe(1620);

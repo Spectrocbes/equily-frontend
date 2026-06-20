@@ -374,7 +374,8 @@ export class InvestmentAccountDetailComponent implements OnInit {
     this.pnlMode.set(this.pnlMode() === 'EUR' ? 'PCT' : 'EUR');
   }
 
-  protected isPositive(type: TransactionType): boolean {
+  protected isPositive(type: TransactionType, direction?: string | null): boolean {
+    if (type === 'TRANSFER') return direction === 'INCOMING';
     return ['DEPOSIT', 'DIVIDEND', 'INTEREST', 'SELL'].includes(type);
   }
 
@@ -386,7 +387,15 @@ export class InvestmentAccountDetailComponent implements OnInit {
       INTEREST:   'bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300',
       DEPOSIT:    'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300',
       WITHDRAWAL: 'bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300',
+      TRANSFER:   'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300',
+      PAYMENT:    'bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300',
     };
     return map[type] ?? 'bg-slate-100 text-slate-600';
+  }
+
+  protected getLinkedAccountName(linkedAccountId: string | null): string | null {
+    if (!linkedAccountId) return null;
+    const acc = this.accountService.accounts().find(a => a.id === linkedAccountId);
+    return acc?.name ?? null;
   }
 }

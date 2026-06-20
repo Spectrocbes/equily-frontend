@@ -12,6 +12,7 @@ const peaAccount: FinancialAccount = {
   transactionCount: 5, broker: 'Fortuneo',
   depositLimit: 150000, totalDeposits: 2698, remainingCapacity: 147302,
   openedAt: null, portfolioValue: 7295,
+  status: 'ACTIVE', closedAt: null, linkedCheckingAccountId: null,
 };
 
 const mockSummary: AccountSummary = {

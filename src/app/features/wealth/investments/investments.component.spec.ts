@@ -23,6 +23,7 @@ const makeAccount = (
   portfolioValue,
   status,
   closedAt: status === 'CLOSED' ? '2026-06-01' : null,
+  linkedCheckingAccountId: null,
 });
 
 const makeSummary = (

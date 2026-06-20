@@ -85,13 +85,35 @@ export class AddAccountModalComponent implements OnInit {
   });
 
 
+  protected readonly isPeaSubType = computed(() => {
+    const sub = this.formValue().subType;
+    return sub === 'PEA' || sub === 'PEA_PME';
+  });
+
+  protected readonly checkingAccounts = computed(() =>
+    this.accountService.accounts()
+      .filter(a => a.accountType === 'CASH_ACCOUNT' && a.status !== 'CLOSED')
+  );
+
+  protected readonly canCreatePea = computed(() =>
+    !this.isPeaSubType() || this.checkingAccounts().length > 0
+      || !!(this.formValue().linkedCheckingAccountId)
+  );
+
+  protected readonly linkedAccountName = computed(() => {
+    const id = this.formValue().linkedCheckingAccountId;
+    if (!id) return null;
+    return this.checkingAccounts().find(a => a.id === id)?.name ?? null;
+  });
+
   protected readonly form = this.fb.group({
-    name:           ['', [Validators.required, Validators.minLength(1)]],
-    accountType:    ['', Validators.required],
-    initialBalance: [0, [Validators.required, Validators.min(0)]],
-    broker:         ['', Validators.required],
-    subType:        [null as AccountSubType | null],
-    openedAt:       [this.today() as string | null, null],
+    name:                    ['', [Validators.required, Validators.minLength(1)]],
+    accountType:             ['', Validators.required],
+    initialBalance:          [0, [Validators.required, Validators.min(0)]],
+    broker:                  ['', Validators.required],
+    subType:                 [null as AccountSubType | null],
+    openedAt:                [this.today() as string | null, null],
+    linkedCheckingAccountId: [null as string | null],
   });
 
   private readonly formValue = toSignal(this.form.valueChanges, {
@@ -112,6 +134,10 @@ export class AddAccountModalComponent implements OnInit {
     return (['PEA', 'PEA_PME', 'COMPTE_TITRES', 'PER', 'ASSURANCE_VIE'] as string[])
       .includes(type);
   });
+
+  protected readonly showInitialBalance = computed(() =>
+    this.formValue().accountType === 'CASH_ACCOUNT'
+  );
 
   protected readonly initialBalanceCurrency = computed(() => {
     const type    = this.formValue().accountType as AccountType;
@@ -157,6 +183,9 @@ export class AddAccountModalComponent implements OnInit {
           subTypeControl.clearValidators();
         }
         subTypeControl.updateValueAndValidity();
+        if (type !== 'CASH_ACCOUNT') {
+          this.form.get('initialBalance')?.setValue(0);
+        }
       });
   }
 
@@ -188,7 +217,7 @@ export class AddAccountModalComponent implements OnInit {
 
   protected onSubmit(): void {
     if (this.form.invalid) return;
-    const { name, accountType, initialBalance, broker, subType, openedAt } = this.form.getRawValue();
+    const { name, accountType, initialBalance, broker, subType, openedAt, linkedCheckingAccountId } = this.form.getRawValue();
     this.accountService.createAccount({
       name: name!,
       accountType: accountType as AccountType,
@@ -197,6 +226,7 @@ export class AddAccountModalComponent implements OnInit {
       broker: broker!,
       subType: subType as AccountSubType | null,
       openedAt: openedAt ?? null,
+      linkedCheckingAccountId: linkedCheckingAccountId ?? null,
     }).subscribe({
       next: () => {
         this.toastService.success('Account created');
