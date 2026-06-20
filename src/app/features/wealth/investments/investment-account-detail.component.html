@@ -643,6 +643,7 @@
       [peaUnder5Years]="peaUnder5Years()"
       [hasHoldings]="enrichedHoldings().length > 0"
       [holdings]="enrichedHoldings()"
+      [account]="account()"
       (closed)="showTransactionModal.set(false)"
       (created)="onTransactionCreated($event.type, $event.amount)"
       (peaClosureRequested)="onPeaClosureRequested()"
