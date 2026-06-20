@@ -7,6 +7,7 @@ import {
   EnrichedHolding,
   CreateAccountRequest,
   RecordTransactionRequest,
+  TransferRequest,
   AccountSummary,
   AccountPortfolioSummary,
   WealthCategory,
@@ -254,6 +255,10 @@ export class AccountService {
     return this.http.delete<void>(
       `${this.apiUrl}/${accountId}/transactions/${transactionId}`
     );
+  }
+
+  executeTransfer(request: TransferRequest): Observable<{ transferId: string }> {
+    return this.http.post<{ transferId: string }>('/api/v1/transfers', request);
   }
 
   importCsv(

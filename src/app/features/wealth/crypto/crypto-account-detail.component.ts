@@ -3,7 +3,7 @@ import {
   signal, computed
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { CurrencyPipe, DecimalPipe } from '@angular/common';
+import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { UserCurrencyPipe } from '../../../shared/pipes/user-currency.pipe';
 import { AccountService } from '../../../core/services/account.service';
 import { PreferencesService } from '../../../core/services/preferences.service';
@@ -22,7 +22,7 @@ import { DonutChartComponent, DonutSlice } from '../../../shared/components/donu
   selector: 'app-crypto-account-detail',
   standalone: true,
   imports: [
-    CurrencyPipe, DecimalPipe, RouterLink,
+    CurrencyPipe, DatePipe, DecimalPipe, RouterLink,
     AddTransactionModalComponent, EditTransactionModalComponent,
     DeleteTransactionModalComponent, CsvImportModalComponent,
     DonutChartComponent, UserCurrencyPipe,
@@ -240,7 +240,8 @@ export class CryptoAccountDetailComponent implements OnInit, OnDestroy {
     this.pnlMode.set(this.pnlMode() === 'EUR' ? 'PCT' : 'EUR');
   }
 
-  protected isPositive(type: TransactionType): boolean {
+  protected isPositive(type: TransactionType, direction?: string | null): boolean {
+    if (type === 'TRANSFER') return direction === 'INCOMING';
     return ['DEPOSIT', 'DIVIDEND', 'INTEREST', 'SELL'].includes(type);
   }
 
@@ -251,7 +252,15 @@ export class CryptoAccountDetailComponent implements OnInit, OnDestroy {
       DIVIDEND:   'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300',
       DEPOSIT:    'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300',
       WITHDRAWAL: 'bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300',
+      TRANSFER:   'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300',
+      PAYMENT:    'bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300',
     };
     return map[type] ?? 'bg-slate-100 text-slate-600';
+  }
+
+  protected getLinkedAccountName(linkedAccountId: string | null): string | null {
+    if (!linkedAccountId) return null;
+    const acc = this.accountService.accounts().find(a => a.id === linkedAccountId);
+    return acc?.name ?? null;
   }
 }

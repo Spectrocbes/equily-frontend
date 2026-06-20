@@ -17,6 +17,7 @@ const makeCryptoAccount = (portfolioValue: number | null): FinancialAccount => (
   transactionCount: 1, broker: 'Ledger', depositLimit: null,
   totalDeposits: null, remainingCapacity: null, openedAt: null,
   portfolioValue,
+  status: 'ACTIVE', closedAt: null, linkedCheckingAccountId: null,
 });
 
 const makeInvestmentAccount = (): FinancialAccount => ({
@@ -25,6 +26,7 @@ const makeInvestmentAccount = (): FinancialAccount => ({
   transactionCount: 2, broker: 'Fortuneo', depositLimit: 150000,
   totalDeposits: 5000, remainingCapacity: 145000, openedAt: null,
   portfolioValue: 5000,
+  status: 'ACTIVE', closedAt: null, linkedCheckingAccountId: null,
 });
 
 describe('CryptoComponent', () => {

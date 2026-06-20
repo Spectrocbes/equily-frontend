@@ -5,16 +5,28 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { AccountService } from '../../../core/services/account.service';
 import { PreferencesService } from '../../../core/services/preferences.service';
 import {
-  AccountType, AccountSubType, TransactionType,
-  ALLOWED_TRANSACTION_TYPES, PeaSummary, CURRENCY_SYMBOLS,
+  AccountType, AccountSubType, TransactionType, TransferRequest,
+  ALLOWED_TX_TYPES, ACCOUNT_CATEGORY, PeaSummary, CURRENCY_SYMBOLS,
   isEurOnlyAccount, EnrichedHolding,
 } from '../../../core/models/account.model';
 import { ToastService } from '../../../shared/toast/toast.service';
+import { UserCurrencyPipe } from '../../../shared/pipes/user-currency.pipe';
+
+const ALL_TRANSACTION_TYPES: { value: TransactionType; label: string; icon: string }[] = [
+  { value: 'DEPOSIT',    label: 'Deposit',    icon: '↓' },
+  { value: 'WITHDRAWAL', label: 'Withdrawal', icon: '↑' },
+  { value: 'PAYMENT',    label: 'Payment',    icon: '💳' },
+  { value: 'TRANSFER',   label: 'Transfer',   icon: '⇄' },
+  { value: 'BUY',        label: 'Buy',        icon: '📈' },
+  { value: 'SELL',       label: 'Sell',       icon: '📉' },
+  { value: 'DIVIDEND',   label: 'Dividend',   icon: '💰' },
+  { value: 'INTEREST',   label: 'Interest',   icon: '🏦' },
+];
 
 @Component({
   selector: 'app-add-transaction-modal',
   standalone: true,
-  imports: [ReactiveFormsModule, DecimalPipe, CurrencyPipe],
+  imports: [ReactiveFormsModule, DecimalPipe, CurrencyPipe, UserCurrencyPipe],
   templateUrl: './add-transaction-modal.component.html',
 })
 export class AddTransactionModalComponent implements OnInit {
@@ -95,37 +107,119 @@ export class AddTransactionModalComponent implements OnInit {
   protected readonly error      = signal<string | null>(null);
   protected readonly peaSummary = signal<PeaSummary | null>(null);
 
-  protected readonly allowedTypes = computed(() =>
-    ALLOWED_TRANSACTION_TYPES[this.accountType()]
-  );
+  protected readonly transferMode = signal<'internal' | 'external'>('internal');
 
   protected readonly availableTransactionTypes = computed(() => {
-    const subType = this.accountSubType();
-    const isSavings = ['LIVRET_A', 'LDDS', 'LDD', 'LEP', 'LIVRET_JEUNE']
-      .includes(subType ?? '');
-    const isCash = subType === 'CASH_ACCOUNT';
-
-    if (isSavings) {
-      return [
-        { value: 'DEPOSIT'    as TransactionType, label: 'Deposit' },
-        { value: 'WITHDRAWAL' as TransactionType, label: 'Withdrawal' },
-        { value: 'INTEREST'   as TransactionType, label: 'Interest received' },
-      ];
-    }
-    if (isCash) {
-      return [
-        { value: 'DEPOSIT'    as TransactionType, label: 'Deposit' },
-        { value: 'WITHDRAWAL' as TransactionType, label: 'Withdrawal' },
-      ];
-    }
-    return [
-      { value: 'DEPOSIT'    as TransactionType, label: 'Deposit' },
-      { value: 'WITHDRAWAL' as TransactionType, label: 'Withdrawal' },
-      { value: 'BUY'        as TransactionType, label: 'Buy' },
-      { value: 'SELL'       as TransactionType, label: 'Sell' },
-      { value: 'DIVIDEND'   as TransactionType, label: 'Dividend' },
-    ];
+    const accountType = this.accountType();
+    const key = ACCOUNT_CATEGORY[accountType] === 'investments' ? 'INVESTMENT' : accountType;
+    const allowed = ALLOWED_TX_TYPES[key] ?? [];
+    return ALL_TRANSACTION_TYPES.filter(t => allowed.includes(t.value));
   });
+
+  protected readonly selectedTypeLabel = computed(() => {
+    const type = this.selectedType();
+    return this.availableTransactionTypes().find(t => t.value === type)?.label ?? '';
+  });
+
+  protected readonly showTransferForm = computed(() =>
+    this.selectedType() === 'TRANSFER'
+  );
+
+  protected readonly useDropdownForTypes = computed(() =>
+    this.accountType() === 'CASH_ACCOUNT'
+  );
+
+  protected readonly isInvestmentAccount = computed(() =>
+    ACCOUNT_CATEGORY[this.accountType()] === 'investments'
+  );
+
+  protected readonly showExternalOption = computed(() =>
+    this.accountType() === 'CASH_ACCOUNT' ||
+    this.accountType() === 'CRYPTO_WALLET'
+  );
+
+  protected readonly availableBalance = computed(() => {
+    const account = this.accountService.accounts()
+      .find(a => a.id === this.accountId());
+    return account?.balance ?? 0;
+  });
+
+  protected readonly destinationAccounts = computed(() => {
+    const current    = this.accountId();
+    const sourceType = this.accountType();
+    const all        = this.accountService.accounts()
+      .filter(a => a.id !== current && a.status !== 'CLOSED');
+
+    if (ACCOUNT_CATEGORY[sourceType] === 'investments') {
+      return [];
+    }
+    switch (sourceType) {
+      case 'SAVINGS_ACCOUNT':
+        return all.filter(a => a.accountType === 'CASH_ACCOUNT');
+      case 'CRYPTO_WALLET':
+        return all.filter(a =>
+          a.accountType === 'CASH_ACCOUNT' || a.accountType === 'CRYPTO_WALLET'
+        );
+      default:
+        return all;
+    }
+  });
+
+  protected readonly linkedCheckingAccount = computed(() => {
+    if (!this.isInvestmentAccount()) return null;
+    const account = this.accountService.accounts()
+      .find(a => a.id === this.accountId());
+    if (!account?.linkedCheckingAccountId) return null;
+    return this.accountService.accounts()
+      .find(a => a.id === account.linkedCheckingAccountId) ?? null;
+  });
+
+  protected readonly peaCapacityInfo = computed(() => {
+    if (!this.isInvestmentAccount()) return null;
+    const account = this.accountService.accounts()
+      .find(a => a.id === this.accountId());
+    if (!account) return null;
+    return {
+      totalDeposits:     account.totalDeposits ?? 0,
+      remainingCapacity: account.remainingCapacity ?? 0,
+    };
+  });
+
+  protected readonly selectedDestinationAccount = computed(() => {
+    const id = this.formValue().toAccountId;
+    if (!id) return null;
+    return this.accountService.accounts().find(a => a.id === id) ?? null;
+  });
+
+  protected readonly destinationCapacityInfo = computed(() => {
+    const dest = this.selectedDestinationAccount();
+    if (!dest) return null;
+    if (dest.depositLimit == null || dest.depositLimit === 0) return null;
+    const isPea = dest.subType === 'PEA' || dest.subType === 'PEA_PME';
+    return {
+      label:     isPea ? 'PEA deposited' : 'Balance',
+      current:   dest.totalDeposits ?? dest.balance,
+      limit:     dest.depositLimit,
+      remaining: dest.remainingCapacity ?? 0,
+    };
+  });
+
+  protected readonly typeConfirmed = signal(false);
+  protected readonly typeDropdownOpen = signal(false);
+
+  protected readonly peaTransferForcedClosure = computed(() =>
+    this.isInvestmentAccount() &&
+    this.isPeaUnder5Years() &&
+    this.selectedType() === 'TRANSFER' &&
+    !this.hasHoldings()
+  );
+
+  protected readonly peaTransferBlockedByHoldings = computed(() =>
+    this.isInvestmentAccount() &&
+    this.isPeaUnder5Years() &&
+    this.selectedType() === 'TRANSFER' &&
+    this.hasHoldings()
+  );
 
   protected readonly step = signal<'form' | 'confirm'>('form');
   protected readonly selectedType = signal<TransactionType | ''>('');
@@ -139,11 +233,11 @@ export class AddTransactionModalComponent implements OnInit {
   );
 
   protected readonly form = this.fb.group({
-    ticker:       [''],
-    quantity:     [null as number | null],
-    pricePerUnit: [null as number | null],
-    totalAmount:  [null as number | null],
-    fees:         [0],
+    ticker:               [''],
+    quantity:             [null as number | null],
+    pricePerUnit:         [null as number | null],
+    totalAmount:          [null as number | null],
+    fees:                 [0],
     date: [
       new Date().toISOString().split('T')[0],
       [
@@ -157,7 +251,9 @@ export class AddTransactionModalComponent implements OnInit {
         },
       ],
     ],
-    description:  [''],
+    description:          [''],
+    toAccountId:          [''],
+    externalAddress:      [''],
   });
 
   private readonly formValue = toSignal(this.form.valueChanges, {
@@ -253,9 +349,11 @@ export class AddTransactionModalComponent implements OnInit {
   });
 
   protected readonly isFormValid = computed(() => {
-    if (this.peaWithdrawalForcedClosure()) {
+    if (this.peaWithdrawalForcedClosure() || this.peaTransferForcedClosure()) {
       return (this.currentBalance() ?? 0) > 0;
     }
+
+    if (this.peaTransferBlockedByHoldings()) return false;
 
     const type = this.selectedType();
     if (!type) return false;
@@ -263,6 +361,12 @@ export class AddTransactionModalComponent implements OnInit {
 
     const v = this.formValue();
     const dateValid = !!v.date && this.form.get('date')?.valid !== false;
+
+    if (type === 'TRANSFER') {
+      if ((v.totalAmount ?? 0) <= 0 || !dateValid) return false;
+      if (this.transferMode() === 'internal') return !!(v.toAccountId?.trim());
+      return true;
+    }
 
     if (type === 'BUY' || type === 'SELL') {
       const maxQty = this.maxSellQuantity();
@@ -290,13 +394,20 @@ export class AddTransactionModalComponent implements OnInit {
     effect(() => {
       const control = this.form.get('totalAmount');
       if (!control) return;
-      if (this.peaWithdrawalForcedClosure()) {
+      if (this.peaWithdrawalForcedClosure() || this.peaTransferForcedClosure()) {
         control.setValue(this.currentBalance(), { emitEvent: false });
         control.disable({ emitEvent: false });
       } else {
         control.enable({ emitEvent: false });
       }
     });
+
+    effect(() => {
+      const linked = this.linkedCheckingAccount();
+      if (linked && this.selectedType() === 'TRANSFER' && this.isInvestmentAccount()) {
+        this.form.get('toAccountId')?.setValue(linked.id);
+      }
+    }, { allowSignalWrites: true });
   }
 
   ngOnInit(): void {
@@ -309,6 +420,7 @@ export class AddTransactionModalComponent implements OnInit {
 
   protected onTypeChange(type: TransactionType): void {
     this.selectedType.set(type);
+    this.transferMode.set('internal');
     const qtyControl = this.form.get('quantity');
     qtyControl?.setValidators([Validators.min(0.000001)]);
     this.form.patchValue({
@@ -317,8 +429,32 @@ export class AddTransactionModalComponent implements OnInit {
       pricePerUnit: null,
       totalAmount: null,
       fees: 0,
+      toAccountId: '',
+      externalAddress: '',
     });
     qtyControl?.updateValueAndValidity({ emitEvent: false });
+  }
+
+  protected selectType(value: string): void {
+    this.onTypeChange(value as TransactionType);
+  }
+
+  protected selectTypeAndConfirm(value: string): void {
+    this.selectType(value);
+    this.typeConfirmed.set(true);
+    this.typeDropdownOpen.set(false);
+  }
+
+  protected changeType(): void {
+    this.typeConfirmed.set(false);
+    this.typeDropdownOpen.set(true);
+  }
+
+  protected closeTypeDropdown(): void {
+    this.typeDropdownOpen.set(false);
+    if (this.selectedType()) {
+      this.typeConfirmed.set(true);
+    }
   }
 
   protected onSellTickerChange(): void {
@@ -368,7 +504,7 @@ export class AddTransactionModalComponent implements OnInit {
   protected onSubmit(): void {
     if (!this.isFormValid()) return;
 
-    if (this.peaWithdrawalForcedClosure()) {
+    if (this.peaWithdrawalForcedClosure() || this.peaTransferForcedClosure()) {
       this.peaClosureRequested.emit();
       return;
     }
@@ -379,7 +515,44 @@ export class AddTransactionModalComponent implements OnInit {
       return;
     }
 
+    if (this.selectedType() === 'TRANSFER') {
+      this.submitTransfer();
+      return;
+    }
+
     this.submitTransaction();
+  }
+
+  private submitTransfer(): void {
+    const v = this.form.value;
+    const request: TransferRequest = {
+      fromAccountId:   this.accountId(),
+      toAccountId:     this.transferMode() === 'internal'
+                         ? (v.toAccountId || null)
+                         : null,
+      amount:          v.totalAmount!,
+      currency:        this.transactionCurrency(),
+      date:            v.date!,
+      description:     v.description || null,
+      externalAddress: this.transferMode() === 'external'
+                         ? (v.externalAddress || null)
+                         : null,
+    };
+
+    this.loading.set(true);
+    this.accountService.executeTransfer(request).subscribe({
+      next: () => {
+        this.toastService.success('Transfer completed');
+        this.created.emit({ type: 'TRANSFER', amount: request.amount });
+        this.closed.emit();
+      },
+      error: (err) => {
+        const msg = typeof err.error === 'string'
+          ? err.error : 'Failed to execute transfer';
+        this.toastService.error(msg);
+        this.loading.set(false);
+      }
+    });
   }
 
   private submitTransaction(): void {
@@ -402,14 +575,15 @@ export class AddTransactionModalComponent implements OnInit {
 
     const payload = {
       type,
-      ticker:       needsTicker ? v.ticker ?? undefined : undefined,
-      quantity:     needsAsset  ? v.quantity ?? undefined : undefined,
-      pricePerUnit: needsAsset  ? v.pricePerUnit ?? undefined : undefined,
+      ticker:          needsTicker ? v.ticker ?? undefined : undefined,
+      quantity:        needsAsset  ? v.quantity ?? undefined : undefined,
+      pricePerUnit:    needsAsset  ? v.pricePerUnit ?? undefined : undefined,
       totalAmount,
-      currency:     this.transactionCurrency(),
-      fees:         v.fees ?? 0,
-      date:         v.date!,
-      description:  v.description || undefined,
+      currency:        this.transactionCurrency(),
+      fees:            v.fees ?? 0,
+      date:            v.date!,
+      description:     v.description || undefined,
+      externalAddress: v.externalAddress || undefined,
     };
     this.accountService.recordTransaction(this.accountId(), payload).subscribe({
       next: () => {

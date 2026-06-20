@@ -22,6 +22,7 @@ const mockAccount: FinancialAccount = {
   subType: 'CRYPTO_WALLET', balance: 100, currency: 'EUR', transactionCount: 2,
   broker: 'Ledger', depositLimit: null, totalDeposits: null, remainingCapacity: null,
   openedAt: null, portfolioValue: null, status: 'ACTIVE', closedAt: null,
+  linkedCheckingAccountId: null,
 };
 
 const mockTransaction: Transaction = {
@@ -29,6 +30,7 @@ const mockTransaction: Transaction = {
   quantity: 0.5, pricePerUnit: 30000,
   totalAmount: 15000, totalAmountNative: 15000, nativeCurrency: 'EUR',
   date: '2026-01-10', fees: 10, feesNative: 10, description: null,
+  transferId: null, linkedAccountId: null, externalAddress: null, transferDirection: null,
 };
 
 const mockHoldingWithPrice: EnrichedHolding = {

@@ -283,6 +283,32 @@
 - `RegisterComponent`: 2-step flow — step 1 collects name/email/password, step 2 selects currency preference (EUR/USD/GBP/CHF); `onSubmit` calls `authService.register()` then `preferencesService.update()` via `switchMap`
 - 161/161 tests, lint clean, build 0 errors
 
+## 2026-06-20 — feat/transfer-between-accounts: frontend complete
+- TRANSFER + PAYMENT transaction types wired end-to-end across all account types
+- `ALLOWED_TX_TYPES` per account type: SAVINGS gets TRANSFER+INTEREST only; CASH gets all 8; PEA/CTO/AV/PER get BUY/SELL/DIVIDEND/INTEREST/TRANSFER; CRYPTO gets BUY/SELL/DIVIDEND/TRANSFER
+- Custom dropdown for CASH_ACCOUNT type selection: pill chip + "Change" button UX replaces native `<select>`; click-outside via `closeTypeDropdown()` auto-confirms if type already selected
+- TRANSFER form: internal/external toggle; destination filtered to open accounts of compatible type, excluding source; available balance hint shown for BUY + TRANSFER
+- PEA TRANSFER: linked checking account shown read-only; forced closure flow for accounts <5 years old
+- Destination capacity info shown for regulated accounts (PEA, Livrets) when transferring in
+- Available balance displayed for BUY + TRANSFER source accounts
+- Initial deposit field restricted to CASH_ACCOUNT only in `AddAccountModal`
+- Transaction rows: consistent height (`min-h-[52px]`, `items-center`), fixed-width columns, `divide-y` separators; 3-dot container always present to prevent column shift on closed accounts
+- PAYMENT + TRANSFER: recipient/external address rendered below description (⇄ linked account, → external address)
+- Click-outside closes all modals (backdrop mousedown/mouseup pattern)
+- All 4 detail components updated: investment, crypto, savings, cash
+- 334/334 tests, lint clean, build 0 errors
+
+## 2026-06-18 — feat/transfer-between-accounts Sprint 2: TRANSFER UI (complete)
+- `TransactionType`: `TRANSFER` + `PAYMENT` added to model
+- `FinancialAccount`: `linkedCheckingAccountId: string | null` field added
+- `Transaction`: `transferId`, `linkedAccountId`, `externalAddress` fields added
+- `ALLOWED_TX_TYPES`: per-account-type filtering constant (replaces `ALLOWED_TRANSACTION_TYPES` for modal use); PEA/PME/CTO/PER/AV get BUY/SELL/DIVIDEND/INTEREST/TRANSFER; SAVINGS gets TRANSFER/INTEREST; CASH gets all 8 types; CRYPTO gets BUY/SELL/DIVIDEND/TRANSFER
+- `AccountService.executeTransfer()`: POST `/api/v1/transfers` with `TransferRequest` payload
+- `AddTransactionModal`: TRANSFER form with internal/external toggle; internal mode shows account dropdown filtered to destination accounts (excludes source + closed); external mode shows optional address field; `availableBalance` hint shown for BUY and TRANSFER; `submitTransfer()` routes to `executeTransfer()` instead of `recordTransaction()`
+- `AddAccountModal`: linked checking account selector for PEA/PEA-PME creation; amber warning when no checking accounts available; `linkedCheckingAccountId` passed in `CreateAccountRequest`
+- Transaction history: TRANSFER rows show linked account name (⇄) or external address (→); PAYMENT rows show optional beneficiary address; applied across all 4 detail pages (investment, crypto, savings, cash)
+- 300/300 tests, lint clean, build 0 errors
+
 ## 2026-06-17 — feat/delete-transaction: delete transaction UI (complete)
 - `DeleteTransactionModalComponent`: confirmation modal with permanent-deletion warning, transaction details (type, date, amount), loading state
 - 3-dot menu (⋮) on transaction rows: Edit + Delete actions; Edit wired to existing `EditTransactionModal`

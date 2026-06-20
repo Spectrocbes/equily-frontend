@@ -3,7 +3,7 @@ import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { AddTransactionModalComponent } from './add-transaction-modal.component';
 import { AccountService } from '../../../core/services/account.service';
 import { PreferencesService } from '../../../core/services/preferences.service';
-import { EnrichedHolding } from '../../../core/models/account.model';
+import { EnrichedHolding, FinancialAccount } from '../../../core/models/account.model';
 import { of } from 'rxjs';
 
 const mockHoldings: EnrichedHolding[] = [
@@ -19,15 +19,66 @@ const mockHoldings: EnrichedHolding[] = [
   },
 ];
 
+const mockAccount: FinancialAccount = {
+  id: 'acc-1', name: 'Mon PEA', accountType: 'PEA', subType: 'PEA',
+  balance: 5000, currency: 'EUR', transactionCount: 0, broker: 'Fortuneo',
+  depositLimit: 150000, totalDeposits: 10000, remainingCapacity: 140000,
+  openedAt: null, portfolioValue: null, status: 'ACTIVE', closedAt: null,
+  linkedCheckingAccountId: null,
+};
+
+const mockLinkedAccount: FinancialAccount = {
+  ...mockAccount,
+  linkedCheckingAccountId: 'cash-1',
+};
+
+const mockCashAccount: FinancialAccount = {
+  id: 'cash-1', name: 'Mon Compte', accountType: 'CASH_ACCOUNT', subType: 'CASH_ACCOUNT',
+  balance: 2000, currency: 'EUR', transactionCount: 0, broker: 'BNP',
+  depositLimit: null, totalDeposits: null, remainingCapacity: null,
+  openedAt: null, portfolioValue: null, status: 'ACTIVE', closedAt: null,
+  linkedCheckingAccountId: null,
+};
+
+const mockSavingsAccount: FinancialAccount = {
+  id: 'savings-1', name: 'Livret A', accountType: 'SAVINGS_ACCOUNT', subType: 'LIVRET_A',
+  balance: 3000, currency: 'EUR', transactionCount: 0, broker: 'La Banque Postale',
+  depositLimit: 22950, totalDeposits: 3000, remainingCapacity: 19950,
+  openedAt: null, portfolioValue: null, status: 'ACTIVE', closedAt: null,
+  linkedCheckingAccountId: null,
+};
+
+const mockCryptoAccount: FinancialAccount = {
+  id: 'crypto-1', name: 'Binance', accountType: 'CRYPTO_WALLET', subType: 'CRYPTO_WALLET',
+  balance: 100, currency: 'EUR', transactionCount: 0, broker: 'Binance',
+  depositLimit: null, totalDeposits: null, remainingCapacity: null,
+  openedAt: null, portfolioValue: null, status: 'ACTIVE', closedAt: null,
+  linkedCheckingAccountId: null,
+};
+
+const mockClosedAccount: FinancialAccount = {
+  id: 'closed-1', name: 'Closed Account', accountType: 'SAVINGS_ACCOUNT', subType: null,
+  balance: 0, currency: 'EUR', transactionCount: 0, broker: 'BNP',
+  depositLimit: null, totalDeposits: null, remainingCapacity: null,
+  openedAt: null, portfolioValue: null, status: 'CLOSED', closedAt: '2024-01-01',
+  linkedCheckingAccountId: null,
+};
+
 describe('AddTransactionModalComponent', () => {
   let fixture: ComponentFixture<AddTransactionModalComponent>;
   let mockService: Partial<AccountService>;
   let mockPrefsService: { currency: ReturnType<typeof signal<string>> };
+  let accountsSignal: ReturnType<typeof signal<FinancialAccount[]>>;
 
   beforeEach(async () => {
+    accountsSignal = signal<FinancialAccount[]>([
+      mockAccount, mockCashAccount, mockSavingsAccount, mockCryptoAccount, mockClosedAccount,
+    ]);
     mockService = {
       recordTransaction: jest.fn().mockReturnValue(of(undefined)),
       getPeaSummary: jest.fn().mockReturnValue(of(null)),
+      executeTransfer: jest.fn().mockReturnValue(of({ transferId: 'tr-1' })),
+      accounts: accountsSignal,
     };
     mockPrefsService = { currency: signal('EUR') };
 
@@ -45,23 +96,179 @@ describe('AddTransactionModalComponent', () => {
     fixture.detectChanges();
   });
 
-  it('renders all allowed types for PEA', () => {
+  // ── availableTransactionTypes ──────────────────────────────────────────────
+
+  it('renders BUY, SELL, DIVIDEND, TRANSFER for PEA (investment) but not INTEREST', () => {
     const text = fixture.nativeElement.textContent;
-    ['Buy', 'Sell', 'Dividend', 'Deposit', 'Withdrawal'].forEach(t =>
+    ['Buy', 'Sell', 'Dividend', 'Transfer'].forEach(t =>
       expect(text).toContain(t)
     );
+    expect(text).not.toContain('Deposit');
+    expect(text).not.toContain('Withdrawal');
+    expect(text).not.toContain('Interest');
   });
 
-  it('renders DEPOSIT, WITHDRAWAL and INTEREST for savings sub-types', async () => {
+  it('renders TRANSFER and INTEREST only for SAVINGS_ACCOUNT', () => {
     fixture.componentRef.setInput('accountType', 'SAVINGS_ACCOUNT');
     fixture.componentRef.setInput('accountSubType', 'LIVRET_A');
     fixture.detectChanges();
     const text = fixture.nativeElement.textContent;
-    expect(text).toContain('Deposit');
-    expect(text).toContain('Withdrawal');
-    expect(text).toContain('Interest received');
+    expect(text).toContain('Transfer');
+    expect(text).toContain('Interest');
+    expect(text).not.toContain('Deposit');
+    expect(text).not.toContain('Withdrawal');
     expect(text).not.toContain('Buy');
   });
+
+  it('renders all types for CASH_ACCOUNT except DIVIDEND', () => {
+    fixture.componentRef.setInput('accountType', 'CASH_ACCOUNT');
+    fixture.componentRef.setInput('accountSubType', 'CASH_ACCOUNT');
+    fixture.detectChanges();
+    // Open the custom dropdown to see the options in the DOM
+    fixture.componentInstance['typeDropdownOpen'].set(true);
+    fixture.detectChanges();
+    const text = fixture.nativeElement.textContent;
+    ['Deposit', 'Withdrawal', 'Payment', 'Transfer', 'Buy', 'Sell', 'Interest']
+      .forEach(t => expect(text).toContain(t));
+    expect(text).not.toContain('Dividend');
+  });
+
+  // ── TRANSFER form ──────────────────────────────────────────────────────────
+
+  it('showTransferForm is true when TRANSFER is selected', () => {
+    fixture.componentInstance.onTypeChange('TRANSFER');
+    fixture.detectChanges();
+    expect(fixture.componentInstance['showTransferForm']()).toBe(true);
+  });
+
+  it('showTransferForm is false when BUY is selected', () => {
+    fixture.componentInstance.onTypeChange('BUY');
+    fixture.detectChanges();
+    expect(fixture.componentInstance['showTransferForm']()).toBe(false);
+  });
+
+  it('transferMode defaults to internal', () => {
+    expect(fixture.componentInstance['transferMode']()).toBe('internal');
+  });
+
+  it('transferMode resets to internal on type change', () => {
+    fixture.componentInstance['transferMode'].set('external');
+    fixture.componentInstance.onTypeChange('TRANSFER');
+    expect(fixture.componentInstance['transferMode']()).toBe('internal');
+  });
+
+  it('shows My accounts / External toggle when TRANSFER selected for CASH_ACCOUNT', () => {
+    fixture.componentRef.setInput('accountId', 'cash-1');
+    fixture.componentRef.setInput('accountType', 'CASH_ACCOUNT');
+    fixture.componentRef.setInput('accountSubType', 'CASH_ACCOUNT');
+    fixture.componentInstance.onTypeChange('TRANSFER');
+    fixture.detectChanges();
+    const text = fixture.nativeElement.textContent;
+    expect(text).toContain('My accounts');
+    expect(text).toContain('External');
+  });
+
+  it('does not show My accounts / External toggle for INVESTMENT TRANSFER', () => {
+    fixture.componentInstance.onTypeChange('TRANSFER');
+    fixture.detectChanges();
+    const text = fixture.nativeElement.textContent;
+    expect(text).not.toContain('My accounts');
+    expect(text).not.toContain('External');
+  });
+
+  it('availableBalance returns balance of current account', () => {
+    expect(fixture.componentInstance['availableBalance']()).toBe(5000);
+  });
+
+  it('availableBalance returns 0 when account not found', () => {
+    fixture.componentRef.setInput('accountId', 'unknown');
+    fixture.detectChanges();
+    expect(fixture.componentInstance['availableBalance']()).toBe(0);
+  });
+
+  it('destinationAccounts excludes current account', () => {
+    const dest = fixture.componentInstance['destinationAccounts']();
+    expect(dest.some(a => a.id === 'acc-1')).toBe(false);
+  });
+
+  it('destinationAccounts excludes closed accounts', () => {
+    const dest = fixture.componentInstance['destinationAccounts']();
+    expect(dest.some(a => a.id === 'closed-1')).toBe(false);
+  });
+
+  it('destinationAccounts for INVESTMENT (PEA) returns empty array', () => {
+    const dest = fixture.componentInstance['destinationAccounts']();
+    expect(dest).toHaveLength(0);
+  });
+
+  it('destinationAccounts includes all active non-current accounts for CASH_ACCOUNT', () => {
+    fixture.componentRef.setInput('accountId', 'cash-1');
+    fixture.componentRef.setInput('accountType', 'CASH_ACCOUNT');
+    fixture.detectChanges();
+    const dest = fixture.componentInstance['destinationAccounts']();
+    expect(dest.some(a => a.id === 'acc-1')).toBe(true);
+  });
+
+  it('isFormValid for TRANSFER internal requires toAccountId', () => {
+    fixture.componentInstance.onTypeChange('TRANSFER');
+    fixture.componentInstance['form'].patchValue({
+      totalAmount: 100, date: '2026-01-15', toAccountId: '',
+    });
+    fixture.detectChanges();
+    expect(fixture.componentInstance.isFormValid()).toBe(false);
+
+    fixture.componentInstance['form'].patchValue({ toAccountId: 'cash-1' });
+    fixture.detectChanges();
+    expect(fixture.componentInstance.isFormValid()).toBe(true);
+  });
+
+  it('isFormValid for TRANSFER external only requires amount and date', () => {
+    fixture.componentInstance.onTypeChange('TRANSFER');
+    fixture.componentInstance['transferMode'].set('external');
+    fixture.componentInstance['form'].patchValue({ totalAmount: 100, date: '2026-01-15' });
+    fixture.detectChanges();
+    expect(fixture.componentInstance.isFormValid()).toBe(true);
+  });
+
+  it('submitTransfer calls executeTransfer with correct payload', () => {
+    fixture.componentInstance.onTypeChange('TRANSFER');
+    fixture.componentInstance['form'].patchValue({
+      totalAmount: 500, date: '2026-06-01',
+      toAccountId: 'cash-1', description: 'test',
+    });
+    fixture.detectChanges();
+
+    fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
+    expect(mockService.executeTransfer).toHaveBeenCalledWith({
+      fromAccountId: 'acc-1',
+      toAccountId: 'cash-1',
+      amount: 500,
+      currency: 'EUR',
+      date: '2026-06-01',
+      description: 'test',
+      externalAddress: null,
+    });
+  });
+
+  it('submitTransfer with external mode sends null toAccountId and externalAddress', () => {
+    fixture.componentInstance.onTypeChange('TRANSFER');
+    fixture.componentInstance['transferMode'].set('external');
+    fixture.componentInstance['form'].patchValue({
+      totalAmount: 200, date: '2026-06-01',
+      externalAddress: 'John Doe',
+    });
+    fixture.detectChanges();
+
+    fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
+    expect(mockService.executeTransfer).toHaveBeenCalledWith(
+      expect.objectContaining({
+        toAccountId: null,
+        externalAddress: 'John Doe',
+      })
+    );
+  });
+
+  // ── basic form validity ────────────────────────────────────────────────────
 
   it('submit button is disabled when form is invalid', () => {
     const btn = fixture.nativeElement.querySelector('button[type="submit"]');
@@ -248,30 +455,6 @@ describe('AddTransactionModalComponent', () => {
     expect(fixture.componentInstance['withdrawalBlocked']()).toBe(true);
   });
 
-  it('renders DEPOSIT and WITHDRAWAL only for CASH_ACCOUNT sub-type', () => {
-    fixture.componentRef.setInput('accountType', 'CASH_ACCOUNT');
-    fixture.componentRef.setInput('accountSubType', 'CASH_ACCOUNT');
-    fixture.detectChanges();
-    const text = fixture.nativeElement.textContent;
-    expect(text).toContain('Deposit');
-    expect(text).toContain('Withdrawal');
-    expect(text).not.toContain('Interest received');
-    expect(text).not.toContain('Buy');
-  });
-
-  it('Withdrawal button is disabled when withdrawalBlocked', () => {
-    fixture.componentRef.setInput('accountSubType', 'PEA');
-    fixture.componentRef.setInput('peaUnder5Years', true);
-    fixture.componentRef.setInput('hasHoldings', true);
-    fixture.detectChanges();
-    const buttons: HTMLButtonElement[] = Array.from(
-      fixture.nativeElement.querySelectorAll('button[type="button"]')
-    );
-    const withdrawalBtn = buttons.find(b => b.textContent?.trim() === 'Withdrawal');
-    expect(withdrawalBtn).toBeTruthy();
-    expect(withdrawalBtn!.disabled).toBe(true);
-  });
-
   it('calls getPeaSummary in ngOnInit when accountSubType is PEA', () => {
     const localFixture = TestBed.createComponent(AddTransactionModalComponent);
     localFixture.componentRef.setInput('accountId', 'acc-2');
@@ -378,7 +561,7 @@ describe('AddTransactionModalComponent', () => {
     expect(mockService.recordTransaction).not.toHaveBeenCalled();
   });
 
-  // --- SELL ticker dropdown + max quantity ---
+  // ── SELL ticker dropdown + max quantity ────────────────────────────────────
 
   it('heldTickers returns mapped list from holdings input', () => {
     fixture.componentRef.setInput('holdings', mockHoldings);
@@ -458,5 +641,243 @@ describe('AddTransactionModalComponent', () => {
     fixture.componentInstance.onTypeChange('SELL');
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('No holdings available to sell');
+  });
+
+  // ── useDropdownForTypes ────────────────────────────────────────────────────
+
+  it('useDropdownForTypes is true for CASH_ACCOUNT', () => {
+    fixture.componentRef.setInput('accountType', 'CASH_ACCOUNT');
+    fixture.detectChanges();
+    expect(fixture.componentInstance['useDropdownForTypes']()).toBe(true);
+  });
+
+  it('useDropdownForTypes is false for PEA', () => {
+    expect(fixture.componentInstance['useDropdownForTypes']()).toBe(false);
+  });
+
+  it('renders a custom dropdown (not a native select) for type selection when CASH_ACCOUNT', () => {
+    fixture.componentRef.setInput('accountId', 'cash-1');
+    fixture.componentRef.setInput('accountType', 'CASH_ACCOUNT');
+    fixture.componentRef.setInput('accountSubType', 'CASH_ACCOUNT');
+    fixture.detectChanges();
+    const nativeSelect = fixture.nativeElement.querySelector('select:not([formControlName])');
+    expect(nativeSelect).toBeFalsy();
+    const text = fixture.nativeElement.textContent;
+    expect(text).toContain('Select transaction type');
+  });
+
+  // ── destinationAccounts filtering ─────────────────────────────────────────
+
+  it('destinationAccounts for SAVINGS_ACCOUNT only includes CASH_ACCOUNT accounts', () => {
+    fixture.componentRef.setInput('accountId', 'savings-1');
+    fixture.componentRef.setInput('accountType', 'SAVINGS_ACCOUNT');
+    fixture.detectChanges();
+    const dest = fixture.componentInstance['destinationAccounts']();
+    expect(dest.every(a => a.accountType === 'CASH_ACCOUNT')).toBe(true);
+    expect(dest.some(a => a.id === 'cash-1')).toBe(true);
+  });
+
+  it('destinationAccounts for CRYPTO_WALLET includes CASH_ACCOUNT and CRYPTO_WALLET only', () => {
+    fixture.componentRef.setInput('accountId', 'crypto-1');
+    fixture.componentRef.setInput('accountType', 'CRYPTO_WALLET');
+    fixture.detectChanges();
+    const dest = fixture.componentInstance['destinationAccounts']();
+    dest.forEach(a => {
+      expect(['CASH_ACCOUNT', 'CRYPTO_WALLET']).toContain(a.accountType);
+    });
+    expect(dest.some(a => a.id === 'cash-1')).toBe(true);
+  });
+
+  // ── showExternalOption ─────────────────────────────────────────────────────
+
+  it('showExternalOption is false for SAVINGS_ACCOUNT', () => {
+    fixture.componentRef.setInput('accountType', 'SAVINGS_ACCOUNT');
+    fixture.detectChanges();
+    expect(fixture.componentInstance['showExternalOption']()).toBe(false);
+  });
+
+  it('showExternalOption is true for CASH_ACCOUNT', () => {
+    fixture.componentRef.setInput('accountType', 'CASH_ACCOUNT');
+    fixture.detectChanges();
+    expect(fixture.componentInstance['showExternalOption']()).toBe(true);
+  });
+
+  it('showExternalOption is true for CRYPTO_WALLET', () => {
+    fixture.componentRef.setInput('accountType', 'CRYPTO_WALLET');
+    fixture.detectChanges();
+    expect(fixture.componentInstance['showExternalOption']()).toBe(true);
+  });
+
+  it('showExternalOption is false for PEA (investment)', () => {
+    expect(fixture.componentInstance['showExternalOption']()).toBe(false);
+  });
+
+  // ── linkedCheckingAccount ──────────────────────────────────────────────────
+
+  it('linkedCheckingAccount returns null when no linkedCheckingAccountId', () => {
+    expect(fixture.componentInstance['linkedCheckingAccount']()).toBeNull();
+  });
+
+  it('linkedCheckingAccount returns linked account for investment with link set', () => {
+    accountsSignal.set([mockLinkedAccount, mockCashAccount, mockSavingsAccount, mockCryptoAccount, mockClosedAccount]);
+    fixture.componentRef.setInput('accountId', 'acc-1');
+    fixture.detectChanges();
+    const linked = fixture.componentInstance['linkedCheckingAccount']();
+    expect(linked).not.toBeNull();
+    expect(linked!.id).toBe('cash-1');
+  });
+
+  it('linkedCheckingAccount returns null for non-investment account', () => {
+    fixture.componentRef.setInput('accountType', 'CASH_ACCOUNT');
+    fixture.detectChanges();
+    expect(fixture.componentInstance['linkedCheckingAccount']()).toBeNull();
+  });
+
+  // ── peaCapacityInfo ────────────────────────────────────────────────────────
+
+  it('peaCapacityInfo returns totalDeposits and remainingCapacity for investment account', () => {
+    const cap = fixture.componentInstance['peaCapacityInfo']();
+    expect(cap).not.toBeNull();
+    expect(cap!.totalDeposits).toBe(10000);
+    expect(cap!.remainingCapacity).toBe(140000);
+  });
+
+  it('peaCapacityInfo returns null for non-investment account', () => {
+    fixture.componentRef.setInput('accountType', 'SAVINGS_ACCOUNT');
+    fixture.detectChanges();
+    expect(fixture.componentInstance['peaCapacityInfo']()).toBeNull();
+  });
+
+  // ── auto-set toAccountId for investment TRANSFER ───────────────────────────
+
+  it('auto-sets toAccountId when INVESTMENT + TRANSFER + linked account available', async () => {
+    accountsSignal.set([mockLinkedAccount, mockCashAccount, mockSavingsAccount, mockCryptoAccount, mockClosedAccount]);
+    fixture.componentRef.setInput('accountId', 'acc-1');
+    fixture.componentInstance.onTypeChange('TRANSFER');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const toAccountId = fixture.componentInstance['form'].get('toAccountId')?.value;
+    expect(toAccountId).toBe('cash-1');
+  });
+
+  it('does not auto-set toAccountId when no linked account', () => {
+    fixture.componentInstance.onTypeChange('TRANSFER');
+    fixture.detectChanges();
+    const toAccountId = fixture.componentInstance['form'].get('toAccountId')?.value;
+    expect(toAccountId).toBeFalsy();
+  });
+
+  // ── Fix 3: typeConfirmed + selectTypeAndConfirm + changeType ───────────────
+
+  it('typeConfirmed is false by default', () => {
+    expect(fixture.componentInstance['typeConfirmed']()).toBe(false);
+  });
+
+  it('selectTypeAndConfirm sets selectedType and marks typeConfirmed true', () => {
+    fixture.componentInstance['selectTypeAndConfirm']('DEPOSIT');
+    fixture.detectChanges();
+    expect(fixture.componentInstance['selectedType']()).toBe('DEPOSIT');
+    expect(fixture.componentInstance['typeConfirmed']()).toBe(true);
+  });
+
+  it('changeType resets typeConfirmed to false', () => {
+    fixture.componentInstance['selectTypeAndConfirm']('DEPOSIT');
+    fixture.componentInstance['changeType']();
+    expect(fixture.componentInstance['typeConfirmed']()).toBe(false);
+  });
+
+  // ── destinationCapacityInfo ────────────────────────────────────────────────
+
+  it('destinationCapacityInfo returns PEA deposited label when destination is a PEA account', () => {
+    fixture.componentRef.setInput('accountId', 'cash-1');
+    fixture.componentRef.setInput('accountType', 'CASH_ACCOUNT');
+    fixture.detectChanges();
+    fixture.componentInstance.onTypeChange('TRANSFER');
+    fixture.componentInstance['form'].patchValue({ toAccountId: 'acc-1' });
+    fixture.detectChanges();
+    const cap = fixture.componentInstance['destinationCapacityInfo']();
+    expect(cap).not.toBeNull();
+    expect(cap!.label).toBe('PEA deposited');
+    expect(cap!.current).toBe(10000);
+    expect(cap!.remaining).toBe(140000);
+  });
+
+  it('destinationCapacityInfo returns Balance label when destination is a regulated savings account', () => {
+    fixture.componentRef.setInput('accountId', 'cash-1');
+    fixture.componentRef.setInput('accountType', 'CASH_ACCOUNT');
+    fixture.detectChanges();
+    fixture.componentInstance.onTypeChange('TRANSFER');
+    fixture.componentInstance['form'].patchValue({ toAccountId: 'savings-1' });
+    fixture.detectChanges();
+    const cap = fixture.componentInstance['destinationCapacityInfo']();
+    expect(cap).not.toBeNull();
+    expect(cap!.label).toBe('Balance');
+    expect(cap!.remaining).toBe(19950);
+  });
+
+  it('destinationCapacityInfo is null when destination has no deposit limit', () => {
+    fixture.componentRef.setInput('accountId', 'savings-1');
+    fixture.componentRef.setInput('accountType', 'SAVINGS_ACCOUNT');
+    fixture.detectChanges();
+    fixture.componentInstance.onTypeChange('TRANSFER');
+    fixture.componentInstance['form'].patchValue({ toAccountId: 'cash-1' });
+    fixture.detectChanges();
+    expect(fixture.componentInstance['destinationCapacityInfo']()).toBeNull();
+  });
+
+  // ── Fix 6: peaTransferForcedClosure + peaTransferBlockedByHoldings ────────
+
+  it('peaTransferForcedClosure is true for PEA <5y + TRANSFER + no holdings', () => {
+    fixture.componentRef.setInput('accountSubType', 'PEA');
+    fixture.componentRef.setInput('peaUnder5Years', true);
+    fixture.componentRef.setInput('hasHoldings', false);
+    fixture.componentRef.setInput('currentBalance', 5000);
+    fixture.componentInstance.onTypeChange('TRANSFER');
+    fixture.detectChanges();
+    expect(fixture.componentInstance['peaTransferForcedClosure']()).toBe(true);
+  });
+
+  it('peaTransferForcedClosure is false for PEA <5y + TRANSFER + has holdings', () => {
+    fixture.componentRef.setInput('accountSubType', 'PEA');
+    fixture.componentRef.setInput('peaUnder5Years', true);
+    fixture.componentRef.setInput('hasHoldings', true);
+    fixture.componentInstance.onTypeChange('TRANSFER');
+    fixture.detectChanges();
+    expect(fixture.componentInstance['peaTransferForcedClosure']()).toBe(false);
+  });
+
+  it('peaTransferBlockedByHoldings is true for PEA <5y + TRANSFER + has holdings', () => {
+    fixture.componentRef.setInput('accountSubType', 'PEA');
+    fixture.componentRef.setInput('peaUnder5Years', true);
+    fixture.componentRef.setInput('hasHoldings', true);
+    fixture.componentInstance.onTypeChange('TRANSFER');
+    fixture.detectChanges();
+    expect(fixture.componentInstance['peaTransferBlockedByHoldings']()).toBe(true);
+  });
+
+  it('peaTransferBlockedByHoldings is false for PEA <5y + TRANSFER + no holdings', () => {
+    fixture.componentRef.setInput('accountSubType', 'PEA');
+    fixture.componentRef.setInput('peaUnder5Years', true);
+    fixture.componentRef.setInput('hasHoldings', false);
+    fixture.componentRef.setInput('currentBalance', 5000);
+    fixture.componentInstance.onTypeChange('TRANSFER');
+    fixture.detectChanges();
+    expect(fixture.componentInstance['peaTransferBlockedByHoldings']()).toBe(false);
+  });
+
+  it('onSubmit emits peaClosureRequested for peaTransferForcedClosure', () => {
+    fixture.componentRef.setInput('accountSubType', 'PEA');
+    fixture.componentRef.setInput('peaUnder5Years', true);
+    fixture.componentRef.setInput('hasHoldings', false);
+    fixture.componentRef.setInput('currentBalance', 5000);
+    fixture.componentInstance.onTypeChange('TRANSFER');
+    fixture.detectChanges();
+
+    const spy = jest.fn();
+    fixture.componentInstance.peaClosureRequested.subscribe(spy);
+    fixture.componentInstance['onSubmit']();
+
+    expect(spy).toHaveBeenCalled();
+    expect(mockService.executeTransfer).not.toHaveBeenCalled();
   });
 });

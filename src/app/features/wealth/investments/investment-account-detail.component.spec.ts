@@ -22,6 +22,7 @@ const mockAccount: FinancialAccount = {
   subType: 'PEA', balance: 5000, currency: 'EUR', transactionCount: 1,
   broker: 'Fortuneo', depositLimit: 150000, totalDeposits: 5000, remainingCapacity: 145000,
   openedAt: null, portfolioValue: null, status: 'ACTIVE', closedAt: null,
+  linkedCheckingAccountId: null,
 };
 
 const mockTransaction: Transaction = {
@@ -29,6 +30,7 @@ const mockTransaction: Transaction = {
   quantity: 10, pricePerUnit: 150,
   totalAmount: 1505, totalAmountNative: 1505, nativeCurrency: 'EUR',
   date: '2026-01-15', fees: 5, feesNative: 5, description: null,
+  transferId: null, linkedAccountId: null, externalAddress: null, transferDirection: null,
 };
 
 const mockEnrichedHolding: EnrichedHolding = {

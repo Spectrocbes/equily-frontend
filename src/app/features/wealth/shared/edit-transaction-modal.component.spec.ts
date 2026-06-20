@@ -12,10 +12,16 @@ const depositTransaction: Transaction = {
   quantity: null,
   pricePerUnit: null,
   totalAmount: 500,
-  currency: 'EUR',
+  totalAmountNative: 500,
+  nativeCurrency: 'EUR',
   date: '2024-01-15',
   fees: 0,
+  feesNative: 0,
   description: 'Test deposit',
+  transferId: null,
+  linkedAccountId: null,
+  externalAddress: null,
+  transferDirection: null,
 };
 
 const buyTransaction: Transaction = {
@@ -25,10 +31,16 @@ const buyTransaction: Transaction = {
   quantity: 10,
   pricePerUnit: 100,
   totalAmount: 1005,
-  currency: 'EUR',
+  totalAmountNative: 1005,
+  nativeCurrency: 'EUR',
   date: '2024-01-15',
   fees: 5,
+  feesNative: 5,
   description: null,
+  transferId: null,
+  linkedAccountId: null,
+  externalAddress: null,
+  transferDirection: null,
 };
 
 const sellTransaction: Transaction = {
@@ -38,10 +50,16 @@ const sellTransaction: Transaction = {
   quantity: 10,
   pricePerUnit: 100,
   totalAmount: 995,
-  currency: 'EUR',
+  totalAmountNative: 995,
+  nativeCurrency: 'EUR',
   date: '2024-01-15',
   fees: 5,
+  feesNative: 5,
   description: null,
+  transferId: null,
+  linkedAccountId: null,
+  externalAddress: null,
+  transferDirection: null,
 };
 
 const interestTransaction: Transaction = {
@@ -51,10 +69,16 @@ const interestTransaction: Transaction = {
   quantity: null,
   pricePerUnit: null,
   totalAmount: 0,
-  currency: 'EUR',
+  totalAmountNative: 0,
+  nativeCurrency: 'EUR',
   date: '2024-01-15',
   fees: 0,
+  feesNative: 0,
   description: null,
+  transferId: null,
+  linkedAccountId: null,
+  externalAddress: null,
+  transferDirection: null,
 };
 
 describe('EditTransactionModalComponent', () => {
