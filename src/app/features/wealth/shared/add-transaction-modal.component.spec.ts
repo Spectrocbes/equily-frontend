@@ -3,6 +3,7 @@ import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { AddTransactionModalComponent } from './add-transaction-modal.component';
 import { AccountService } from '../../../core/services/account.service';
 import { PreferencesService } from '../../../core/services/preferences.service';
+import { ToastService } from '../../../shared/toast/toast.service';
 import { EnrichedHolding, FinancialAccount } from '../../../core/models/account.model';
 import { of } from 'rxjs';
 
@@ -879,5 +880,52 @@ describe('AddTransactionModalComponent', () => {
 
     expect(spy).toHaveBeenCalled();
     expect(mockService.executeTransfer).not.toHaveBeenCalled();
+  });
+
+  // ── minDate / effectiveMinDate ─────────────────────────────────────────────
+
+  it('effectiveMinDate returns account openedAt for non-TRANSFER', () => {
+    fixture.componentRef.setInput('account', { ...mockAccount, openedAt: '2020-01-01' });
+    fixture.componentInstance.onTypeChange('BUY');
+    fixture.detectChanges();
+    expect(fixture.componentInstance['effectiveMinDate']()).toBe('2020-01-01');
+  });
+
+  it('effectiveMinDate returns max(from, to) openedAt for TRANSFER', () => {
+    const destAccount = { ...mockCashAccount, id: 'cash-dest', openedAt: '2021-06-01' };
+    fixture.componentRef.setInput('account', { ...mockAccount, openedAt: '2019-03-01' });
+    fixture.componentInstance.onTypeChange('TRANSFER');
+    // Patch toAccountId AFTER onTypeChange (which resets it to ''), then update the
+    // accounts signal so transferMinDate's computed re-evaluates and reads the new value
+    fixture.componentInstance['form'].patchValue({ toAccountId: 'cash-dest' });
+    accountsSignal.set([
+      mockAccount, mockCashAccount, mockSavingsAccount, mockCryptoAccount,
+      mockClosedAccount, destAccount,
+    ]);
+    fixture.detectChanges();
+    expect(fixture.componentInstance['effectiveMinDate']()).toBe('2021-06-01');
+  });
+
+  it('validateDateBeforeSubmit returns false and shows toast when date is before minDate', () => {
+    const toastSvc = TestBed.inject(ToastService);
+    jest.spyOn(toastSvc, 'error');
+
+    fixture.componentRef.setInput('account', { ...mockAccount, openedAt: '2020-01-01' });
+    fixture.componentInstance.onTypeChange('DEPOSIT');
+    fixture.componentInstance['form'].get('date')!.setValue('2019-06-01');
+    fixture.detectChanges();
+
+    const result = fixture.componentInstance['validateDateBeforeSubmit']();
+    expect(result).toBe(false);
+    expect(toastSvc.error).toHaveBeenCalled();
+  });
+
+  it('validateDateBeforeSubmit returns true for valid date', () => {
+    fixture.componentRef.setInput('account', { ...mockAccount, openedAt: '2020-01-01' });
+    fixture.componentInstance.onTypeChange('DEPOSIT');
+    fixture.componentInstance['form'].get('date')!.setValue('2026-06-15');
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance['validateDateBeforeSubmit']()).toBe(true);
   });
 });

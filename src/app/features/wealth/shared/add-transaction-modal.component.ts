@@ -7,10 +7,11 @@ import { PreferencesService } from '../../../core/services/preferences.service';
 import {
   AccountType, AccountSubType, TransactionType, TransferRequest,
   ALLOWED_TX_TYPES, ACCOUNT_CATEGORY, PeaSummary, CURRENCY_SYMBOLS,
-  isEurOnlyAccount, EnrichedHolding,
+  isEurOnlyAccount, EnrichedHolding, FinancialAccount,
 } from '../../../core/models/account.model';
 import { ToastService } from '../../../shared/toast/toast.service';
 import { UserCurrencyPipe } from '../../../shared/pipes/user-currency.pipe';
+import { DatePickerComponent } from '../../../shared/components/date-picker/date-picker.component';
 
 const ALL_TRANSACTION_TYPES: { value: TransactionType; label: string; icon: string }[] = [
   { value: 'DEPOSIT',    label: 'Deposit',    icon: '↓' },
@@ -26,7 +27,7 @@ const ALL_TRANSACTION_TYPES: { value: TransactionType; label: string; icon: stri
 @Component({
   selector: 'app-add-transaction-modal',
   standalone: true,
-  imports: [ReactiveFormsModule, DecimalPipe, CurrencyPipe, UserCurrencyPipe],
+  imports: [ReactiveFormsModule, DecimalPipe, CurrencyPipe, UserCurrencyPipe, DatePickerComponent],
   templateUrl: './add-transaction-modal.component.html',
 })
 export class AddTransactionModalComponent implements OnInit {
@@ -40,6 +41,7 @@ export class AddTransactionModalComponent implements OnInit {
   peaUnder5Years    = input<boolean>(false);
   hasHoldings       = input<boolean>(false);
   holdings          = input<EnrichedHolding[]>([]);
+  account           = input<FinancialAccount | null>(null);
 
   closed                       = output<void>();
   created                      = output<{ type: TransactionType; amount: number }>();
@@ -330,23 +332,29 @@ export class AddTransactionModalComponent implements OnInit {
     return (this.effectiveUsed() / limit) >= 0.9;
   });
 
-  protected readonly maxDate = computed(() => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    return tomorrow.toISOString().split('T')[0];
+  protected readonly todayIso = new Date().toISOString().split('T')[0];
+
+  protected readonly minDate = computed(() =>
+    this.account()?.openedAt ?? null
+  );
+
+  protected readonly transferMinDate = computed(() => {
+    const fromDate = this.account()?.openedAt ?? null;
+    const toId     = this.form.get('toAccountId')?.value;
+    if (!toId) return fromDate;
+    const toAccount = this.accountService.accounts()
+      .find(a => a.id === toId);
+    const toDate = toAccount?.openedAt ?? null;
+    if (!fromDate) return toDate;
+    if (!toDate)   return fromDate;
+    return fromDate > toDate ? fromDate : toDate;
   });
 
-  protected readonly minDate = '1900-01-01';
-
-  protected readonly dateWarning = computed(() => {
-    const date = this.formValue().date;
-    if (!date) return null;
-    const selected = new Date(date);
-    const today = new Date();
-    today.setHours(23, 59, 59, 999);
-    if (selected > today) return 'This transaction is dated in the future.';
-    return null;
-  });
+  protected readonly effectiveMinDate = computed(() =>
+    this.selectedType() === 'TRANSFER'
+      ? this.transferMinDate()
+      : this.minDate()
+  );
 
   protected readonly isFormValid = computed(() => {
     if (this.peaWithdrawalForcedClosure() || this.peaTransferForcedClosure()) {
@@ -501,8 +509,21 @@ export class AddTransactionModalComponent implements OnInit {
     }
   }
 
+  private validateDateBeforeSubmit(): boolean {
+    const dateVal = this.form.get('date')?.value;
+    const min     = this.effectiveMinDate();
+    if (min && dateVal && dateVal < min) {
+      this.toastService.error(
+        `Date cannot be before ${new Date(min).toLocaleDateString('fr-FR')}`
+      );
+      return false;
+    }
+    return true;
+  }
+
   protected onSubmit(): void {
     if (!this.isFormValid()) return;
+    if (!this.validateDateBeforeSubmit()) return;
 
     if (this.peaWithdrawalForcedClosure() || this.peaTransferForcedClosure()) {
       this.peaClosureRequested.emit();
