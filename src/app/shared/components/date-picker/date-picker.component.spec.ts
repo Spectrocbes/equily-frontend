@@ -137,4 +137,95 @@ describe('DatePickerComponent', () => {
     const todayLocal = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
     expect(form.get('date')!.value).toBe(todayLocal);
   });
+
+  it('headerMode defaults to calendar', () => {
+    fixture.detectChanges();
+    expect(fixture.componentInstance['headerMode']()).toBe('calendar');
+  });
+
+  it('clicking month/year label switches headerMode to year', () => {
+    fixture.detectChanges();
+    fixture.componentInstance['isOpen'].set(true);
+    fixture.detectChanges();
+    const buttons = Array.from(
+      fixture.nativeElement.querySelectorAll('button[type="button"]') as NodeListOf<HTMLButtonElement>
+    );
+    const monthYearBtn = buttons.find(b =>
+      b.textContent?.includes(fixture.componentInstance['MONTHS'][fixture.componentInstance['viewMonth']()])
+    );
+    expect(monthYearBtn).toBeTruthy();
+    monthYearBtn!.click();
+    fixture.detectChanges();
+    expect(fixture.componentInstance['headerMode']()).toBe('year');
+  });
+
+  it('selectYear sets viewYear and switches to month mode', () => {
+    fixture.detectChanges();
+    fixture.componentInstance['selectYear'](2015);
+    expect(fixture.componentInstance['viewYear']()).toBe(2015);
+    expect(fixture.componentInstance['headerMode']()).toBe('month');
+  });
+
+  it('selectMonth sets viewMonth and switches to calendar mode', () => {
+    fixture.detectChanges();
+    fixture.componentInstance['headerMode'].set('month');
+    fixture.componentInstance['selectMonth'](3);
+    expect(fixture.componentInstance['viewMonth']()).toBe(3);
+    expect(fixture.componentInstance['headerMode']()).toBe('calendar');
+  });
+
+  it('back button in year mode returns to calendar', () => {
+    fixture.detectChanges();
+    fixture.componentInstance['isOpen'].set(true);
+    fixture.componentInstance['headerMode'].set('year');
+    fixture.detectChanges();
+    const panel: HTMLElement = fixture.nativeElement.querySelector('.fixed.z-50');
+    const backBtn: HTMLButtonElement = panel.querySelector('button[type="button"]')!;
+    backBtn.click();
+    fixture.detectChanges();
+    expect(fixture.componentInstance['headerMode']()).toBe('calendar');
+  });
+
+  it('back button in month mode returns to year', () => {
+    fixture.detectChanges();
+    fixture.componentInstance['isOpen'].set(true);
+    fixture.componentInstance['headerMode'].set('month');
+    fixture.detectChanges();
+    const panel: HTMLElement = fixture.nativeElement.querySelector('.fixed.z-50');
+    const backBtn: HTMLButtonElement = panel.querySelector('button[type="button"]')!;
+    backBtn.click();
+    fixture.detectChanges();
+    expect(fixture.componentInstance['headerMode']()).toBe('year');
+  });
+
+  it('today button not shown in year mode', () => {
+    fixture.detectChanges();
+    fixture.componentInstance['isOpen'].set(true);
+    fixture.componentInstance['headerMode'].set('year');
+    fixture.detectChanges();
+    const buttons = Array.from(
+      fixture.nativeElement.querySelectorAll('button[type="button"]') as NodeListOf<HTMLButtonElement>
+    );
+    expect(buttons.find(b => b.textContent?.trim() === 'Today')).toBeFalsy();
+  });
+
+  it('today button not shown in month mode', () => {
+    fixture.detectChanges();
+    fixture.componentInstance['isOpen'].set(true);
+    fixture.componentInstance['headerMode'].set('month');
+    fixture.detectChanges();
+    const buttons = Array.from(
+      fixture.nativeElement.querySelectorAll('button[type="button"]') as NodeListOf<HTMLButtonElement>
+    );
+    expect(buttons.find(b => b.textContent?.trim() === 'Today')).toBeFalsy();
+  });
+
+  it('close() resets headerMode to calendar', () => {
+    fixture.detectChanges();
+    fixture.componentInstance['isOpen'].set(true);
+    fixture.componentInstance['headerMode'].set('year');
+    fixture.componentInstance['close']();
+    expect(fixture.componentInstance['isOpen']()).toBe(false);
+    expect(fixture.componentInstance['headerMode']()).toBe('calendar');
+  });
 });

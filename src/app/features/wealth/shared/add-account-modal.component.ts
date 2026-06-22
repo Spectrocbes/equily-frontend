@@ -10,11 +10,12 @@ import {
 } from '../../../core/models/account.model';
 import { PreferencesService } from '../../../core/services/preferences.service';
 import { ToastService } from '../../../shared/toast/toast.service';
+import { DatePickerComponent } from '../../../shared/components/date-picker/date-picker.component';
 
 @Component({
   selector: 'app-add-account-modal',
   standalone: true,
-  imports: [ReactiveFormsModule, DecimalPipe, DatePipe],
+  imports: [ReactiveFormsModule, DecimalPipe, DatePipe, DatePickerComponent],
   templateUrl: './add-account-modal.component.html',
 })
 export class AddAccountModalComponent implements OnInit {
@@ -106,13 +107,15 @@ export class AddAccountModalComponent implements OnInit {
     return this.checkingAccounts().find(a => a.id === id)?.name ?? null;
   });
 
+  protected readonly todayIso = new Date().toISOString().split('T')[0];
+
   protected readonly form = this.fb.group({
     name:                    ['', [Validators.required, Validators.minLength(1)]],
     accountType:             ['', Validators.required],
     initialBalance:          [0, [Validators.required, Validators.min(0)]],
     broker:                  ['', Validators.required],
     subType:                 [null as AccountSubType | null],
-    openedAt:                [this.today() as string | null, null],
+    openedAt:                [this.todayIso, Validators.required],
     linkedCheckingAccountId: [null as string | null],
   });
 
@@ -128,12 +131,6 @@ export class AddAccountModalComponent implements OnInit {
   protected readonly showSubType = computed(() =>
     this.availableSubTypes().length > 1
   );
-
-  protected readonly showOpenedAt = computed(() => {
-    const type = this.formValue().accountType as AccountType;
-    return (['PEA', 'PEA_PME', 'COMPTE_TITRES', 'PER', 'ASSURANCE_VIE'] as string[])
-      .includes(type);
-  });
 
   protected readonly showInitialBalance = computed(() =>
     this.formValue().accountType === 'CASH_ACCOUNT'
@@ -212,6 +209,17 @@ export class AddAccountModalComponent implements OnInit {
   protected nextStep(): void {
     this.submitted.set(true);
     if (this.form.invalid) return;
+
+    const accountType = this.form.get('accountType')?.value;
+    const subType     = this.form.get('subType')?.value;
+    const requiresSubType = ['SAVINGS_ACCOUNT', 'INVESTMENT'].includes(accountType ?? '');
+
+    if (requiresSubType && !subType) {
+      this.toastService.error('Please select an account type before continuing.');
+      return;
+    }
+
+    this.submitted.set(false);
     this.step.set(2);
   }
 

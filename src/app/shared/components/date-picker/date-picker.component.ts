@@ -1,4 +1,4 @@
-import { Component, OnInit, input, computed, signal } from '@angular/core';
+import { Component, OnInit, input, computed, signal, effect } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 
 @Component({
@@ -13,13 +13,34 @@ export class DatePickerComponent implements OnInit {
   maxDate      = input<string | null>(null);
   controlName  = input.required<string>();
   parentForm   = input.required<FormGroup>();
+  value        = input<string | null>(null);
 
   protected readonly today = new Date();
 
-  protected readonly isOpen        = signal(false);
-  protected readonly viewYear      = signal(new Date().getFullYear());
-  protected readonly viewMonth     = signal(new Date().getMonth());
-  protected readonly selectedDate  = signal<Date | null>(null);
+  protected readonly isOpen       = signal(false);
+  protected readonly headerMode   = signal<'calendar' | 'month' | 'year'>('calendar');
+  protected readonly viewYear     = signal(new Date().getFullYear());
+  protected readonly viewMonth    = signal(new Date().getMonth());
+  protected readonly selectedDate = signal<Date | null>(null);
+
+  protected readonly calendarPosition =
+    signal<{ top?: number; bottom?: number; left: number } | null>(null);
+
+  constructor() {
+    effect(() => {
+      const v = this.value();
+      if (v === null || v === undefined) return;
+      const d = new Date(v + 'T12:00:00');
+      if (!isNaN(d.getTime())) {
+        const current = this.selectedDate();
+        if (!current || this.toISODate(current) !== v) {
+          this.selectedDate.set(d);
+          this.viewYear.set(d.getFullYear());
+          this.viewMonth.set(d.getMonth());
+        }
+      }
+    });
+  }
 
   protected readonly MONTHS = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -27,6 +48,14 @@ export class DatePickerComponent implements OnInit {
   ];
 
   protected readonly DAYS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+
+  protected readonly yearRange = computed(() => {
+    const years: number[] = [];
+    for (let y = 1950; y <= new Date().getFullYear() + 1; y++) {
+      years.push(y);
+    }
+    return years;
+  });
 
   protected readonly calendarDays = computed(() => {
     const year  = this.viewYear();
@@ -46,18 +75,20 @@ export class DatePickerComponent implements OnInit {
       isToday: boolean;
     }[] = [];
 
-    for (let i = startDow - 1; i >= 0; i--) {
-      const d = new Date(year, month, -i);
+    const now = new Date();
+
+    // Previous month padding days — Fix 4: correct formula + add isSelected/isToday
+    for (let i = startDow; i > 0; i--) {
+      const d = new Date(year, month, 1 - i);
       days.push({
         date: d, day: d.getDate(),
         isCurrentMonth: false,
         isDisabled: this.isDisabled(d),
-        isSelected: false,
-        isToday: false,
+        isSelected: this.isSameDay(d, this.selectedDate()),
+        isToday: this.isSameDay(d, now),
       });
     }
 
-    const today = new Date();
     for (let d = 1; d <= lastDay.getDate(); d++) {
       const date = new Date(year, month, d);
       days.push({
@@ -65,7 +96,7 @@ export class DatePickerComponent implements OnInit {
         isCurrentMonth: true,
         isDisabled: this.isDisabled(date),
         isSelected: this.isSameDay(date, this.selectedDate()),
-        isToday: this.isSameDay(date, today),
+        isToday: this.isSameDay(date, now),
       });
     }
 
@@ -92,6 +123,16 @@ export class DatePickerComponent implements OnInit {
     });
   });
 
+  public resetToDate(isoDate: string): void {
+    const d = new Date(isoDate + 'T12:00:00');
+    if (!isNaN(d.getTime())) {
+      this.selectedDate.set(d);
+      this.viewYear.set(d.getFullYear());
+      this.viewMonth.set(d.getMonth());
+      this.parentForm().get(this.controlName())?.setValue(isoDate);
+    }
+  }
+
   ngOnInit(): void {
     const val = this.parentForm().get(this.controlName())?.value;
     if (val) {
@@ -113,6 +154,32 @@ export class DatePickerComponent implements OnInit {
     this.isOpen.set(false);
   }
 
+  protected selectMonth(month: number): void {
+    this.viewMonth.set(month);
+    this.headerMode.set('calendar');
+  }
+
+  protected selectYear(year: number): void {
+    this.viewYear.set(year);
+    this.headerMode.set('month');
+  }
+
+  // Fix 2: auto-scroll to the selected year after entering year mode
+  protected switchToYearMode(): void {
+    this.headerMode.set('year');
+    setTimeout(() => {
+      const el = document.getElementById('year-' + this.viewYear());
+      el?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }, 50);
+  }
+
+  protected selectToday(): void {
+    const t = new Date();
+    if (!this.isDisabled(t)) {
+      this.selectDate({ date: t, isDisabled: false });
+    }
+  }
+
   protected prevMonth(): void {
     if (this.viewMonth() === 0) {
       this.viewMonth.set(11);
@@ -131,8 +198,29 @@ export class DatePickerComponent implements OnInit {
     }
   }
 
-  protected close(): void { this.isOpen.set(false); }
-  protected open():  void { this.isOpen.set(true);  }
+  // Fix 1: compute fixed position from button rect so calendar doesn't clip inside modal
+  protected open(event: MouseEvent): void {
+    const button = event.currentTarget as HTMLElement;
+    const rect   = button.getBoundingClientRect();
+    const calendarHeight = 380;
+    const spaceBelow = window.innerHeight - rect.bottom;
+
+    if (spaceBelow >= calendarHeight) {
+      this.calendarPosition.set({ top: rect.bottom + 4, left: rect.left });
+    } else {
+      this.calendarPosition.set({
+        bottom: window.innerHeight - rect.top + 4,
+        left:   rect.left,
+      });
+    }
+    this.isOpen.set(true);
+    this.headerMode.set('calendar');
+  }
+
+  protected close(): void {
+    this.isOpen.set(false);
+    this.headerMode.set('calendar');
+  }
 
   private isDisabled(date: Date): boolean {
     const iso = this.toISODate(date);
