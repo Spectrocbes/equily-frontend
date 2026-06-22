@@ -1,4 +1,4 @@
-import { Component, OnInit, input, output, inject, computed, signal, effect } from '@angular/core';
+import { Component, OnInit, ViewChild, input, output, inject, computed, signal, effect } from '@angular/core';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -47,6 +47,8 @@ export class AddTransactionModalComponent implements OnInit {
   created                      = output<{ type: TransactionType; amount: number }>();
   peaClosureRequested          = output<void>();
   peaOver5yWithdrawalRequested = output<number>();
+
+  @ViewChild(DatePickerComponent) private datePicker?: DatePickerComponent;
 
   private readonly fb = inject(FormBuilder);
   protected readonly accountService = inject(AccountService);
@@ -333,14 +335,17 @@ export class AddTransactionModalComponent implements OnInit {
   });
 
   protected readonly todayIso = new Date().toISOString().split('T')[0];
+  protected readonly currentDateValue = signal<string>(this.todayIso);
 
   protected readonly minDate = computed(() =>
     this.account()?.openedAt ?? null
   );
 
+  protected readonly selectedDestinationId = signal<string>('');
+
   protected readonly transferMinDate = computed(() => {
     const fromDate = this.account()?.openedAt ?? null;
-    const toId     = this.form.get('toAccountId')?.value;
+    const toId     = this.selectedDestinationId();
     if (!toId) return fromDate;
     const toAccount = this.accountService.accounts()
       .find(a => a.id === toId);
@@ -424,23 +429,36 @@ export class AddTransactionModalComponent implements OnInit {
     if (this.accountSubType() === 'PEA' || this.accountSubType() === 'PEA_PME') {
       this.accountService.getPeaSummary().subscribe(s => this.peaSummary.set(s));
     }
+    this.form.get('toAccountId')?.valueChanges.subscribe(id => {
+      this.selectedDestinationId.set(id ?? '');
+      if (id) {
+        this.resetDate();
+        this.form.get('description')?.setValue(null);
+      }
+    });
   }
 
-  protected onTypeChange(type: TransactionType): void {
-    this.selectedType.set(type);
-    this.transferMode.set('internal');
+  protected onTypeChange(newType: TransactionType): void {
+    this.selectedType.set(newType);
+    this.typeConfirmed.set(true);
+    this.typeDropdownOpen.set(false);
+
     const qtyControl = this.form.get('quantity');
     qtyControl?.setValidators([Validators.min(0.000001)]);
     this.form.patchValue({
-      ticker: '',
-      quantity: null,
-      pricePerUnit: null,
-      totalAmount: null,
-      fees: 0,
-      toAccountId: '',
+      totalAmount:     null,
+      quantity:        null,
+      pricePerUnit:    null,
+      ticker:          null,
+      description:     null,
+      toAccountId:     '',
       externalAddress: '',
+      fees:            0,
     });
     qtyControl?.updateValueAndValidity({ emitEvent: false });
+    this.selectedDestinationId.set('');
+    this.transferMode.set('internal');
+    this.resetDate();
   }
 
   protected selectType(value: string): void {
@@ -448,9 +466,7 @@ export class AddTransactionModalComponent implements OnInit {
   }
 
   protected selectTypeAndConfirm(value: string): void {
-    this.selectType(value);
-    this.typeConfirmed.set(true);
-    this.typeDropdownOpen.set(false);
+    this.onTypeChange(value as TransactionType);
   }
 
   protected changeType(): void {
@@ -507,6 +523,13 @@ export class AddTransactionModalComponent implements OnInit {
     if (v === null || v === undefined) {
       this.form.get('fees')?.setValue(0);
     }
+  }
+
+  private resetDate(): void {
+    const today = new Date().toISOString().split('T')[0];
+    this.form.get('date')?.setValue(today);
+    this.currentDateValue.set(today);
+    this.datePicker?.resetToDate(today);
   }
 
   private validateDateBeforeSubmit(): boolean {

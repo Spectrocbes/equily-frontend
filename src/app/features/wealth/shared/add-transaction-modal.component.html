@@ -126,7 +126,7 @@
               <div class="relative group">
                 <button type="button"
                         [disabled]="txType.value === 'WITHDRAWAL' && withdrawalBlocked()"
-                        (click)="txType.value !== 'WITHDRAWAL' || !withdrawalBlocked() ? onTypeChange(txType.value) : null"
+                        (click)="onTypeChange(txType.value)"
                         [class]="selectedType() === txType.value
                           ? 'px-3 py-1.5 rounded-lg text-xs font-medium bg-primary-500 text-white'
                           : 'px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors'"
@@ -649,12 +649,15 @@
       }
 
       <!-- Date -->
-      <app-date-picker
-        label="Date"
-        controlName="date"
-        [parentForm]="form"
-        [minDate]="effectiveMinDate()"
-        [maxDate]="todayIso" />
+      <div>
+        <app-date-picker
+          label="Date"
+          controlName="date"
+          [parentForm]="form"
+          [minDate]="effectiveMinDate()"
+          [maxDate]="todayIso"
+          [value]="currentDateValue()" />
+      </div>
 
       <!-- Description (optional) -->
       <div>

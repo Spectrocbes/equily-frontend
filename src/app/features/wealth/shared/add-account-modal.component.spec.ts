@@ -65,9 +65,9 @@ describe('AddAccountModalComponent', () => {
   it('emits closed when cancel is clicked', () => {
     const closedSpy = jest.fn();
     fixture.componentInstance.closed.subscribe(closedSpy);
-    // Step 1 buttons: [X, broker-toggle, Cancel, Next]
-    const cancelBtn = fixture.nativeElement.querySelectorAll('button[type="button"]')[2];
-    cancelBtn.click();
+    const buttons = Array.from(fixture.nativeElement.querySelectorAll('button[type="button"]') as NodeListOf<HTMLButtonElement>);
+    const cancelBtn = buttons.find(b => b.textContent?.trim() === 'Cancel');
+    cancelBtn!.click();
     expect(closedSpy).toHaveBeenCalled();
   });
 
@@ -85,28 +85,55 @@ describe('AddAccountModalComponent', () => {
     expect(createdSpy).toHaveBeenCalled();
   });
 
-  it('shows openedAt field for PEA account type', () => {
-    const form = fixture.componentInstance['form'];
-    form.get('accountType')!.setValue('PEA');
+  it('openedAt date picker always visible regardless of account type', () => {
     fixture.detectChanges();
-    expect(fixture.componentInstance['showOpenedAt']()).toBe(true);
-    const input = fixture.nativeElement.querySelector('input[formcontrolname="openedAt"]');
-    expect(input).toBeTruthy();
-  });
+    expect(fixture.nativeElement.querySelector('app-date-picker')).toBeTruthy();
 
-  it('hides openedAt field for SAVINGS_ACCOUNT type', () => {
-    const form = fixture.componentInstance['form'];
-    form.get('accountType')!.setValue('SAVINGS_ACCOUNT');
+    fixture.componentInstance['form'].get('accountType')!.setValue('SAVINGS_ACCOUNT');
     fixture.detectChanges();
-    expect(fixture.componentInstance['showOpenedAt']()).toBe(false);
-    const input = fixture.nativeElement.querySelector('input[formcontrolname="openedAt"]');
-    expect(input).toBeFalsy();
+    expect(fixture.nativeElement.querySelector('app-date-picker')).toBeTruthy();
+
+    fixture.componentInstance['form'].get('accountType')!.setValue('CASH_ACCOUNT');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('app-date-picker')).toBeTruthy();
   });
 
   it('defaults openedAt to today', () => {
     const today = new Date().toISOString().split('T')[0];
     const form = fixture.componentInstance['form'];
     expect(form.get('openedAt')!.value).toBe(today);
+  });
+
+  it('nextStep does not advance when SAVINGS_ACCOUNT has no subType', () => {
+    const form = fixture.componentInstance['form'];
+    form.get('accountType')!.setValue('SAVINGS_ACCOUNT');
+    form.get('subType')!.setValue(null);
+    form.get('name')!.setValue('My Livret');
+    form.get('broker')!.setValue('Crédit Agricole');
+    fixture.detectChanges();
+    fixture.componentInstance['nextStep']();
+    expect(fixture.componentInstance['step']()).toBe(1);
+  });
+
+  it('nextStep advances for CASH_ACCOUNT (subType auto-selected)', () => {
+    const form = fixture.componentInstance['form'];
+    form.get('accountType')!.setValue('CASH_ACCOUNT');
+    form.get('name')!.setValue('Mon Compte');
+    form.get('broker')!.setValue('BNP Paribas');
+    fixture.detectChanges();
+    fixture.componentInstance['nextStep']();
+    expect(fixture.componentInstance['step']()).toBe(2);
+  });
+
+  it('includes openedAt in createAccount payload', () => {
+    const form = fixture.componentInstance['form'];
+    form.setValue({ name: 'Test PEA', accountType: 'PEA', initialBalance: 0, broker: 'Fortuneo', subType: 'PEA', openedAt: '2019-03-10', linkedCheckingAccountId: null });
+    fixture.componentInstance['step'].set(2);
+    fixture.detectChanges();
+    fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
+    expect(mockAccountService.createAccount).toHaveBeenCalledWith(
+      expect.objectContaining({ openedAt: '2019-03-10' })
+    );
   });
 
   it('shows subType selector when accountType has sub-types', () => {
@@ -173,7 +200,7 @@ describe('AddAccountModalComponent', () => {
   it('passes dynamic currency to createAccount', () => {
     mockPrefsService.currency.set('USD');
     const form = fixture.componentInstance['form'];
-    form.setValue({ name: 'My Crypto', accountType: 'CRYPTO_WALLET', initialBalance: 500, broker: 'Binance', subType: 'CRYPTO_WALLET', openedAt: null, linkedCheckingAccountId: null });
+    form.setValue({ name: 'My Crypto', accountType: 'CRYPTO_WALLET', initialBalance: 500, broker: 'Binance', subType: 'CRYPTO_WALLET', openedAt: '2020-01-01', linkedCheckingAccountId: null });
     fixture.componentInstance['step'].set(2);
     fixture.detectChanges();
     fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));

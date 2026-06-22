@@ -234,9 +234,9 @@ describe('AddTransactionModalComponent', () => {
   it('submitTransfer calls executeTransfer with correct payload', () => {
     fixture.componentInstance.onTypeChange('TRANSFER');
     fixture.componentInstance['form'].patchValue({
-      totalAmount: 500, date: '2026-06-01',
-      toAccountId: 'cash-1', description: 'test',
+      totalAmount: 500, toAccountId: 'cash-1', description: 'test',
     });
+    fixture.componentInstance['form'].patchValue({ date: '2026-06-01' });
     fixture.detectChanges();
 
     fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
