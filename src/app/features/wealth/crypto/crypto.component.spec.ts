@@ -1,11 +1,13 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
-import { Signal } from '@angular/core';
+import { Signal, signal } from '@angular/core';
 import { CryptoComponent } from './crypto.component';
 import { AccountService } from '../../../core/services/account.service';
+import { AnalyticsService } from '../../../core/services/analytics.service';
+import { PreferencesService } from '../../../core/services/preferences.service';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
-import { signal } from '@angular/core';
 import { FinancialAccount } from '../../../core/models/account.model';
+import { of } from 'rxjs';
 
 interface CryptoComponentSignals {
   totalCryptoValue: Signal<number>;
@@ -49,6 +51,16 @@ describe('CryptoComponent', () => {
             loadPortfolioSummaries: jest.fn(),
             getPortfolioSummary: jest.fn().mockReturnValue(undefined),
           },
+        },
+        {
+          provide: AnalyticsService,
+          useValue: {
+            getPortfolioHistory: jest.fn().mockReturnValue(of([])),
+          },
+        },
+        {
+          provide: PreferencesService,
+          useValue: { currency: signal('EUR') },
         },
       ],
     }).compileComponents();

@@ -28,17 +28,17 @@
     </div>
   </div>
 
-  <!-- Evolution placeholder -->
-  <div class="rounded-xl border border-slate-200 dark:border-slate-700
-              bg-white dark:bg-slate-800 p-6">
-    <div class="flex items-center justify-between mb-3">
-      <h2 class="font-medium text-slate-900 dark:text-white">Evolution</h2>
+  <!-- Evolution chart -->
+  @if (accounts().length > 0) {
+    <div class="mt-6">
+      <app-evolution-chart
+        [points]="historyPoints()"
+        [loading]="historyLoading()"
+        [currency]="preferencesService.currency()"
+        [currentValue]="currentCashValue()"
+        (periodChanged)="loadHistory($event)" />
     </div>
-    <div class="h-24 flex items-center justify-center
-                border border-dashed border-slate-200 dark:border-slate-700 rounded-lg">
-      <p class="text-slate-400 text-xs">Coming soon — balance history required</p>
-    </div>
-  </div>
+  }
 
   <!-- Accounts list -->
   <div class="rounded-xl border border-slate-200 dark:border-slate-700

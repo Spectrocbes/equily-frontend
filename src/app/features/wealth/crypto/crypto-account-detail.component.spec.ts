@@ -2,12 +2,15 @@ import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { WritableSignal, Signal } from '@angular/core';
 import { CryptoAccountDetailComponent } from './crypto-account-detail.component';
 import { AccountService } from '../../../core/services/account.service';
+import { AnalyticsService } from '../../../core/services/analytics.service';
 import { ToastService } from '../../../shared/toast/toast.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { of, throwError } from 'rxjs';
-import { EnrichedHolding, FinancialAccount, Transaction } from '../../../core/models/account.model';
+import {
+  ChartPeriod, EnrichedHolding, FinancialAccount, PortfolioHistoryPoint, Transaction,
+} from '../../../core/models/account.model';
 
 interface CryptoSignals {
   enrichedHoldings: WritableSignal<EnrichedHolding[]>;
@@ -65,6 +68,12 @@ describe('CryptoAccountDetailComponent', () => {
             getEnrichedHoldings: jest.fn().mockReturnValue(of([mockHoldingWithPrice])),
             deleteTransaction:   jest.fn().mockReturnValue(of(undefined)),
             loadAccounts:        jest.fn(),
+          },
+        },
+        {
+          provide: AnalyticsService,
+          useValue: {
+            getAccountHistory: jest.fn().mockReturnValue(of([])),
           },
         },
         {
@@ -265,5 +274,40 @@ describe('CryptoAccountDetailComponent', () => {
     expect(fixture.componentInstance.pnlMode()).toBe('PCT');
     fixture.componentInstance.togglePnlMode();
     expect(fixture.componentInstance.pnlMode()).toBe('EUR');
+  });
+
+  it('loadHistory calls analyticsService.getAccountHistory with account id', () => {
+    const analyticsService = TestBed.inject(AnalyticsService);
+    const mockPts: PortfolioHistoryPoint[] = [
+      { date: '2026-01-01', value: 20000, invested: 15000, pnl: 5000 },
+    ];
+    (analyticsService.getAccountHistory as jest.Mock).mockReturnValue(of(mockPts));
+
+    const comp = fixture.componentInstance as unknown as {
+      loadHistory: (period: ChartPeriod) => void;
+      historyPoints: WritableSignal<PortfolioHistoryPoint[]>;
+      historyLoading: WritableSignal<boolean>;
+    };
+    comp.loadHistory('ONE_MONTH');
+
+    expect(analyticsService.getAccountHistory).toHaveBeenCalledWith('crypto-1', 'ONE_MONTH');
+    expect(comp.historyPoints()).toEqual(mockPts);
+    expect(comp.historyLoading()).toBe(false);
+  });
+
+  it('loadHistory sets historyLoading to false on error', () => {
+    const analyticsService = TestBed.inject(AnalyticsService);
+    (analyticsService.getAccountHistory as jest.Mock).mockReturnValue(
+      throwError(() => new Error('Network error'))
+    );
+
+    const comp = fixture.componentInstance as unknown as {
+      loadHistory: (period: ChartPeriod) => void;
+      historyLoading: WritableSignal<boolean>;
+    };
+    comp.historyLoading.set(true);
+    comp.loadHistory('ONE_MONTH');
+
+    expect(comp.historyLoading()).toBe(false);
   });
 });

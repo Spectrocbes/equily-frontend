@@ -57,6 +57,8 @@ export interface FinancialAccount {
   status: 'ACTIVE' | 'CLOSED';
   closedAt: string | null;
   linkedCheckingAccountId: string | null;
+  ownDeposits?: number | null;   // Fix 5: deposits for this account only (PEA-PME)
+  depositNote?: string | null;   // Fix 5: human-readable note about shared limits
 }
 
 export interface PeaWithdrawalSimulation {
@@ -277,6 +279,32 @@ export interface CsvImportResponse {
   errors: number;
   errorDetails: string[];
 }
+
+export interface PortfolioHistoryPoint {
+  date: string;
+  value: number;
+  invested: number;
+  pnl: number;
+}
+
+export interface GeographicExposure {
+  region: string;
+  value: number;
+  weight: number;
+}
+
+export interface TopPerformer {
+  ticker: string;
+  accountName: string;
+  currentValue: number;
+  totalInvested: number;
+  pnl: number;
+  pnlPercent: number;
+  dayChangePercent: number;
+}
+
+export type ChartPeriod =
+  'ONE_DAY' | 'ONE_WEEK' | 'ONE_MONTH' | 'YTD' | 'ONE_YEAR' | 'ALL';
 
 export interface UserPreferences {
   currency: string;

@@ -11,7 +11,10 @@ import { ToastService } from '../../../shared/toast/toast.service';
 import {
   FinancialAccount, EnrichedHolding, Transaction, TransactionType, accountAgeYears,
   ACCOUNT_TYPE_LABELS, CURRENCY_SYMBOLS, PeaWithdrawalSimulation,
+  ChartPeriod, PortfolioHistoryPoint, GeographicExposure,
 } from '../../../core/models/account.model';
+import { AnalyticsService } from '../../../core/services/analytics.service';
+import { EvolutionChartComponent } from '../../../shared/components/evolution-chart/evolution-chart.component';
 import { AddTransactionModalComponent } from '../shared/add-transaction-modal.component';
 import { EditTransactionModalComponent } from '../shared/edit-transaction-modal.component';
 import { DeleteTransactionModalComponent } from '../shared/delete-transaction-modal.component';
@@ -29,14 +32,15 @@ import { DonutChartComponent, DonutSlice } from '../../../shared/components/donu
     DeleteTransactionModalComponent,
     CsvImportModalComponent, PeaClosureModalComponent,
     PeaWithdrawalBreakdownModalComponent,
-    DonutChartComponent, UserCurrencyPipe,
+    DonutChartComponent, EvolutionChartComponent, UserCurrencyPipe,
   ],
   templateUrl: './investment-account-detail.component.html',
 })
 export class InvestmentAccountDetailComponent implements OnInit {
-  private readonly route    = inject(ActivatedRoute);
-  private readonly router   = inject(Router);
-  private readonly accountService = inject(AccountService);
+  private readonly route            = inject(ActivatedRoute);
+  private readonly router           = inject(Router);
+  private readonly accountService   = inject(AccountService);
+  private readonly analyticsService = inject(AnalyticsService);
   protected readonly preferencesService = inject(PreferencesService);
   private readonly toastService = inject(ToastService);
 
@@ -125,6 +129,19 @@ export class InvestmentAccountDetailComponent implements OnInit {
   protected readonly deletingTxId          = computed(() => this.deletingTransaction()?.id ?? null);
   protected readonly deleteLoading         = signal(false);
 
+  protected readonly historyPoints   = signal<PortfolioHistoryPoint[]>([]);
+  protected readonly historyLoading  = signal(true);
+  protected readonly currentPeriod   = signal<ChartPeriod>('ONE_MONTH');
+  protected readonly geoExposure     = signal<GeographicExposure[]>([]);
+  protected readonly geoLoading      = signal(false);
+
+  protected readonly currentPortfolioValue = computed(() => {
+    const acc = this.account();
+    if (!acc) return null;
+    const summary = this.accountService.getPortfolioSummary(acc.id);
+    return (summary?.livePortfolioValue ?? 0) + acc.balance;
+  });
+
   protected readonly showClosureModal             = signal(false);
   protected readonly simulation                   = signal<PeaWithdrawalSimulation | null>(null);
   protected readonly closureLoading               = signal(false);
@@ -151,6 +168,32 @@ export class InvestmentAccountDetailComponent implements OnInit {
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) { this.router.navigate(['/wealth/investments']); return; }
     this.loadAll(id);
+    this.loadHistory('ONE_MONTH');
+    this.loadGeoExposure(id);
+  }
+
+  protected loadHistory(period: ChartPeriod): void {
+    const id = this.route.snapshot.paramMap.get('id')!;
+    this.currentPeriod.set(period);
+    this.historyLoading.set(true);
+    this.analyticsService.getAccountHistory(id, period).subscribe({
+      next: pts => {
+        this.historyPoints.set(pts);
+        this.historyLoading.set(false);
+      },
+      error: () => this.historyLoading.set(false),
+    });
+  }
+
+  private loadGeoExposure(accountId: string): void {
+    this.geoLoading.set(true);
+    this.analyticsService.getGeographicExposure(accountId).subscribe({
+      next: data => {
+        this.geoExposure.set(data);
+        this.geoLoading.set(false);
+      },
+      error: () => this.geoLoading.set(false),
+    });
   }
 
   private loadAll(id: string): void {
@@ -191,6 +234,7 @@ export class InvestmentAccountDetailComponent implements OnInit {
   protected onTransactionCreated(type: TransactionType, amount: number): void {
     const id = this.route.snapshot.paramMap.get('id')!;
     this.loadAll(id);
+    this.loadHistory(this.currentPeriod());
 
     switch (type) {
       case 'DEPOSIT':
@@ -257,6 +301,7 @@ export class InvestmentAccountDetailComponent implements OnInit {
         this.deletingTransaction.set(null);
         this.deleteLoading.set(false);
         this.loadAll(accountId);
+        this.loadHistory(this.currentPeriod());
       },
       error: (err) => {
         const msg = typeof err.error === 'string' ? err.error : 'Failed to delete transaction';
@@ -269,6 +314,7 @@ export class InvestmentAccountDetailComponent implements OnInit {
   protected onTransactionUpdated(): void {
     const id = this.route.snapshot.paramMap.get('id')!;
     this.loadAll(id);
+    this.loadHistory(this.currentPeriod());
   }
 
   private showDelta(
@@ -368,6 +414,7 @@ export class InvestmentAccountDetailComponent implements OnInit {
   protected onCsvImported(): void {
     const id = this.route.snapshot.paramMap.get('id')!;
     this.loadAll(id);
+    this.loadHistory(this.currentPeriod());
   }
 
   protected togglePnlMode(): void {

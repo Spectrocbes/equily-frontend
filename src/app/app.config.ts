@@ -11,7 +11,8 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withInterceptors([authInterceptor])),
     {
       provide: APP_INITIALIZER,
-      useFactory: (auth: AuthService) => () => auth.loadCurrentUser(),
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      useFactory: (auth: AuthService) => () => auth.loadCurrentUser().catch(() => {}),
       deps: [AuthService],
       multi: true,
     },

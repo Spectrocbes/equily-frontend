@@ -82,16 +82,21 @@ export class AuthService {
     return localStorage.getItem(ACCESS_TOKEN_KEY);
   }
 
-  loadCurrentUser(): void {
-    const token = this.getAccessToken();
-    if (!token) return;
-    this.http.get<CurrentUser>('/auth/me').subscribe({
-      next: (user) => {
-        this._currentUser.set(user);
-        this.preferencesService.load();
-      },
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      error: () => {},
+  loadCurrentUser(): Promise<void> {
+    return new Promise(resolve => {
+      const token = this.getAccessToken();
+      if (!token) { resolve(); return; }
+      this.http.get<CurrentUser>('/auth/me').subscribe({
+        next: (user) => {
+          this._currentUser.set(user);
+          this.preferencesService.load();
+          resolve();
+        },
+        error: () => {
+          this._currentUser.set(null);
+          resolve();
+        },
+      });
     });
   }
 

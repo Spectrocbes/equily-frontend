@@ -3,8 +3,14 @@ import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { UserCurrencyPipe } from '../../shared/pipes/user-currency.pipe';
 import { RouterLink } from '@angular/router';
 import { AccountService } from '../../core/services/account.service';
-import { AccountType, WealthCategory, ACCOUNT_CATEGORY, WEALTH_CATEGORY_LABELS } from '../../core/models/account.model';
+import { AnalyticsService } from '../../core/services/analytics.service';
+import { PreferencesService } from '../../core/services/preferences.service';
+import {
+  AccountType, WealthCategory, ACCOUNT_CATEGORY, WEALTH_CATEGORY_LABELS,
+  ChartPeriod, PortfolioHistoryPoint, TopPerformer,
+} from '../../core/models/account.model';
 import { DonutChartComponent } from '../../shared/components/donut-chart/donut-chart.component';
+import { EvolutionChartComponent } from '../../shared/components/evolution-chart/evolution-chart.component';
 import { AddAccountModalComponent } from '../wealth/shared/add-account-modal.component';
 
 const DONUT_COLORS: Record<WealthCategory, string> = {
@@ -17,16 +23,39 @@ const DONUT_COLORS: Record<WealthCategory, string> = {
 @Component({
   selector: 'app-overview',
   standalone: true,
-  imports: [CurrencyPipe, DecimalPipe, RouterLink, DonutChartComponent, AddAccountModalComponent, UserCurrencyPipe],
+  imports: [
+    CurrencyPipe, DecimalPipe, RouterLink,
+    DonutChartComponent, EvolutionChartComponent,
+    AddAccountModalComponent, UserCurrencyPipe,
+  ],
   templateUrl: './overview.component.html',
 })
 export class OverviewComponent implements OnInit {
-  protected readonly accountService = inject(AccountService);
-  protected readonly showModal = signal(false);
+  protected readonly accountService     = inject(AccountService);
+  private readonly analyticsService     = inject(AnalyticsService);
+  protected readonly preferencesService = inject(PreferencesService);
+  protected readonly showModal          = signal(false);
+
+  protected readonly historyPoints  = signal<PortfolioHistoryPoint[]>([]);
+  protected readonly historyLoading = signal(true);
+  protected readonly topPerformers  = signal<TopPerformer[]>([]);
 
   private readonly INVESTMENT_TYPES: AccountType[] = [
     'PEA', 'PEA_PME', 'COMPTE_TITRES', 'PER', 'ASSURANCE_VIE', 'CRYPTO_WALLET',
   ];
+
+  protected readonly currentTotalWealth = computed(() => {
+    const accounts = this.accountService.accounts();
+    return accounts.reduce((sum, acc) => {
+      if (acc.status === 'CLOSED') return sum;
+      const category = ACCOUNT_CATEGORY[acc.accountType];
+      if (category === 'investments' || category === 'crypto') {
+        const summary = this.accountService.getPortfolioSummary(acc.id);
+        return sum + (summary?.livePortfolioValue ?? 0) + acc.balance;
+      }
+      return sum + acc.balance;
+    }, 0);
+  });
 
   protected readonly totalWealth = computed(() => {
     const accounts = this.accountService.accounts();
@@ -66,10 +95,29 @@ export class OverviewComponent implements OnInit {
       }));
   });
 
+  protected loadHistory(period: ChartPeriod): void {
+    this.historyLoading.set(true);
+    this.analyticsService.getPortfolioHistory(period).subscribe({
+      next: pts => {
+        this.historyPoints.set(pts);
+        this.historyLoading.set(false);
+      },
+      error: () => this.historyLoading.set(false),
+    });
+  }
+
+  private loadTopPerformers(): void {
+    this.analyticsService.getTopPerformers(5).subscribe({
+      next: data => this.topPerformers.set(data),
+    });
+  }
+
   ngOnInit(): void {
     this.accountService.loadSummaries();
     this.accountService.loadAccounts();
     this.accountService.loadPortfolioSummaries();
+    this.loadHistory('ONE_MONTH');
+    this.loadTopPerformers();
   }
 
   protected onAccountCreated(): void {

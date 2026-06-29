@@ -319,3 +319,14 @@
 - Crypto detail gained full edit transaction support (`editingTransaction` signal, `onTransactionEditClick`, `EditTransactionModalComponent`) to match other 3 components
 - Applied to all 4 detail components (investment, crypto, savings, cash)
 - 279/279 tests, lint clean, build 0 errors
+
+## 2026-06-29 — Phase 3 charts (complete)
+- `EvolutionChartComponent`: D3.js line+area chart, period selector (1D/1W/1M/YTD/1Y/ALL), hover cursor + tooltip, subtle horizontal grid lines (no Y-axis labels)
+- `currentValue` input syncs last chart point with live header value across all pages; y-axis domain clamped to minimum 0
+- All 4 detail pages (investment, crypto, savings, cash): per-account evolution chart with `currentAccountValue` computed
+- All 4 list sub-pages (investments, crypto, savings, cash): per-type evolution chart (`INVESTMENT/CRYPTO/SAVINGS/CASH`) with `currentValue` bound to live header total
+- Overview: global evolution chart (`currentTotalWealth` computed, skips closed accounts) + top performers widget; `@for` tracker uses `ticker + '_' + accountName` to avoid NG0955 duplicate key error
+- Investment detail: geographic exposure section with progress bars
+- Chart reloads on transaction create / delete / update; chart reloads after account creation in all 4 list components
+- Auth interceptor narrowed: `UNAUTHENTICATED_PATHS` list replaces broad `/auth/` skip so `GET /auth/me` receives Bearer token; `loadCurrentUser()` returns `Promise<void>` (always resolves) to block `APP_INITIALIZER` until user state is ready
+- 390/390 tests, lint clean, build 0 errors

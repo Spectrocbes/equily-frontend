@@ -3,10 +3,23 @@ import { inject } from '@angular/core';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 
+const UNAUTHENTICATED_PATHS = [
+  '/auth/login',
+  '/auth/register',
+  '/auth/refresh',
+  '/auth/verify-email',
+  '/auth/forgot-password',
+  '/auth/reset-password',
+  '/auth/resend-verification',
+  '/auth/validate-reset-token',
+];
+
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
 
-  if (req.url.includes('/auth/')) {
+  const isUnauthenticated = UNAUTHENTICATED_PATHS.some(path => req.url.includes(path));
+
+  if (isUnauthenticated) {
     return next(req);
   }
 
@@ -17,7 +30,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
-      const isAuthEndpoint = req.url.includes('/auth/');
+      const isAuthEndpoint = UNAUTHENTICATED_PATHS.some(path => req.url.includes(path));
       if (error.status === 401 && !isAuthEndpoint) {
         const refresh$ = authService.refreshToken();
         if (refresh$) {

@@ -2,28 +2,32 @@ import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { AccountService } from '../../../core/services/account.service';
+import { AnalyticsService } from '../../../core/services/analytics.service';
 import { PreferencesService } from '../../../core/services/preferences.service';
 import { ToastService } from '../../../shared/toast/toast.service';
 import {
   FinancialAccount, Transaction, TransactionType,
   ACCOUNT_TYPE_LABELS, ACCOUNT_SUB_TYPE_LABELS,
+  ChartPeriod, PortfolioHistoryPoint,
 } from '../../../core/models/account.model';
 import { AddTransactionModalComponent } from '../shared/add-transaction-modal.component';
 import { EditTransactionModalComponent } from '../shared/edit-transaction-modal.component';
 import { DeleteTransactionModalComponent } from '../shared/delete-transaction-modal.component';
 import { UserCurrencyPipe } from '../../../shared/pipes/user-currency.pipe';
+import { EvolutionChartComponent } from '../../../shared/components/evolution-chart/evolution-chart.component';
 
 @Component({
   selector: 'app-cash-account-detail',
   standalone: true,
-  imports: [CurrencyPipe, DatePipe, RouterLink, AddTransactionModalComponent, EditTransactionModalComponent, DeleteTransactionModalComponent, UserCurrencyPipe],
+  imports: [CurrencyPipe, DatePipe, RouterLink, AddTransactionModalComponent, EditTransactionModalComponent, DeleteTransactionModalComponent, UserCurrencyPipe, EvolutionChartComponent],
   templateUrl: './cash-account-detail.component.html',
 })
 export class CashAccountDetailComponent implements OnInit {
-  private readonly route           = inject(ActivatedRoute);
-  private readonly router          = inject(Router);
-  private readonly accountService  = inject(AccountService);
-  private readonly toastService    = inject(ToastService);
+  private readonly route            = inject(ActivatedRoute);
+  private readonly router           = inject(Router);
+  private readonly accountService   = inject(AccountService);
+  private readonly analyticsService = inject(AnalyticsService);
+  private readonly toastService     = inject(ToastService);
   protected readonly preferencesService = inject(PreferencesService);
 
   protected readonly account      = signal<FinancialAccount | null>(null);
@@ -37,8 +41,16 @@ export class CashAccountDetailComponent implements OnInit {
   protected readonly cashDelta               = signal<number | null>(null);
   protected readonly cashDeltaPositive       = signal<boolean>(true);
   protected readonly allowedTypes: TransactionType[] = ['DEPOSIT', 'WITHDRAWAL'];
+  protected readonly historyPoints   = signal<PortfolioHistoryPoint[]>([]);
+  protected readonly historyLoading  = signal(true);
+  protected readonly currentPeriod   = signal<ChartPeriod>('ONE_MONTH');
 
   protected readonly isClosed            = computed(() => this.account()?.status === 'CLOSED');
+
+  protected readonly currentAccountValue = computed(() =>
+    this.account()?.balance ?? null
+  );
+
   protected readonly txMenuOpenId        = signal<string | null>(null);
   protected readonly txMenuPosition      = signal<{ top: number; right: number } | null>(null);
   protected readonly deletingTransaction = signal<Transaction | null>(null);
@@ -54,6 +66,7 @@ export class CashAccountDetailComponent implements OnInit {
   private loadAll(id: string): void {
     this.loading.set(true);
     this.error.set(null);
+    this.loadHistory(this.currentPeriod());
     const currency = this.preferencesService.currency();
     this.accountService.getAccount(id, currency).subscribe({
       next: (acc) => { this.account.set(acc); this.loading.set(false); },
@@ -64,6 +77,19 @@ export class CashAccountDetailComponent implements OnInit {
     });
     this.accountService.getTransactions(id).subscribe({
       next: (t) => this.transactions.set(t),
+    });
+  }
+
+  protected loadHistory(period: ChartPeriod): void {
+    const id = this.route.snapshot.paramMap.get('id')!;
+    this.currentPeriod.set(period);
+    this.historyLoading.set(true);
+    this.analyticsService.getAccountHistory(id, period).subscribe({
+      next: pts => {
+        this.historyPoints.set(pts);
+        this.historyLoading.set(false);
+      },
+      error: () => this.historyLoading.set(false),
     });
   }
 
