@@ -65,9 +65,10 @@ describe('CryptoAccountDetailComponent', () => {
             getAccount:          jest.fn().mockReturnValue(of(mockAccount)),
             getAccountById:      jest.fn().mockReturnValue(of(mockAccount)),
             getTransactions:     jest.fn().mockReturnValue(of([mockTransaction])),
-            getEnrichedHoldings: jest.fn().mockReturnValue(of([mockHoldingWithPrice])),
-            deleteTransaction:   jest.fn().mockReturnValue(of(undefined)),
-            loadAccounts:        jest.fn(),
+            getEnrichedHoldings:  jest.fn().mockReturnValue(of([mockHoldingWithPrice])),
+            deleteTransaction:    jest.fn().mockReturnValue(of(undefined)),
+            getPortfolioSummary:  jest.fn().mockReturnValue(null),
+            loadAccounts:         jest.fn(),
           },
         },
         {
