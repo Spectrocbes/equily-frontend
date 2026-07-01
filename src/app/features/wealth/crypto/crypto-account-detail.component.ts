@@ -6,17 +6,20 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { UserCurrencyPipe } from '../../../shared/pipes/user-currency.pipe';
 import { AccountService } from '../../../core/services/account.service';
+import { AnalyticsService } from '../../../core/services/analytics.service';
 import { PreferencesService } from '../../../core/services/preferences.service';
 import { ToastService } from '../../../shared/toast/toast.service';
 import {
   FinancialAccount, EnrichedHolding, Transaction, TransactionType,
   ACCOUNT_TYPE_LABELS, CURRENCY_SYMBOLS,
+  ChartPeriod, PortfolioHistoryPoint,
 } from '../../../core/models/account.model';
 import { AddTransactionModalComponent } from '../shared/add-transaction-modal.component';
 import { EditTransactionModalComponent } from '../shared/edit-transaction-modal.component';
 import { DeleteTransactionModalComponent } from '../shared/delete-transaction-modal.component';
 import { CsvImportModalComponent } from '../shared/csv-import-modal.component';
 import { DonutChartComponent, DonutSlice } from '../../../shared/components/donut-chart/donut-chart.component';
+import { EvolutionChartComponent } from '../../../shared/components/evolution-chart/evolution-chart.component';
 
 @Component({
   selector: 'app-crypto-account-detail',
@@ -25,15 +28,16 @@ import { DonutChartComponent, DonutSlice } from '../../../shared/components/donu
     CurrencyPipe, DatePipe, DecimalPipe, RouterLink,
     AddTransactionModalComponent, EditTransactionModalComponent,
     DeleteTransactionModalComponent, CsvImportModalComponent,
-    DonutChartComponent, UserCurrencyPipe,
+    DonutChartComponent, EvolutionChartComponent, UserCurrencyPipe,
   ],
   templateUrl: './crypto-account-detail.component.html',
 })
 export class CryptoAccountDetailComponent implements OnInit, OnDestroy {
-  private readonly route           = inject(ActivatedRoute);
-  private readonly router          = inject(Router);
-  private readonly accountService  = inject(AccountService);
-  private readonly toastService    = inject(ToastService);
+  private readonly route            = inject(ActivatedRoute);
+  private readonly router           = inject(Router);
+  private readonly accountService   = inject(AccountService);
+  private readonly analyticsService = inject(AnalyticsService);
+  private readonly toastService     = inject(ToastService);
   protected readonly preferencesService = inject(PreferencesService);
 
   protected readonly ACCOUNT_TYPE_LABELS = ACCOUNT_TYPE_LABELS;
@@ -52,6 +56,14 @@ export class CryptoAccountDetailComponent implements OnInit, OnDestroy {
   protected readonly pnlMode             = signal<'EUR' | 'PCT'>('EUR');
 
   protected readonly isClosed            = computed(() => this.account()?.status === 'CLOSED');
+
+  protected readonly currentAccountValue = computed(() => {
+    const id = this.account()?.id;
+    if (!id) return null;
+    const summary = this.accountService.getPortfolioSummary(id);
+    return (summary?.livePortfolioValue ?? 0) + (this.account()?.balance ?? 0);
+  });
+
   protected readonly editingTransaction  = signal<Transaction | null>(null);
   protected readonly txMenuOpenId        = signal<string | null>(null);
   protected readonly txMenuPosition      = signal<{ top: number; right: number } | null>(null);
@@ -64,6 +76,10 @@ export class CryptoAccountDetailComponent implements OnInit, OnDestroy {
       ?? this.preferencesService.currency();
     return this.pnlMode() === 'EUR' ? `(${sym})` : '(%)';
   });
+
+  protected readonly historyPoints   = signal<PortfolioHistoryPoint[]>([]);
+  protected readonly historyLoading  = signal(true);
+  protected readonly currentPeriod   = signal<ChartPeriod>('ONE_MONTH');
 
   protected readonly balanceDelta = signal<number | null>(null);
   protected readonly balanceFlash = signal<'gain' | 'loss' | null>(null);
@@ -121,6 +137,19 @@ export class CryptoAccountDetailComponent implements OnInit, OnDestroy {
     this.loadAll(id);
   }
 
+  protected loadHistory(period: ChartPeriod): void {
+    const id = this.route.snapshot.paramMap.get('id')!;
+    this.currentPeriod.set(period);
+    this.historyLoading.set(true);
+    this.analyticsService.getAccountHistory(id, period).subscribe({
+      next: pts => {
+        this.historyPoints.set(pts);
+        this.historyLoading.set(false);
+      },
+      error: () => this.historyLoading.set(false),
+    });
+  }
+
   ngOnDestroy(): void {
     if (this.deltaTimeout) clearTimeout(this.deltaTimeout);
   }
@@ -128,6 +157,7 @@ export class CryptoAccountDetailComponent implements OnInit, OnDestroy {
   private loadAll(id: string): void {
     this.loading.set(true);
     this.error.set(null);
+    this.loadHistory(this.currentPeriod());
 
     const currency = this.preferencesService.currency();
     this.accountService.getAccount(id, currency).subscribe({

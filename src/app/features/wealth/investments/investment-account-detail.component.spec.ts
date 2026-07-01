@@ -2,12 +2,15 @@ import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { WritableSignal, Signal } from '@angular/core';
 import { InvestmentAccountDetailComponent } from './investment-account-detail.component';
 import { AccountService } from '../../../core/services/account.service';
+import { AnalyticsService } from '../../../core/services/analytics.service';
 import { ToastService } from '../../../shared/toast/toast.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { of, throwError } from 'rxjs';
-import { EnrichedHolding, FinancialAccount, Transaction } from '../../../core/models/account.model';
+import {
+  ChartPeriod, EnrichedHolding, FinancialAccount, PortfolioHistoryPoint, Transaction,
+} from '../../../core/models/account.model';
 
 interface EnrichedSignals {
   enrichedHoldings: WritableSignal<EnrichedHolding[]>;
@@ -61,6 +64,15 @@ describe('InvestmentAccountDetailComponent', () => {
             loadAccounts:               jest.fn(),
             getPeaClosureSimulation:    jest.fn().mockReturnValue(of({})),
             closePea:                   jest.fn().mockReturnValue(of(undefined)),
+            getPortfolioSummary:        jest.fn().mockReturnValue(null),
+            accounts:                   jest.fn(() => []),
+          },
+        },
+        {
+          provide: AnalyticsService,
+          useValue: {
+            getAccountHistory:    jest.fn().mockReturnValue(of([])),
+            getGeographicExposure: jest.fn().mockReturnValue(of([])),
           },
         },
         {
@@ -598,5 +610,40 @@ describe('InvestmentAccountDetailComponent', () => {
     comp.txMenuOpenId.set('tx-1');
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).not.toContain('Delete');
+  });
+
+  it('loadHistory calls analyticsService.getAccountHistory with account id', () => {
+    const analyticsService = TestBed.inject(AnalyticsService);
+    const mockPts: PortfolioHistoryPoint[] = [
+      { date: '2026-01-01', value: 10000, invested: 9000, pnl: 1000 },
+    ];
+    (analyticsService.getAccountHistory as jest.Mock).mockReturnValue(of(mockPts));
+
+    const comp = fixture.componentInstance as unknown as {
+      loadHistory: (period: ChartPeriod) => void;
+      historyPoints: WritableSignal<PortfolioHistoryPoint[]>;
+      historyLoading: WritableSignal<boolean>;
+    };
+    comp.loadHistory('ONE_MONTH');
+
+    expect(analyticsService.getAccountHistory).toHaveBeenCalledWith('acc-1', 'ONE_MONTH');
+    expect(comp.historyPoints()).toEqual(mockPts);
+    expect(comp.historyLoading()).toBe(false);
+  });
+
+  it('loadHistory sets historyLoading to false on error', () => {
+    const analyticsService = TestBed.inject(AnalyticsService);
+    (analyticsService.getAccountHistory as jest.Mock).mockReturnValue(
+      throwError(() => new Error('Network error'))
+    );
+
+    const comp = fixture.componentInstance as unknown as {
+      loadHistory: (period: ChartPeriod) => void;
+      historyLoading: WritableSignal<boolean>;
+    };
+    comp.historyLoading.set(true);
+    comp.loadHistory('ONE_MONTH');
+
+    expect(comp.historyLoading()).toBe(false);
   });
 });

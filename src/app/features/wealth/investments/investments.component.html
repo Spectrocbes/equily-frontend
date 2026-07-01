@@ -44,17 +44,17 @@
       (created)="onAccountCreated()" />
   }
 
-  <!-- Placeholder chart -->
-  <div class="rounded-xl border border-slate-200 dark:border-slate-700
-              bg-white dark:bg-slate-800 p-6">
-    <div class="flex items-center justify-between mb-3">
-      <h2 class="font-medium text-slate-900 dark:text-white">Evolution</h2>
+  <!-- Evolution chart -->
+  @if (openAccounts().length > 0) {
+    <div class="mt-6">
+      <app-evolution-chart
+        [points]="historyPoints()"
+        [loading]="historyLoading()"
+        [currency]="preferencesService.currency()"
+        [currentValue]="currentInvestmentsValue()"
+        (periodChanged)="loadHistory($event)" />
     </div>
-    <div class="h-24 flex items-center justify-center
-                border border-dashed border-slate-200 dark:border-slate-700 rounded-lg">
-      <p class="text-slate-400 text-xs">Coming soon — live prices required</p>
-    </div>
-  </div>
+  }
 
   <!-- Accounts list -->
   <div class="rounded-xl border border-slate-200 dark:border-slate-700
@@ -155,19 +155,31 @@
                 <div class="mt-2 w-full">
                   <div class="h-1.5 bg-slate-200 dark:bg-slate-700
                               rounded-full overflow-hidden">
-                    <div class="h-full rounded-full transition-all duration-500"
-                         [style.width.%]="depositPercent(account)"
-                         [class]="depositPercent(account) >= 100
+                    <div class="h-full rounded-full"
+                         [class.transition-all]="animatedProgress()"
+                         [class.duration-1000]="animatedProgress()"
+                         [class.ease-out]="animatedProgress()"
+                         [style.width]="animatedProgress()
+                           ? (progressPercent(account) > 0
+                               ? 'max(' + progressPercent(account) + '%, 3px)'
+                               : '0%')
+                           : '0%'"
+                         [class]="progressPercent(account) >= 100
                            ? 'bg-rose-500'
-                           : depositPercent(account) >= 90
+                           : progressPercent(account) >= 90
                            ? 'bg-amber-500'
                            : 'bg-primary-500'">
                     </div>
                   </div>
                   <div class="flex justify-between mt-1">
                     @if (account.subType === 'PEA' || account.subType === 'PEA_PME') {
-                      <span class="text-xs text-slate-400">
-                        {{ (account.totalDeposits ?? 0) | userCurrency:'1.0-0' }} deposited
+                      <span class="text-xs text-slate-400 flex items-center gap-1">
+                        @if (account.depositNote) {
+                          {{ (account.ownDeposits ?? 0) | userCurrency:'1.0-0' }} deposited
+                          <span class="cursor-help" [title]="account.depositNote">ⓘ</span>
+                        } @else {
+                          {{ (account.totalDeposits ?? 0) | userCurrency:'1.0-0' }} deposited
+                        }
                       </span>
                     } @else {
                       <span class="text-xs text-slate-400">
@@ -175,7 +187,7 @@
                       </span>
                     }
                     <span class="text-xs"
-                          [class]="depositPercent(account) >= 90 ? 'text-amber-500' : 'text-slate-400'">
+                          [class]="progressPercent(account) >= 90 ? 'text-amber-500' : 'text-slate-400'">
                       {{ (account.remainingCapacity ?? 0) | userCurrency:'1.0-0' }} remaining
                     </span>
                   </div>

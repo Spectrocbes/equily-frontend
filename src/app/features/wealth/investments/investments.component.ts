@@ -3,23 +3,35 @@ import { CurrencyPipe, DatePipe } from '@angular/common';
 import { UserCurrencyPipe } from '../../../shared/pipes/user-currency.pipe';
 import { RouterLink } from '@angular/router';
 import { AccountService } from '../../../core/services/account.service';
+import { AnalyticsService } from '../../../core/services/analytics.service';
+import { PreferencesService } from '../../../core/services/preferences.service';
 import {
   AccountType, ACCOUNT_CATEGORY, FinancialAccount,
-  ACCOUNT_TYPE_LABELS, PeaSummary,
+  ACCOUNT_TYPE_LABELS, PeaSummary, ChartPeriod, PortfolioHistoryPoint,
 } from '../../../core/models/account.model';
 import { AddAccountModalComponent } from '../shared/add-account-modal.component';
+import { EvolutionChartComponent } from '../../../shared/components/evolution-chart/evolution-chart.component';
 
 @Component({
   selector: 'app-investments',
   standalone: true,
-  imports: [CurrencyPipe, DatePipe, RouterLink, AddAccountModalComponent, UserCurrencyPipe],
+  imports: [
+    CurrencyPipe, DatePipe, RouterLink,
+    AddAccountModalComponent, UserCurrencyPipe, EvolutionChartComponent,
+  ],
   templateUrl: './investments.component.html',
 })
 export class InvestmentsComponent implements OnInit {
-  protected readonly accountService = inject(AccountService);
-  protected readonly showModal        = signal(false);
-  protected readonly peaSummary      = signal<PeaSummary | null>(null);
-  protected readonly activeAccountTab = signal<'active' | 'closed'>('active');
+  protected readonly accountService     = inject(AccountService);
+  protected readonly analyticsService   = inject(AnalyticsService);
+  protected readonly preferencesService = inject(PreferencesService);
+  protected readonly showModal          = signal(false);
+  protected readonly peaSummary         = signal<PeaSummary | null>(null);
+  protected readonly activeAccountTab   = signal<'active' | 'closed'>('active');
+  protected readonly animatedProgress   = signal(false);
+  protected readonly historyPoints      = signal<PortfolioHistoryPoint[]>([]);
+  protected readonly historyLoading     = signal(false);
+  protected readonly currentPeriod      = signal<ChartPeriod>('ONE_MONTH');
 
   protected readonly allowedTypes: AccountType[] = [
     'PEA', 'PEA_PME', 'COMPTE_TITRES', 'PER', 'ASSURANCE_VIE',
@@ -59,6 +71,13 @@ export class InvestmentsComponent implements OnInit {
     this.openAccounts().reduce((sum, a) => sum + a.balance, 0)
   );
 
+  protected readonly currentInvestmentsValue = computed(() =>
+    this.openAccounts().reduce((sum, acc) => {
+      const summary = this.accountService.getPortfolioSummary(acc.id);
+      return sum + (summary?.livePortfolioValue ?? 0) + acc.balance;
+    }, 0)
+  );
+
   protected liveValue(accountId: string): number {
     return this.accountService.getPortfolioSummary(accountId)
       ?.livePortfolioValue ?? 0;
@@ -69,32 +88,41 @@ export class InvestmentsComponent implements OnInit {
       ?.priceAvailable ?? false;
   }
 
-  protected depositPercent(account: FinancialAccount): number {
-    if (!account.depositLimit || account.depositLimit === 0) return 0;
+  protected progressPercent(account: FinancialAccount): number {
+    const limit    = account.depositLimit;
+    const deposits = account.depositNote
+      ? (account.ownDeposits ?? 0)
+      : (account.totalDeposits ?? 0);
+    if (!limit || limit === 0) return 0;
+    return Math.min((deposits / limit) * 100, 100);
+  }
 
-    const isPeaType = account.subType === 'PEA' || account.subType === 'PEA_PME';
-    const summary   = this.peaSummary();
-
-    if (isPeaType && summary?.hasPea && summary?.hasPeaPme) {
-      return Math.min(100,
-        (summary.combinedDeposits / summary.combinedLimit) * 100
-      );
+  protected loadHistory(period: ChartPeriod): void {
+    this.currentPeriod.set(period);
+    if (this.openAccounts().length === 0) {
+      this.historyPoints.set([]);
+      return;
     }
-
-    const isSavings = ['LIVRET_A', 'LDDS', 'LDD', 'LEP', 'LIVRET_JEUNE']
-      .includes(account.subType ?? '');
-    const used = isSavings ? account.balance : (account.totalDeposits ?? 0);
-    return Math.min(100, (used / account.depositLimit) * 100);
+    this.historyLoading.set(true);
+    this.analyticsService.getPortfolioHistory(period, 'INVESTMENT').subscribe({
+      next: pts => {
+        this.historyPoints.set(pts);
+        this.historyLoading.set(false);
+      },
+      error: () => this.historyLoading.set(false),
+    });
   }
 
   protected onAccountCreated(): void {
     this.accountService.loadAccounts();
-    this.showModal.set(false);
+    this.loadHistory(this.currentPeriod());
   }
 
   ngOnInit(): void {
     this.accountService.loadAccounts();
     this.accountService.loadPortfolioSummaries();
     this.accountService.getPeaSummary().subscribe(s => this.peaSummary.set(s));
+    setTimeout(() => this.animatedProgress.set(true), 100);
+    this.loadHistory('ONE_MONTH');
   }
 }

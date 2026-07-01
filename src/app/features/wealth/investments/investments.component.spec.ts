@@ -1,10 +1,13 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { InvestmentsComponent } from './investments.component';
 import { AccountService } from '../../../core/services/account.service';
+import { AnalyticsService } from '../../../core/services/analytics.service';
+import { PreferencesService } from '../../../core/services/preferences.service';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { Signal, signal } from '@angular/core';
-import { FinancialAccount, AccountPortfolioSummary } from '../../../core/models/account.model';
+import { FinancialAccount, AccountPortfolioSummary, PortfolioHistoryPoint } from '../../../core/models/account.model';
+import { of } from 'rxjs';
 
 interface InvestmentsComponentPublic {
   liveValue: (accountId: string) => number;
@@ -66,6 +69,16 @@ describe('InvestmentsComponent', () => {
             modalLoading: signal(false),
             modalError: signal(null),
           },
+        },
+        {
+          provide: AnalyticsService,
+          useValue: {
+            getPortfolioHistory: jest.fn().mockReturnValue(of([])),
+          },
+        },
+        {
+          provide: PreferencesService,
+          useValue: { currency: signal('EUR') },
         },
       ],
     }).compileComponents();
@@ -161,5 +174,60 @@ describe('InvestmentsComponent', () => {
     fixture.detectChanges();
     const comp = fixture.componentInstance as unknown as { totalPortfolioValue: Signal<number> };
     expect(comp.totalPortfolioValue()).toBe(5000);
+  });
+
+  it('animatedProgress is false initially then true after timeout', () => {
+    jest.useFakeTimers();
+    fixture.detectChanges();
+    const comp = fixture.componentInstance as unknown as { animatedProgress: () => boolean };
+    expect(comp.animatedProgress()).toBe(false);
+    jest.runAllTimers();
+    expect(comp.animatedProgress()).toBe(true);
+    jest.useRealTimers();
+  });
+
+  it('progressPercent uses ownDeposits when depositNote is present', () => {
+    fixture.detectChanges();
+    const comp = fixture.componentInstance as unknown as {
+      progressPercent: (account: FinancialAccount) => number;
+    };
+    const account: FinancialAccount = {
+      ...makeAccount('a-1', null),
+      depositLimit: 150000,
+      ownDeposits: 0,
+      totalDeposits: 75000,
+      depositNote: 'Includes deposits from linked PEA',
+    };
+    expect(comp.progressPercent(account)).toBe(0);
+  });
+
+  it('progressPercent uses totalDeposits when no depositNote', () => {
+    fixture.detectChanges();
+    const comp = fixture.componentInstance as unknown as {
+      progressPercent: (account: FinancialAccount) => number;
+    };
+    const account: FinancialAccount = {
+      ...makeAccount('a-1', null),
+      depositLimit: 150000,
+      totalDeposits: 75000,
+      depositNote: null,
+    };
+    expect(comp.progressPercent(account)).toBeCloseTo(50, 5);
+  });
+
+  it('loadHistory calls getPortfolioHistory with INVESTMENT type', () => {
+    accountsSignal.set([makeAccount('a-1', 5000)]);
+    fixture.detectChanges();
+    const analyticsService = TestBed.inject(AnalyticsService);
+    expect(analyticsService.getPortfolioHistory).toHaveBeenCalledWith('ONE_MONTH', 'INVESTMENT');
+  });
+
+  it('chart hidden when no open accounts — loadHistory skips getPortfolioHistory', () => {
+    accountsSignal.set([]);
+    fixture.detectChanges();
+    const analyticsService = TestBed.inject(AnalyticsService);
+    expect(analyticsService.getPortfolioHistory).not.toHaveBeenCalled();
+    const comp = fixture.componentInstance as unknown as { historyPoints: Signal<PortfolioHistoryPoint[]> };
+    expect(comp.historyPoints()).toEqual([]);
   });
 });

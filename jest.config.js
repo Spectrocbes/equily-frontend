@@ -12,7 +12,9 @@ module.exports = {
       },
     ],
   },
-  transformIgnorePatterns: ['node_modules/(?!.*\\.mjs$)'],
+  transformIgnorePatterns: [
+    'node_modules/(?!.*\\.mjs$|d3[^/]*|internmap|delaunator|robust-predicates)',
+  ],
   moduleNameMapper: {
     '^@app/(.*)$': '<rootDir>/src/app/$1',
     '^@env/(.*)$': '<rootDir>/src/environments/$1',
