@@ -199,6 +199,7 @@ export class CryptoAccountDetailComponent implements OnInit, OnDestroy {
   protected onTransactionCreated(): void {
     const id = this.route.snapshot.paramMap.get('id')!;
     this.loadAll(id);
+    this.accountService.loadPortfolioSummaries();
   }
 
   protected onTransactionEditClick(tx: Transaction): void {
@@ -209,6 +210,7 @@ export class CryptoAccountDetailComponent implements OnInit, OnDestroy {
     this.editingTransaction.set(null);
     const id = this.route.snapshot.paramMap.get('id')!;
     this.loadAll(id);
+    this.accountService.loadPortfolioSummaries();
   }
 
   protected openTxMenu(txId: string, event: MouseEvent): void {
@@ -252,6 +254,7 @@ export class CryptoAccountDetailComponent implements OnInit, OnDestroy {
         this.deletingTransaction.set(null);
         this.deleteLoading.set(false);
         this.loadAll(accountId);
+        this.accountService.loadPortfolioSummaries();
       },
       error: (err) => {
         const msg = typeof err.error === 'string' ? err.error : 'Failed to delete transaction';
@@ -286,6 +289,13 @@ export class CryptoAccountDetailComponent implements OnInit, OnDestroy {
       PAYMENT:    'bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300',
     };
     return map[type] ?? 'bg-slate-100 text-slate-600';
+  }
+
+  protected badgeLabel(type: string): string {
+    const labels: Record<string, string> = {
+      'WITHDRAWAL': 'WITHDRAW',
+    };
+    return labels[type] ?? type;
   }
 
   protected getLinkedAccountName(linkedAccountId: string | null): string | null {

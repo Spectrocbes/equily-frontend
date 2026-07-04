@@ -65,6 +65,7 @@ describe('InvestmentAccountDetailComponent', () => {
             getPeaClosureSimulation:    jest.fn().mockReturnValue(of({})),
             closePea:                   jest.fn().mockReturnValue(of(undefined)),
             getPortfolioSummary:        jest.fn().mockReturnValue(null),
+            loadPortfolioSummaries:     jest.fn(),
             accounts:                   jest.fn(() => []),
           },
         },
@@ -599,6 +600,59 @@ describe('InvestmentAccountDetailComponent', () => {
     comp.confirmDeleteTransaction();
     expect(toastService.error).toHaveBeenCalledWith('Cannot delete');
     expect(comp.deleteLoading()).toBe(false);
+  });
+
+  it('linkedCheckingAccount returns null when account has no linkedCheckingAccountId', () => {
+    const comp = fixture.componentInstance as unknown as {
+      linkedCheckingAccount: () => FinancialAccount | null;
+    };
+    expect(comp.linkedCheckingAccount()).toBeNull();
+  });
+
+  it('linkedCheckingAccount resolves the linked account from accountService.accounts()', () => {
+    const accountService = TestBed.inject(AccountService);
+    const linkedAccount: FinancialAccount = {
+      ...mockAccount, id: 'cash-1', name: 'Mon Compte Courant', accountType: 'CASH_ACCOUNT',
+    };
+    (accountService.accounts as jest.Mock).mockReturnValue([linkedAccount]);
+    const comp = fixture.componentInstance as unknown as {
+      account: WritableSignal<FinancialAccount | null>;
+      linkedCheckingAccount: () => FinancialAccount | null;
+    };
+    comp.account.set({ ...mockAccount, linkedCheckingAccountId: 'cash-1' });
+    expect(comp.linkedCheckingAccount()?.name).toBe('Mon Compte Courant');
+  });
+
+  it('onTransactionCreated reloads geographic exposure', () => {
+    const analyticsService = TestBed.inject(AnalyticsService);
+    (analyticsService.getGeographicExposure as jest.Mock).mockClear();
+    const comp = fixture.componentInstance as unknown as {
+      onTransactionCreated: (type: Transaction['type'], amount: number) => void;
+    };
+    comp.onTransactionCreated('BUY', 100);
+    expect(analyticsService.getGeographicExposure).toHaveBeenCalledWith('acc-1');
+  });
+
+  it('onTransactionUpdated reloads geographic exposure', () => {
+    const analyticsService = TestBed.inject(AnalyticsService);
+    (analyticsService.getGeographicExposure as jest.Mock).mockClear();
+    const comp = fixture.componentInstance as unknown as {
+      onTransactionUpdated: () => void;
+    };
+    comp.onTransactionUpdated();
+    expect(analyticsService.getGeographicExposure).toHaveBeenCalledWith('acc-1');
+  });
+
+  it('confirmDeleteTransaction reloads geographic exposure on success', () => {
+    const analyticsService = TestBed.inject(AnalyticsService);
+    (analyticsService.getGeographicExposure as jest.Mock).mockClear();
+    const comp = fixture.componentInstance as unknown as {
+      deletingTransaction: WritableSignal<Transaction | null>;
+      confirmDeleteTransaction: () => void;
+    };
+    comp.deletingTransaction.set(mockTransaction);
+    comp.confirmDeleteTransaction();
+    expect(analyticsService.getGeographicExposure).toHaveBeenCalledWith('acc-1');
   });
 
   it('3-dot delete menu hidden when account is closed', () => {

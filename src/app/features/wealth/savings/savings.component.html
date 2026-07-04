@@ -3,24 +3,28 @@
   <!-- Header -->
   <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
     <div>
-      <h1 class="text-2xl font-semibold text-slate-900 dark:text-white">Savings</h1>
-      <p class="text-slate-500 dark:text-slate-400 mt-1 text-sm">
+      <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Savings</h1>
+      <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
         Livret A, LDDS, LEP and other savings accounts
       </p>
     </div>
-    <div class="flex items-center gap-3 self-start sm:self-auto">
+    <div class="flex items-center gap-4 self-start sm:self-auto">
       <div class="text-right">
-        <p class="text-xs text-slate-500 dark:text-slate-400">Total</p>
-        <p class="text-2xl font-bold font-mono text-slate-900 dark:text-white">
+        <p class="text-xs text-slate-400 dark:text-slate-500 uppercase tracking-wide">
+          Total
+        </p>
+        <p class="text-xl font-bold font-mono text-slate-900 dark:text-white">
           {{ total() | userCurrency }}
         </p>
       </div>
-      <button (click)="showModal.set(true)"
-              class="flex items-center gap-2 px-4 py-2 rounded-lg
+      <button type="button"
+              (click)="showModal.set(true)"
+              class="inline-flex items-center gap-2
+                     px-4 py-2 rounded-xl text-sm font-semibold
                      bg-primary-500 hover:bg-primary-600
-                     text-white text-sm font-medium transition-colors">
+                     text-white transition-colors">
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24"
-             stroke="currentColor" stroke-width="2">
+             stroke="currentColor" stroke-width="2.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
         </svg>
         Add Account

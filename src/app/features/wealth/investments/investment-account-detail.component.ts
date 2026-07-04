@@ -113,6 +113,12 @@ export class InvestmentAccountDetailComponent implements OnInit {
     this.account()?.subType === 'PEA' || this.account()?.subType === 'PEA_PME'
   );
 
+  protected readonly linkedCheckingAccount = computed(() => {
+    const linkedId = this.account()?.linkedCheckingAccountId;
+    if (!linkedId) return null;
+    return this.accountService.accounts().find(a => a.id === linkedId) ?? null;
+  });
+
   protected readonly isClosed = computed(() =>
     this.account()?.status === 'CLOSED'
   );
@@ -201,6 +207,10 @@ export class InvestmentAccountDetailComponent implements OnInit {
     this.error.set(null);
     const currency = this.preferencesService.currency();
 
+    if (this.accountService.accounts().length === 0) {
+      this.accountService.loadAccounts();
+    }
+
     this.accountService.getAccount(id, currency).subscribe({
       next: (acc) => {
         this.account.set(acc);
@@ -235,6 +245,8 @@ export class InvestmentAccountDetailComponent implements OnInit {
     const id = this.route.snapshot.paramMap.get('id')!;
     this.loadAll(id);
     this.loadHistory(this.currentPeriod());
+    this.loadGeoExposure(id);
+    this.accountService.loadPortfolioSummaries();
 
     switch (type) {
       case 'DEPOSIT':
@@ -302,6 +314,8 @@ export class InvestmentAccountDetailComponent implements OnInit {
         this.deleteLoading.set(false);
         this.loadAll(accountId);
         this.loadHistory(this.currentPeriod());
+        this.loadGeoExposure(accountId);
+        this.accountService.loadPortfolioSummaries();
       },
       error: (err) => {
         const msg = typeof err.error === 'string' ? err.error : 'Failed to delete transaction';
@@ -315,6 +329,8 @@ export class InvestmentAccountDetailComponent implements OnInit {
     const id = this.route.snapshot.paramMap.get('id')!;
     this.loadAll(id);
     this.loadHistory(this.currentPeriod());
+    this.loadGeoExposure(id);
+    this.accountService.loadPortfolioSummaries();
   }
 
   private showDelta(
@@ -438,6 +454,13 @@ export class InvestmentAccountDetailComponent implements OnInit {
       PAYMENT:    'bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300',
     };
     return map[type] ?? 'bg-slate-100 text-slate-600';
+  }
+
+  protected badgeLabel(type: string): string {
+    const labels: Record<string, string> = {
+      'WITHDRAWAL': 'WITHDRAW',
+    };
+    return labels[type] ?? type;
   }
 
   protected getLinkedAccountName(linkedAccountId: string | null): string | null {

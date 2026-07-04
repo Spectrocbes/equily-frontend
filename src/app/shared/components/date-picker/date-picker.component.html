@@ -114,7 +114,7 @@
 
         @if (headerMode() === 'month') {
           <button type="button"
-                  (click)="headerMode.set('year')"
+                  (click)="goBackToYearMode()"
                   class="w-8 h-8 flex items-center justify-center
                          rounded-lg text-slate-400
                          hover:bg-slate-100 dark:hover:bg-slate-700">
@@ -172,7 +172,8 @@
       }
 
       @if (headerMode() === 'year') {
-        <div class="px-3 py-2 grid grid-cols-3 gap-1 h-52 overflow-y-auto">
+        <div class="year-scroll-container px-3 py-2 grid grid-cols-3 gap-1 h-52 overflow-y-auto"
+             style="scroll-behavior: auto">
           @for (year of yearRange(); track year) {
             <button type="button"
                     [id]="'year-' + year"

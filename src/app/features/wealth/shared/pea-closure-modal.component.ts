@@ -1,16 +1,18 @@
 import { Component, input, output, signal } from '@angular/core';
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
-import { PeaWithdrawalSimulation } from '../../../core/models/account.model';
+import { FinancialAccount, PeaWithdrawalSimulation } from '../../../core/models/account.model';
+import { UserCurrencyPipe } from '../../../shared/pipes/user-currency.pipe';
 
 @Component({
   selector: 'app-pea-closure-modal',
   standalone: true,
-  imports: [CurrencyPipe, DecimalPipe],
+  imports: [CurrencyPipe, DecimalPipe, UserCurrencyPipe],
   templateUrl: './pea-closure-modal.component.html',
 })
 export class PeaClosureModalComponent {
   simulation = input.required<PeaWithdrawalSimulation>();
   loading    = input<boolean>(false);
+  linkedCheckingAccount = input<FinancialAccount | null>(null);
   confirmed  = output<void>();
   closed     = output<void>();
 

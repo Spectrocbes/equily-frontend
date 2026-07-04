@@ -116,60 +116,38 @@
         (periodChanged)="loadHistory($event)" />
     </div>
 
-    <!-- Allocation + Geo exposure -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-
-      <!-- Donut allocation -->
-      <div class="rounded-xl border border-slate-200 dark:border-slate-700
-                  bg-white dark:bg-slate-800 p-6">
-        <h2 class="font-medium text-slate-900 dark:text-white mb-4">Allocation</h2>
-        @if (donutData().length === 0) {
-          <div class="h-32 flex items-center justify-center">
-            <p class="text-slate-400 text-sm">No holdings yet</p>
-          </div>
-        } @else {
-          <div class="flex items-center gap-4">
-            <app-donut-chart [data]="donutData()" [total]="totalInvested()" [size]="140"/>
-            <div class="space-y-1.5 flex-1 min-w-0">
-              @for (slice of donutData(); track slice.label) {
-                <div class="flex items-center justify-between gap-2">
-                  <div class="flex items-center gap-1.5 min-w-0">
-                    <span class="w-2 h-2 rounded-full flex-shrink-0"
-                          [style.background-color]="slice.color"></span>
-                    <span class="text-xs font-mono font-medium
-                                 text-slate-700 dark:text-slate-300 truncate">
-                      {{ slice.label }}
-                    </span>
-                  </div>
-                  <span class="text-xs text-slate-500 dark:text-slate-400 flex-shrink-0">
-                    {{ totalInvested() > 0
-                      ? ((slice.value / totalInvested()) * 100 | number:'1.0-1') + '%'
-                      : '0%' }}
+    <!-- Allocation -->
+    <div class="rounded-xl border border-slate-200 dark:border-slate-700
+                bg-white dark:bg-slate-800 p-6">
+      <h2 class="font-medium text-slate-900 dark:text-white mb-4">Allocation</h2>
+      @if (donutData().length === 0) {
+        <div class="h-32 flex items-center justify-center">
+          <p class="text-slate-400 text-sm">No holdings yet</p>
+        </div>
+      } @else {
+        <div class="flex items-center gap-4">
+          <app-donut-chart [data]="donutData()" [total]="totalInvested()" [size]="140"/>
+          <div class="space-y-1.5 flex-1 min-w-0">
+            @for (slice of donutData(); track slice.label) {
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-1.5 min-w-0">
+                  <span class="w-2 h-2 rounded-full flex-shrink-0"
+                        [style.background-color]="slice.color"></span>
+                  <span class="text-xs font-mono font-medium
+                               text-slate-700 dark:text-slate-300 truncate">
+                    {{ slice.label }}
                   </span>
                 </div>
-              }
-            </div>
-          </div>
-        }
-      </div>
-
-      <!-- Geographical exposure placeholder -->
-      <div class="rounded-xl border border-slate-200 dark:border-slate-700
-                  bg-white dark:bg-slate-800 p-6">
-        <h2 class="font-medium text-slate-900 dark:text-white mb-4">
-          Geographical Exposure
-        </h2>
-        <div class="h-32 flex items-center justify-center
-                    border border-dashed border-slate-200 dark:border-slate-700 rounded-lg">
-          <div class="text-center">
-            <p class="text-slate-400 text-sm font-medium">Coming soon</p>
-            <p class="text-slate-400 text-xs mt-1">
-              Available in Phase 3
-            </p>
+                <span class="text-xs text-slate-500 dark:text-slate-400 flex-shrink-0">
+                  {{ totalInvested() > 0
+                    ? ((slice.value / totalInvested()) * 100 | number:'1.0-1') + '%'
+                    : '0%' }}
+                </span>
+              </div>
+            }
           </div>
         </div>
-      </div>
-
+      }
     </div>
 
     <!-- Tabs: Holdings / Transactions -->
@@ -418,10 +396,11 @@
 
                 <!-- Badge -->
                 <div class="w-20 flex-shrink-0 flex items-center mr-4">
-                  <span class="inline-flex items-center justify-center
-                               px-2 py-0.5 rounded-md text-xs font-semibold w-full"
+                  <span class="inline-flex items-center justify-center text-center
+                               px-2 py-0.5 rounded-md text-xs font-semibold leading-tight
+                               min-w-[72px]"
                         [class]="getBadgeClass(tx.type)">
-                    {{ tx.type }}
+                    {{ badgeLabel(tx.type) }}
                   </span>
                 </div>
 

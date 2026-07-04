@@ -69,6 +69,7 @@ describe('CryptoAccountDetailComponent', () => {
             deleteTransaction:    jest.fn().mockReturnValue(of(undefined)),
             getPortfolioSummary:  jest.fn().mockReturnValue(null),
             loadAccounts:         jest.fn(),
+            loadPortfolioSummaries: jest.fn(),
           },
         },
         {
@@ -98,6 +99,10 @@ describe('CryptoAccountDetailComponent', () => {
 
   it('displays holding ticker in Holdings tab', () => {
     expect(fixture.nativeElement.textContent).toContain('BTC');
+  });
+
+  it('does not render a geographic exposure section', () => {
+    expect(fixture.nativeElement.textContent).not.toContain('Geographical Exposure');
   });
 
   it('shows transactions tab on click', () => {
