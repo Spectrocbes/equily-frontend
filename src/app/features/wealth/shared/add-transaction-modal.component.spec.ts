@@ -5,7 +5,7 @@ import { AccountService } from '../../../core/services/account.service';
 import { PreferencesService } from '../../../core/services/preferences.service';
 import { ToastService } from '../../../shared/toast/toast.service';
 import { EnrichedHolding, FinancialAccount } from '../../../core/models/account.model';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 
 const mockHoldings: EnrichedHolding[] = [
   {
@@ -299,6 +299,36 @@ describe('AddTransactionModalComponent', () => {
     fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
     expect(mockService.recordTransaction).toHaveBeenCalled();
     expect(createdSpy).toHaveBeenCalled();
+  });
+
+  it('shows backend message on 422 insufficient balance (err.error.message)', () => {
+    (mockService.recordTransaction as jest.Mock).mockReturnValue(
+      throwError(() => ({ status: 422, error: { message: 'Insufficient balance on Mon Compte' } }))
+    );
+    const toastSvc = TestBed.inject(ToastService);
+    jest.spyOn(toastSvc, 'error');
+
+    fixture.componentInstance.onTypeChange('DEPOSIT');
+    fixture.componentInstance['form'].patchValue({ totalAmount: 1000, date: '2026-01-15' });
+    fixture.detectChanges();
+
+    fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
+    expect(toastSvc.error).toHaveBeenCalledWith('Insufficient balance on Mon Compte');
+  });
+
+  it('shows backend message on 422 insufficient balance (plain string err.error)', () => {
+    (mockService.recordTransaction as jest.Mock).mockReturnValue(
+      throwError(() => ({ status: 422, error: 'Insufficient balance on Mon Compte' }))
+    );
+    const toastSvc = TestBed.inject(ToastService);
+    jest.spyOn(toastSvc, 'error');
+
+    fixture.componentInstance.onTypeChange('DEPOSIT');
+    fixture.componentInstance['form'].patchValue({ totalAmount: 1000, date: '2026-01-15' });
+    fixture.detectChanges();
+
+    fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
+    expect(toastSvc.error).toHaveBeenCalledWith('Insufficient balance on Mon Compte');
   });
 
   it('isFormValid returns false when no type selected', () => {

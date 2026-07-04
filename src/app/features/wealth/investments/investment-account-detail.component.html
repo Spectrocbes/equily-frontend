@@ -551,10 +551,11 @@
 
                 <!-- Badge -->
                 <div class="w-20 flex-shrink-0 flex items-center mr-4">
-                  <span class="inline-flex items-center justify-center
-                               px-2 py-0.5 rounded-md text-xs font-semibold w-full"
+                  <span class="inline-flex items-center justify-center text-center
+                               px-2 py-0.5 rounded-md text-xs font-semibold leading-tight
+                               min-w-[72px]"
                         [class]="getBadgeClass(tx.type)">
-                    {{ tx.type }}
+                    {{ badgeLabel(tx.type) }}
                   </span>
                 </div>
 
@@ -700,6 +701,7 @@
     <app-pea-closure-modal
       [simulation]="simulation()!"
       [loading]="closureLoading()"
+      [linkedCheckingAccount]="linkedCheckingAccount()"
       (confirmed)="confirmClosure()"
       (closed)="showClosureModal.set(false)" />
   }

@@ -330,3 +330,15 @@
 - Chart reloads on transaction create / delete / update; chart reloads after account creation in all 4 list components
 - Auth interceptor narrowed: `UNAUTHENTICATED_PATHS` list replaces broad `/auth/` skip so `GET /auth/me` receives Bearer token; `loadCurrentUser()` returns `Promise<void>` (always resolves) to block `APP_INITIALIZER` until user state is ready
 - 390/390 tests, lint clean, build 0 errors
+
+## 2026-07-03 — feat/balance-validation-and-fixes (complete)
+- Toast 422 errors: extracts `err.error?.message` for backend messages
+- PEA closure modal: destination account card (same style as transfer modal)
+- Badge overflow: `WITHDRAWAL` → `WITHDRAW` via `badgeLabel()`
+- Geo exposure reloads after BUY/SELL/DIVIDEND/TRANSFER/DELETE
+- `loadPortfolioSummaries()` called after transactions for live price sync
+- Crypto detail: geographical exposure section removed
+- Date picker: instant scroll to current year (double rAF + scrollTop)
+- Date picker: `goBackToYearMode()` restores year position
+- `investment-account-detail`: `loadAccounts()` on init for `linkedCheckingAccount`
+- 400/400 tests, lint clean, build 0 errors

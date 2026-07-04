@@ -176,6 +176,13 @@ export class CashAccountDetailComponent implements OnInit {
     return map[type] ?? 'bg-slate-100 text-slate-600';
   }
 
+  protected badgeLabel(type: string): string {
+    const labels: Record<string, string> = {
+      'WITHDRAWAL': 'WITHDRAW',
+    };
+    return labels[type] ?? type;
+  }
+
   protected getLinkedAccountName(linkedAccountId: string | null): string | null {
     if (!linkedAccountId) return null;
     const acc = this.accountService.accounts().find(a => a.id === linkedAccountId);

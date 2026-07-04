@@ -592,7 +592,8 @@ export class AddTransactionModalComponent implements OnInit {
       },
       error: (err) => {
         const msg = typeof err.error === 'string'
-          ? err.error : 'Failed to execute transfer';
+          ? err.error
+          : err.error?.message ?? 'Failed to execute transfer';
         this.toastService.error(msg);
         this.loading.set(false);
       }
@@ -636,8 +637,10 @@ export class AddTransactionModalComponent implements OnInit {
       },
       error: (err) => {
         let message = 'Transaction failed. Please try again.';
-        if (err.error && typeof err.error === 'string') {
+        if (typeof err.error === 'string') {
           message = err.error;
+        } else if (err.error?.message) {
+          message = err.error.message;
         } else if (err.status === 422) {
           message = 'Transaction exceeds account limits or available balance.';
         } else if (err.status === 403) {

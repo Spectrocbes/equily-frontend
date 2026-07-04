@@ -164,13 +164,38 @@ export class DatePickerComponent implements OnInit {
     this.headerMode.set('month');
   }
 
-  // Fix 2: auto-scroll to the selected year after entering year mode
+  // Fix 2: jump to the selected year after entering year mode (no animation, so it's visible immediately)
   protected switchToYearMode(): void {
     this.headerMode.set('year');
-    setTimeout(() => {
-      const el = document.getElementById('year-' + this.viewYear());
-      el?.scrollIntoView({ block: 'center', behavior: 'smooth' });
-    }, 50);
+    this.scrollYearListToSelected();
+  }
+
+  protected goBackToYearMode(): void {
+    this.headerMode.set('year');
+    this.scrollYearListToSelected();
+  }
+
+  private scrollYearListToSelected(): void {
+    // Double rAF ensures DOM is fully laid out before measuring
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const container = document.querySelector(
+          '.year-scroll-container'
+        ) as HTMLElement;
+        const selected = document.getElementById(
+          'year-' + this.viewYear()
+        ) as HTMLElement;
+        if (!container || !selected) return;
+
+        const containerHeight = container.clientHeight;
+        const itemTop        = selected.offsetTop;
+        const itemHeight     = selected.clientHeight;
+
+        // Instant scroll — no animation
+        container.scrollTop =
+          itemTop - (containerHeight / 2) + (itemHeight / 2);
+      });
+    });
   }
 
   protected selectToday(): void {

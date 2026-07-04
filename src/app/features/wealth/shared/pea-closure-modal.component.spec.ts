@@ -1,6 +1,7 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
 import { PeaClosureModalComponent } from './pea-closure-modal.component';
-import { PeaWithdrawalSimulation } from '../../../core/models/account.model';
+import { FinancialAccount, PeaWithdrawalSimulation } from '../../../core/models/account.model';
 
 const simBase: PeaWithdrawalSimulation = {
   liquidationValue: 12000,
@@ -29,6 +30,7 @@ describe('PeaClosureModalComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [PeaClosureModalComponent],
+      providers: [provideHttpClient()],
     }).compileComponents();
   });
 
@@ -70,6 +72,26 @@ describe('PeaClosureModalComponent', () => {
     create({ ...simBase, atLoss: true, netGain: -500, totalTax: 0 });
     const text = fixture.nativeElement.textContent;
     expect(text).toContain('No tax due — your PEA is at a loss.');
+  });
+
+  it('shows linked checking account name when provided', () => {
+    create(simBase);
+    const linkedAccount: FinancialAccount = {
+      id: 'cash-1', name: 'Mon Compte Courant', accountType: 'CASH_ACCOUNT',
+      subType: 'CASH_ACCOUNT', balance: 2000, currency: 'EUR', transactionCount: 0,
+      broker: 'BNP', depositLimit: null, totalDeposits: null, remainingCapacity: null,
+      openedAt: null, portfolioValue: null, status: 'ACTIVE', closedAt: null,
+      linkedCheckingAccountId: null,
+    };
+    fixture.componentRef.setInput('linkedCheckingAccount', linkedAccount);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Destination account');
+    expect(fixture.nativeElement.textContent).toContain('Mon Compte Courant');
+  });
+
+  it('hides destination account section when linked checking account is not provided', () => {
+    create(simBase);
+    expect(fixture.nativeElement.textContent).not.toContain('Destination account');
   });
 
   it('emits confirmed on confirm button click', () => {
