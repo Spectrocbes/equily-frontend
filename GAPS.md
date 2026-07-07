@@ -1,6 +1,6 @@
 # GAPS.md — Honest audit of weaknesses
 
-> Ordered by severity, most important first. Each item says what it is, where it lives, why it matters, and a small scoped fix. Facts verified against the code on 2026-07-07 (branch `feat/balance-validation-and-fixes`, 400/400 tests passing, coverage 69.2% statements / 56.3% branches).
+> Ordered by severity, most important first. Each item says what it is, where it lives, why it matters, and a small scoped fix. Facts verified against the code on 2026-07-07 (`main` at `ad91639`, 400/400 tests passing, coverage 69.2% statements / 56.3% branches).
 
 ---
 
@@ -71,7 +71,7 @@
 **Fix:** Add a `typecheck` script: `tsc -p tsconfig.spec.json --noEmit` and add it to CI after lint. Then fix the errors it reveals (start with the missing `eurToTargetRate`).
 
 ## 12. Committed build artifacts: `coverage-new/` is tracked in git
-**Where:** `coverage-new/lcov-report/*` (10 files tracked); `.gitignore` covers `/coverage` and `/coverage-dp` but not `/coverage-new`. `coverage-dp/` and `dist/` also sit untracked in the working tree.
+**Where:** `coverage-new/lcov-report/*` (14 files tracked); `.gitignore` covers `/coverage` and `/coverage-dp` but not `/coverage-new`. `coverage-dp/` and `dist/` also sit untracked in the working tree.
 **Fix:** `git rm -r --cached coverage-new`, add `/coverage-new` (or better, `coverage*`) to `.gitignore`, delete the stale local `coverage-dp/`/`coverage-new/` folders.
 
 ## 13. `EditTransactionModal` builds its `FormGroup` inside a `computed()`
