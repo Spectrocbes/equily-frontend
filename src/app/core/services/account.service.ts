@@ -261,6 +261,15 @@ export class AccountService {
     return this.http.post<{ transferId: string }>('/api/v1/transfers', request);
   }
 
+  deleteAccount(accountId: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${accountId}`).pipe(
+      tap(() => {
+        this._accounts.update(accounts => accounts.filter(a => a.id !== accountId));
+        this._portfolioSummaries.update(summaries => summaries.filter(s => s.accountId !== accountId));
+      })
+    );
+  }
+
   importCsv(
     accountId: string,
     file: File,

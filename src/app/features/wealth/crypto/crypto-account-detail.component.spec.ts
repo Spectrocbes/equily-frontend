@@ -67,6 +67,7 @@ describe('CryptoAccountDetailComponent', () => {
             getTransactions:     jest.fn().mockReturnValue(of([mockTransaction])),
             getEnrichedHoldings:  jest.fn().mockReturnValue(of([mockHoldingWithPrice])),
             deleteTransaction:    jest.fn().mockReturnValue(of(undefined)),
+            deleteAccount:        jest.fn().mockReturnValue(of(undefined)),
             getPortfolioSummary:  jest.fn().mockReturnValue(null),
             loadAccounts:         jest.fn(),
             loadPortfolioSummaries: jest.fn(),
@@ -315,5 +316,63 @@ describe('CryptoAccountDetailComponent', () => {
     comp.loadHistory('ONE_MONTH');
 
     expect(comp.historyLoading()).toBe(false);
+  });
+
+  // --- Delete account tests ---
+
+  it('showDeleteAccountModal is false by default', () => {
+    const comp = fixture.componentInstance as unknown as { showDeleteAccountModal: Signal<boolean> };
+    expect(comp.showDeleteAccountModal()).toBe(false);
+  });
+
+  it('3-dot menu shows Delete account option', () => {
+    const comp = fixture.componentInstance as unknown as { accountMenuOpen: WritableSignal<boolean> };
+    comp.accountMenuOpen.set(true);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Delete account');
+  });
+
+  it('confirmDeleteAccount calls accountService.deleteAccount', () => {
+    const accountService = TestBed.inject(AccountService);
+    const comp = fixture.componentInstance as unknown as { confirmDeleteAccount: () => void };
+    comp.confirmDeleteAccount();
+    expect(accountService.deleteAccount).toHaveBeenCalledWith('crypto-1');
+  });
+
+  it('confirmDeleteAccount shows success toast, reloads and navigates on success', () => {
+    const accountService = TestBed.inject(AccountService);
+    const toastService   = TestBed.inject(ToastService);
+    const router         = TestBed.inject(Router);
+    const navigateSpy    = jest.spyOn(router, 'navigate');
+
+    const comp = fixture.componentInstance as unknown as {
+      showDeleteAccountModal: WritableSignal<boolean>;
+      accountDeleteLoading: WritableSignal<boolean>;
+      confirmDeleteAccount: () => void;
+    };
+    comp.showDeleteAccountModal.set(true);
+    comp.confirmDeleteAccount();
+
+    expect(toastService.success).toHaveBeenCalledWith('Account deleted');
+    expect(accountService.loadAccounts).toHaveBeenCalled();
+    expect(accountService.loadPortfolioSummaries).toHaveBeenCalled();
+    expect(comp.showDeleteAccountModal()).toBe(false);
+    expect(comp.accountDeleteLoading()).toBe(false);
+    expect(navigateSpy).toHaveBeenCalledWith(['/wealth/crypto']);
+  });
+
+  it('confirmDeleteAccount shows error toast on 422 failure', () => {
+    const accountService = TestBed.inject(AccountService);
+    (accountService.deleteAccount as jest.Mock).mockReturnValue(
+      throwError(() => ({ error: 'Cannot delete account with holdings' }))
+    );
+    const toastService = TestBed.inject(ToastService);
+    const comp = fixture.componentInstance as unknown as {
+      accountDeleteLoading: WritableSignal<boolean>;
+      confirmDeleteAccount: () => void;
+    };
+    comp.confirmDeleteAccount();
+    expect(toastService.error).toHaveBeenCalledWith('Cannot delete account with holdings');
+    expect(comp.accountDeleteLoading()).toBe(false);
   });
 });

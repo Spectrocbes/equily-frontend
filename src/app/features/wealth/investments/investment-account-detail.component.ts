@@ -21,6 +21,7 @@ import { DeleteTransactionModalComponent } from '../shared/delete-transaction-mo
 import { CsvImportModalComponent } from '../shared/csv-import-modal.component';
 import { PeaClosureModalComponent } from '../shared/pea-closure-modal.component';
 import { PeaWithdrawalBreakdownModalComponent } from '../shared/pea-withdrawal-breakdown-modal.component';
+import { DeleteAccountModalComponent } from '../shared/delete-account-modal.component';
 import { DonutChartComponent, DonutSlice } from '../../../shared/components/donut-chart/donut-chart.component';
 
 @Component({
@@ -31,7 +32,7 @@ import { DonutChartComponent, DonutSlice } from '../../../shared/components/donu
     AddTransactionModalComponent, EditTransactionModalComponent,
     DeleteTransactionModalComponent,
     CsvImportModalComponent, PeaClosureModalComponent,
-    PeaWithdrawalBreakdownModalComponent,
+    PeaWithdrawalBreakdownModalComponent, DeleteAccountModalComponent,
     DonutChartComponent, EvolutionChartComponent, UserCurrencyPipe,
   ],
   templateUrl: './investment-account-detail.component.html',
@@ -155,6 +156,8 @@ export class InvestmentAccountDetailComponent implements OnInit {
   protected readonly showWithdrawalBreakdownModal = signal(false);
   protected readonly withdrawalBreakdown          = signal<PeaWithdrawalSimulation | null>(null);
   protected readonly withdrawalLoading            = signal(false);
+  protected readonly showDeleteAccountModal       = signal(false);
+  protected readonly accountDeleteLoading         = signal(false);
 
   protected readonly donutData = computed((): DonutSlice[] => {
     const total = this.totalInvested();
@@ -423,6 +426,29 @@ export class InvestmentAccountDetailComponent implements OnInit {
         const msg = typeof err.error === 'string' ? err.error : 'Failed to close PEA';
         this.toastService.error(msg);
         this.closureLoading.set(false);
+      },
+    });
+  }
+
+  protected confirmDeleteAccount(): void {
+    const account = this.account();
+    if (!account) return;
+
+    this.accountDeleteLoading.set(true);
+    this.accountService.deleteAccount(account.id).subscribe({
+      next: () => {
+        this.toastService.success('Account deleted');
+        this.accountDeleteLoading.set(false);
+        this.showDeleteAccountModal.set(false);
+        this.accountService.loadAccounts();
+        this.accountService.loadPortfolioSummaries();
+        this.router.navigate(['/wealth/investments']);
+      },
+      error: (err) => {
+        const msg = typeof err.error === 'string' ? err.error : 'Failed to delete account';
+        this.toastService.error(msg);
+        this.accountDeleteLoading.set(false);
+        this.showDeleteAccountModal.set(false);
       },
     });
   }
