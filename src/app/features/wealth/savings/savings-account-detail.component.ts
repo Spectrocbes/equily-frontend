@@ -13,13 +13,17 @@ import {
 import { AddTransactionModalComponent } from '../shared/add-transaction-modal.component';
 import { EditTransactionModalComponent } from '../shared/edit-transaction-modal.component';
 import { DeleteTransactionModalComponent } from '../shared/delete-transaction-modal.component';
+import { DeleteAccountModalComponent } from '../shared/delete-account-modal.component';
 import { UserCurrencyPipe } from '../../../shared/pipes/user-currency.pipe';
 import { EvolutionChartComponent } from '../../../shared/components/evolution-chart/evolution-chart.component';
 
 @Component({
   selector: 'app-savings-account-detail',
   standalone: true,
-  imports: [CurrencyPipe, DatePipe, RouterLink, AddTransactionModalComponent, EditTransactionModalComponent, DeleteTransactionModalComponent, UserCurrencyPipe, EvolutionChartComponent],
+  imports: [
+    CurrencyPipe, DatePipe, RouterLink, AddTransactionModalComponent, EditTransactionModalComponent,
+    DeleteTransactionModalComponent, DeleteAccountModalComponent, UserCurrencyPipe, EvolutionChartComponent,
+  ],
   templateUrl: './savings-account-detail.component.html',
 })
 export class SavingsAccountDetailComponent implements OnInit {
@@ -56,6 +60,10 @@ export class SavingsAccountDetailComponent implements OnInit {
   protected readonly deletingTransaction = signal<Transaction | null>(null);
   protected readonly deletingTxId        = computed(() => this.deletingTransaction()?.id ?? null);
   protected readonly deleteLoading       = signal(false);
+
+  protected readonly accountMenuOpen        = signal(false);
+  protected readonly showDeleteAccountModal = signal(false);
+  protected readonly accountDeleteLoading   = signal(false);
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -156,6 +164,29 @@ export class SavingsAccountDetailComponent implements OnInit {
         const msg = typeof err.error === 'string' ? err.error : 'Failed to delete transaction';
         this.toastService.error(msg);
         this.deleteLoading.set(false);
+      },
+    });
+  }
+
+  protected confirmDeleteAccount(): void {
+    const account = this.account();
+    if (!account) return;
+
+    this.accountDeleteLoading.set(true);
+    this.accountService.deleteAccount(account.id).subscribe({
+      next: () => {
+        this.toastService.success('Account deleted');
+        this.accountDeleteLoading.set(false);
+        this.showDeleteAccountModal.set(false);
+        this.accountService.loadAccounts();
+        this.accountService.loadPortfolioSummaries();
+        this.router.navigate(['/wealth/savings']);
+      },
+      error: (err) => {
+        const msg = typeof err.error === 'string' ? err.error : 'Failed to delete account';
+        this.toastService.error(msg);
+        this.accountDeleteLoading.set(false);
+        this.showDeleteAccountModal.set(false);
       },
     });
   }

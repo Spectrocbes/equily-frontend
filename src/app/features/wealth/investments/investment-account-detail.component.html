@@ -133,8 +133,8 @@
 
       </div>
 
-      <!-- 3-dot menu (PEA only, not closed) -->
-      @if (isPea() && !isClosed()) {
+      <!-- 3-dot menu -->
+      @if (!isPea() || !isClosed()) {
         <div class="relative flex-shrink-0">
           <button type="button"
                   (click)="accountMenuOpen.set(!accountMenuOpen())"
@@ -157,14 +157,27 @@
             <div class="absolute right-0 top-full mt-1 w-48 z-20
                         rounded-xl border border-slate-200 dark:border-slate-700
                         bg-white dark:bg-slate-800 shadow-lg overflow-hidden">
-              <button type="button"
-                      (click)="accountMenuOpen.set(false); loadClosureSimulation()"
-                      class="w-full flex items-center gap-3 px-4 py-2.5
-                             text-sm text-rose-600 dark:text-rose-400
-                             hover:bg-rose-50 dark:hover:bg-rose-900/20
-                             transition-colors text-left">
-                <span>Close PEA</span>
-              </button>
+              @if (isPea() && !isClosed()) {
+                <button type="button"
+                        (click)="accountMenuOpen.set(false); loadClosureSimulation()"
+                        class="w-full flex items-center gap-3 px-4 py-2.5
+                               text-sm text-rose-600 dark:text-rose-400
+                               hover:bg-rose-50 dark:hover:bg-rose-900/20
+                               transition-colors text-left">
+                  <span>Close PEA</span>
+                </button>
+                <div class="border-t border-slate-100 dark:border-slate-700"></div>
+              }
+              @if (!isPea()) {
+                <button type="button"
+                        (click)="accountMenuOpen.set(false); showDeleteAccountModal.set(true)"
+                        class="w-full flex items-center gap-3 px-4 py-2.5
+                               text-sm text-rose-600 dark:text-rose-400
+                               hover:bg-rose-50 dark:hover:bg-rose-900/20
+                               transition-colors text-left">
+                  <span>Delete account</span>
+                </button>
+              }
             </div>
           }
         </div>
@@ -741,6 +754,15 @@
       [loading]="deleteLoading()"
       (confirmed)="confirmDeleteTransaction()"
       (closed)="deletingTransaction.set(null)" />
+  }
+
+  <!-- Delete Account Modal -->
+  @if (showDeleteAccountModal() && account()) {
+    <app-delete-account-modal
+      [account]="account()!"
+      [loading]="accountDeleteLoading()"
+      (confirmed)="confirmDeleteAccount()"
+      (closed)="showDeleteAccountModal.set(false)" />
   }
 
 </div>

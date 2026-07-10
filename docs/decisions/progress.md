@@ -342,3 +342,11 @@
 - Date picker: `goBackToYearMode()` restores year position
 - `investment-account-detail`: `loadAccounts()` on init for `linkedCheckingAccount`
 - 400/400 tests, lint clean, build 0 errors
+
+## 2026-07-10 — feat/delete-account (complete)
+- `DeleteAccountModalComponent` with confirmation + warning
+- Delete button in 3-dot menu of all 4 detail pages
+- PEA/PEA-PME: "Delete account" hidden (Close PEA only)
+- Closed PEA: 3-dot menu button hidden entirely
+- After deletion: `loadAccounts()` + `loadPortfolioSummaries()` + navigate back
+- 457/457 tests, lint clean, build 0 errors

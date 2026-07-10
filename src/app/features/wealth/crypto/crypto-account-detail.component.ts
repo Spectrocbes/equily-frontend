@@ -18,6 +18,7 @@ import { AddTransactionModalComponent } from '../shared/add-transaction-modal.co
 import { EditTransactionModalComponent } from '../shared/edit-transaction-modal.component';
 import { DeleteTransactionModalComponent } from '../shared/delete-transaction-modal.component';
 import { CsvImportModalComponent } from '../shared/csv-import-modal.component';
+import { DeleteAccountModalComponent } from '../shared/delete-account-modal.component';
 import { DonutChartComponent, DonutSlice } from '../../../shared/components/donut-chart/donut-chart.component';
 import { EvolutionChartComponent } from '../../../shared/components/evolution-chart/evolution-chart.component';
 
@@ -28,6 +29,7 @@ import { EvolutionChartComponent } from '../../../shared/components/evolution-ch
     CurrencyPipe, DatePipe, DecimalPipe, RouterLink,
     AddTransactionModalComponent, EditTransactionModalComponent,
     DeleteTransactionModalComponent, CsvImportModalComponent,
+    DeleteAccountModalComponent,
     DonutChartComponent, EvolutionChartComponent, UserCurrencyPipe,
   ],
   templateUrl: './crypto-account-detail.component.html',
@@ -70,6 +72,10 @@ export class CryptoAccountDetailComponent implements OnInit, OnDestroy {
   protected readonly deletingTransaction = signal<Transaction | null>(null);
   protected readonly deletingTxId        = computed(() => this.deletingTransaction()?.id ?? null);
   protected readonly deleteLoading       = signal(false);
+
+  protected readonly accountMenuOpen        = signal(false);
+  protected readonly showDeleteAccountModal = signal(false);
+  protected readonly accountDeleteLoading   = signal(false);
 
   protected readonly pnlLabel = computed(() => {
     const sym = CURRENCY_SYMBOLS[this.preferencesService.currency()]
@@ -260,6 +266,29 @@ export class CryptoAccountDetailComponent implements OnInit, OnDestroy {
         const msg = typeof err.error === 'string' ? err.error : 'Failed to delete transaction';
         this.toastService.error(msg);
         this.deleteLoading.set(false);
+      },
+    });
+  }
+
+  protected confirmDeleteAccount(): void {
+    const account = this.account();
+    if (!account) return;
+
+    this.accountDeleteLoading.set(true);
+    this.accountService.deleteAccount(account.id).subscribe({
+      next: () => {
+        this.toastService.success('Account deleted');
+        this.accountDeleteLoading.set(false);
+        this.showDeleteAccountModal.set(false);
+        this.accountService.loadAccounts();
+        this.accountService.loadPortfolioSummaries();
+        this.router.navigate(['/wealth/crypto']);
+      },
+      error: (err) => {
+        const msg = typeof err.error === 'string' ? err.error : 'Failed to delete account';
+        this.toastService.error(msg);
+        this.accountDeleteLoading.set(false);
+        this.showDeleteAccountModal.set(false);
       },
     });
   }

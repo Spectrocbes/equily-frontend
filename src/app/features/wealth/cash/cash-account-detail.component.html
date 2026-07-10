@@ -82,6 +82,41 @@
           </svg>
           Add Transaction
         </button>
+
+        <!-- 3-dot menu -->
+        <div class="relative flex-shrink-0">
+          <button type="button"
+                  (click)="accountMenuOpen.set(!accountMenuOpen())"
+                  class="w-8 h-8 rounded-lg flex items-center justify-center
+                         text-slate-400 hover:text-slate-600 dark:hover:text-slate-200
+                         hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <circle cx="12" cy="5" r="1.5"/>
+              <circle cx="12" cy="12" r="1.5"/>
+              <circle cx="12" cy="19" r="1.5"/>
+            </svg>
+          </button>
+
+          @if (accountMenuOpen()) {
+            <div class="fixed inset-0 z-10"
+                 role="button"
+                 tabindex="-1"
+                 (click)="accountMenuOpen.set(false)"
+                 (keydown.escape)="accountMenuOpen.set(false)"></div>
+            <div class="absolute right-0 top-full mt-1 w-48 z-20
+                        rounded-xl border border-slate-200 dark:border-slate-700
+                        bg-white dark:bg-slate-800 shadow-lg overflow-hidden">
+              <button type="button"
+                      (click)="accountMenuOpen.set(false); showDeleteAccountModal.set(true)"
+                      class="w-full flex items-center gap-3 px-4 py-2.5
+                             text-sm text-rose-600 dark:text-rose-400
+                             hover:bg-rose-50 dark:hover:bg-rose-900/20
+                             transition-colors text-left">
+                <span>Delete account</span>
+              </button>
+            </div>
+          }
+        </div>
       </div>
     </div>
 
@@ -280,6 +315,15 @@
       [loading]="deleteLoading()"
       (confirmed)="confirmDeleteTransaction()"
       (closed)="deletingTransaction.set(null)" />
+  }
+
+  <!-- Delete Account Modal -->
+  @if (showDeleteAccountModal() && account()) {
+    <app-delete-account-modal
+      [account]="account()!"
+      [loading]="accountDeleteLoading()"
+      (confirmed)="confirmDeleteAccount()"
+      (closed)="showDeleteAccountModal.set(false)" />
   }
 
 </div>
