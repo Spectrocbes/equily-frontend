@@ -208,6 +208,12 @@
               </p>
             }
           </div>
+        } @else if (selectedType() === 'BUY') {
+          <app-ticker-autocomplete
+            label="Ticker"
+            placeholder="Search (e.g. AAPL, Bitcoin...)"
+            controlName="ticker"
+            [parentForm]="form" />
         } @else {
           <div>
             <label for="ticker" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">

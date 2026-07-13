@@ -1,4 +1,4 @@
-import { Component, OnInit, output, input, inject, signal, computed, HostListener } from '@angular/core';
+import { Component, OnInit, output, input, inject, signal, computed } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
@@ -11,6 +11,7 @@ import {
 import { PreferencesService } from '../../../core/services/preferences.service';
 import { ToastService } from '../../../shared/toast/toast.service';
 import { DatePickerComponent } from '../../../shared/components/date-picker/date-picker.component';
+import { Broker, getBrokersForAccountType } from '../../../core/constants/brokers';
 
 @Component({
   selector: 'app-add-account-modal',
@@ -44,28 +45,6 @@ export class AddAccountModalComponent implements OnInit {
   protected readonly isSingleAccountType = computed(() =>
     (this.allowedTypes()?.length ?? 0) === 1
   );
-
-  protected readonly brokerDropdownOpen = signal(false);
-  protected readonly selectedBroker     = signal<string>('');
-
-  protected readonly brokers: string[] = [
-    'Fortuneo', 'BoursoBank', 'Degiro', 'Trade Republic',
-    'Binance', 'Coinbase', 'Crédit Agricole', 'BNP Paribas',
-    'Société Générale', 'LCL', 'Other',
-  ];
-
-  protected selectBroker(broker: string): void {
-    this.selectedBroker.set(broker);
-    this.form.get('broker')?.setValue(broker);
-    this.brokerDropdownOpen.set(false);
-  }
-
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent): void {
-    if (!(event.target as Element).closest('.broker-dropdown')) {
-      this.brokerDropdownOpen.set(false);
-    }
-  }
 
   private readonly accountTypes: { value: AccountType; label: string }[] = [
     { value: 'PEA', label: 'PEA — Plan Épargne Actions' },
@@ -119,7 +98,7 @@ export class AddAccountModalComponent implements OnInit {
     linkedCheckingAccountId: [null as string | null],
   });
 
-  private readonly formValue = toSignal(this.form.valueChanges, {
+  protected readonly formValue = toSignal(this.form.valueChanges, {
     initialValue: this.form.getRawValue(),
   });
 
@@ -146,6 +125,93 @@ export class AddAccountModalComponent implements OnInit {
   protected readonly initialBalanceCurrencySymbol = computed(() =>
     CURRENCY_SYMBOLS[this.initialBalanceCurrency()] ?? this.initialBalanceCurrency()
   );
+
+  protected readonly availableBrokers = computed((): Broker[] =>
+    getBrokersForAccountType(this.formValue().accountType ?? null)
+  );
+
+  protected readonly brokerDropdownOpen = signal(false);
+  protected readonly brokerSearch = signal('');
+  protected readonly brokerHighlightedIndex = signal(-1);
+
+  protected readonly filteredBrokers = computed(() => {
+    const search = this.brokerSearch().toLowerCase().trim();
+    const all    = this.availableBrokers();
+    if (!search) return all;
+    // Always keep Other at end if it matches or no filter
+    const regular = all.filter(b => b.value !== 'Other');
+    const other   = all.find(b => b.value === 'Other');
+    const filtered = regular.filter(b =>
+      b.label.toLowerCase().includes(search)
+    );
+    if (other && (
+      !search || 'other'.includes(search)
+    )) {
+      filtered.push(other);
+    }
+    return filtered;
+  });
+
+  protected selectBroker(value: string): void {
+    this.form.get('broker')?.setValue(value);
+    this.brokerDropdownOpen.set(false);
+    this.brokerSearch.set('');
+    this.brokerHighlightedIndex.set(-1);
+  }
+
+  protected closeBrokerDropdown(): void {
+    this.brokerDropdownOpen.set(false);
+    this.brokerSearch.set(''); // reset search on close
+    this.brokerHighlightedIndex.set(-1);
+  }
+
+  protected onBrokerSearchInput(value: string): void {
+    this.brokerSearch.set(value);
+    this.brokerHighlightedIndex.set(-1);
+  }
+
+  protected onBrokerKeyDown(event: KeyboardEvent): void {
+    if (!this.brokerDropdownOpen()) return;
+    const all = this.filteredBrokers();
+
+    switch (event.key) {
+      case 'ArrowDown':
+        event.preventDefault();
+        this.brokerHighlightedIndex.update(i => Math.min(i + 1, all.length - 1));
+        this.scrollBrokerIntoView();
+        break;
+      case 'ArrowUp':
+        event.preventDefault();
+        this.brokerHighlightedIndex.update(i => Math.max(i - 1, 0));
+        this.scrollBrokerIntoView();
+        break;
+      case 'Enter': {
+        event.preventDefault();
+        const idx = this.brokerHighlightedIndex();
+        if (idx >= 0 && idx < all.length) {
+          this.selectBroker(all[idx].value);
+        }
+        break;
+      }
+      case 'Escape':
+        this.closeBrokerDropdown();
+        break;
+    }
+  }
+
+  private scrollBrokerIntoView(): void {
+    setTimeout(() => {
+      const el = document.getElementById('broker-option-' + this.brokerHighlightedIndex());
+      el?.scrollIntoView({ block: 'nearest', behavior: 'instant' });
+    }, 0);
+  }
+
+  protected readonly selectedBrokerLabel = computed(() => {
+    const val = this.formValue().broker;
+    if (!val) return null;
+    const all = this.availableBrokers();
+    return all.find(b => b.value === val)?.label ?? val;
+  });
 
   protected today(): string {
     return new Date().toISOString().split('T')[0];
@@ -183,6 +249,10 @@ export class AddAccountModalComponent implements OnInit {
         if (type !== 'CASH_ACCOUNT') {
           this.form.get('initialBalance')?.setValue(0);
         }
+        this.form.get('broker')?.setValue('');
+        this.brokerDropdownOpen.set(false);
+        this.brokerSearch.set('');
+        this.brokerHighlightedIndex.set(-1);
       });
   }
 
