@@ -350,3 +350,11 @@
 - Closed PEA: 3-dot menu button hidden entirely
 - After deletion: `loadAccounts()` + `loadPortfolioSummaries()` + navigate back
 - 457/457 tests, lint clean, build 0 errors
+
+## 2026-07-14 — feat/broker-list-and-ticker-search (complete)
+- `brokers.ts`: `TRADITIONAL_BROKERS` + `CRYPTO_BROKERS` separated; `getBrokersForAccountType()` filters by account type
+- Custom broker dropdown in `AddAccountModalComponent` replaces the native `<select>` — search input + keyboard navigation (ArrowUp/ArrowDown/Enter/Escape); "Other" always sorted last with a visual separator
+- `TickerSearchService`: `GET /api/v1/market-data/search` with 300ms debounce, empty-array fallback on error
+- `TickerAutocompleteComponent`: fixed positioning (escapes modal `overflow` via `getBoundingClientRect()`), keyboard navigation, selected-ticker pill UX
+- Replaces the plain ticker `<input>` for BUY transactions in `AddTransactionModal`; SELL keeps its held-tickers-only dropdown (business rule, left untouched)
+- 496/496 tests, lint clean, build 0 errors

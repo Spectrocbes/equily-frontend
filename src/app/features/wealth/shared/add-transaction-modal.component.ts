@@ -12,6 +12,7 @@ import {
 import { ToastService } from '../../../shared/toast/toast.service';
 import { UserCurrencyPipe } from '../../../shared/pipes/user-currency.pipe';
 import { DatePickerComponent } from '../../../shared/components/date-picker/date-picker.component';
+import { TickerAutocompleteComponent } from '../../../shared/components/ticker-autocomplete/ticker-autocomplete.component';
 
 const ALL_TRANSACTION_TYPES: { value: TransactionType; label: string; icon: string }[] = [
   { value: 'DEPOSIT',    label: 'Deposit',    icon: '↓' },
@@ -27,7 +28,7 @@ const ALL_TRANSACTION_TYPES: { value: TransactionType; label: string; icon: stri
 @Component({
   selector: 'app-add-transaction-modal',
   standalone: true,
-  imports: [ReactiveFormsModule, DecimalPipe, CurrencyPipe, UserCurrencyPipe, DatePickerComponent],
+  imports: [ReactiveFormsModule, DecimalPipe, CurrencyPipe, UserCurrencyPipe, DatePickerComponent, TickerAutocompleteComponent],
   templateUrl: './add-transaction-modal.component.html',
 })
 export class AddTransactionModalComponent implements OnInit {

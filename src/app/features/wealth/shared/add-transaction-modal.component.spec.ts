@@ -1,5 +1,7 @@
 import { signal } from '@angular/core';
 import { TestBed, ComponentFixture } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { AddTransactionModalComponent } from './add-transaction-modal.component';
 import { AccountService } from '../../../core/services/account.service';
 import { PreferencesService } from '../../../core/services/preferences.service';
@@ -86,6 +88,8 @@ describe('AddTransactionModalComponent', () => {
     await TestBed.configureTestingModule({
       imports: [AddTransactionModalComponent],
       providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
         { provide: AccountService, useValue: mockService },
         { provide: PreferencesService, useValue: mockPrefsService },
       ],
@@ -614,11 +618,19 @@ describe('AddTransactionModalComponent', () => {
     expect(options.some(o => o.value === 'MSFT')).toBe(true);
   });
 
-  it('BUY shows free-text ticker input, not a dropdown', () => {
+  it('BUY shows the ticker autocomplete search component, not a dropdown', () => {
     fixture.componentInstance.onTypeChange('BUY');
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('select[formControlName="ticker"]')).toBeNull();
-    expect(fixture.nativeElement.querySelector('input[formControlName="ticker"]')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('app-ticker-autocomplete')).toBeTruthy();
+  });
+
+  it('BUY ticker autocomplete writes selected symbol into the ticker form control', () => {
+    fixture.componentInstance.onTypeChange('BUY');
+    fixture.detectChanges();
+    fixture.componentInstance['form'].get('ticker')?.setValue('AAPL');
+    fixture.detectChanges();
+    expect(fixture.componentInstance['form'].get('ticker')?.value).toBe('AAPL');
   });
 
   it('onSellTickerChange resets quantity and activates max validator', () => {
