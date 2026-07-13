@@ -39,7 +39,7 @@ export class DatePickerComponent implements OnInit {
           this.viewMonth.set(d.getMonth());
         }
       }
-    });
+    }, { allowSignalWrites: true });
   }
 
   protected readonly MONTHS = [

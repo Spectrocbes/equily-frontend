@@ -1,0 +1,109 @@
+<div class="relative">
+  @if (selectedTicker()) {
+    <p class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+      {{ label() }}
+    </p>
+    <div class="flex items-center gap-2 px-3 py-2.5 rounded-lg
+                bg-slate-50 dark:bg-slate-800
+                border border-slate-300 dark:border-slate-500">
+      <div class="flex-1 min-w-0">
+        <span class="text-sm font-semibold text-slate-900 dark:text-white">
+          {{ selectedTicker()!.symbol }}
+        </span>
+        <span class="text-xs text-slate-400 ml-2 truncate">
+          {{ selectedTicker()!.name }}
+        </span>
+      </div>
+      <button type="button" (click)="clearSelection()"
+              class="text-xs text-slate-400
+                     hover:text-slate-600 transition-colors
+                     underline underline-offset-2">
+        Change
+      </button>
+    </div>
+  } @else {
+    <div class="relative">
+      <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+        <span>{{ label() }}</span>
+        <div class="relative mt-1.5">
+          <input #inputEl
+                 [formControl]="searchControl"
+                 type="text"
+                 [placeholder]="placeholder()"
+                 (focus)="openDropdown(inputEl)"
+                 (keydown)="onKeyDown($event)"
+                 class="w-full px-3 py-2.5 pr-10 rounded-lg text-sm
+                        bg-slate-50 dark:bg-slate-900
+                        border border-slate-200 dark:border-slate-600
+                        text-slate-900 dark:text-white
+                        placeholder:text-slate-400
+                        focus:outline-none focus:ring-2
+                        focus:ring-primary-500 transition-colors"/>
+
+          <!-- Icon positioned inside input on right -->
+          <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+            @if (isLoading()) {
+              <div class="w-4 h-4 rounded-full border-2
+                          border-primary-400 border-t-transparent
+                          animate-spin"></div>
+            } @else {
+              <svg class="w-4 h-4 text-slate-400"
+                   fill="none" viewBox="0 0 24 24"
+                   stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
+            }
+          </div>
+        </div>
+      </label>
+
+      @if (isOpen() && results().length > 0) {
+        <div class="fixed inset-0 z-40"
+             role="button"
+             tabindex="-1"
+             (click)="close()"
+             (keydown.escape)="close()"></div>
+        <div class="fixed z-50 rounded-xl
+                    border border-slate-200 dark:border-slate-700
+                    bg-white dark:bg-slate-800
+                    shadow-lg max-h-56 overflow-y-auto"
+             [style.top.px]="dropdownPosition()?.top"
+             [style.left.px]="dropdownPosition()?.left"
+             [style.width.px]="dropdownPosition()?.width">
+          @for (result of results(); track result.symbol; let i = $index) {
+            <button type="button"
+                    [id]="'ticker-option-' + i"
+                    (click)="selectTicker(result)"
+                    class="w-full flex items-center gap-3
+                           px-4 py-3 text-left transition-colors border-b
+                           border-slate-100 dark:border-slate-700/50
+                           last:border-0"
+                    [class]="i === highlightedIndex()
+                      ? 'bg-primary-50 dark:bg-primary-900/20'
+                      : 'hover:bg-slate-50 dark:hover:bg-slate-700'">
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-semibold text-slate-900 dark:text-white">
+                    {{ result.symbol }}
+                  </span>
+                  <span class="text-xs px-1.5 py-0.5 rounded
+                                bg-slate-100 dark:bg-slate-700
+                                text-slate-500 dark:text-slate-400">
+                    {{ result.type }}
+                  </span>
+                </div>
+                <p class="text-xs text-slate-400 truncate mt-0.5">
+                  {{ result.name }}
+                </p>
+              </div>
+              <span class="text-xs text-slate-400 flex-shrink-0">
+                {{ result.exchange }}
+              </span>
+            </button>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

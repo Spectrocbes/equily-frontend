@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild, input, output, inject, computed, signal, effect } from '@angular/core';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { CurrencyPipe, DecimalPipe } from '@angular/common';
+import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { AccountService } from '../../../core/services/account.service';
 import { PreferencesService } from '../../../core/services/preferences.service';
@@ -12,6 +12,7 @@ import {
 import { ToastService } from '../../../shared/toast/toast.service';
 import { UserCurrencyPipe } from '../../../shared/pipes/user-currency.pipe';
 import { DatePickerComponent } from '../../../shared/components/date-picker/date-picker.component';
+import { TickerAutocompleteComponent } from '../../../shared/components/ticker-autocomplete/ticker-autocomplete.component';
 
 const ALL_TRANSACTION_TYPES: { value: TransactionType; label: string; icon: string }[] = [
   { value: 'DEPOSIT',    label: 'Deposit',    icon: '↓' },
@@ -27,7 +28,7 @@ const ALL_TRANSACTION_TYPES: { value: TransactionType; label: string; icon: stri
 @Component({
   selector: 'app-add-transaction-modal',
   standalone: true,
-  imports: [ReactiveFormsModule, DecimalPipe, CurrencyPipe, UserCurrencyPipe, DatePickerComponent],
+  imports: [ReactiveFormsModule, DecimalPipe, CurrencyPipe, DatePipe, UserCurrencyPipe, DatePickerComponent, TickerAutocompleteComponent],
   templateUrl: './add-transaction-modal.component.html',
 })
 export class AddTransactionModalComponent implements OnInit {
@@ -148,6 +149,10 @@ export class AddTransactionModalComponent implements OnInit {
     return account?.balance ?? 0;
   });
 
+  protected readonly showAvailableBalance = computed(() =>
+    ['BUY', 'TRANSFER', 'WITHDRAWAL', 'SELL'].includes(this.selectedType())
+  );
+
   protected readonly destinationAccounts = computed(() => {
     const current    = this.accountId();
     const sourceType = this.accountType();
@@ -210,6 +215,7 @@ export class AddTransactionModalComponent implements OnInit {
 
   protected readonly typeConfirmed = signal(false);
   protected readonly typeDropdownOpen = signal(false);
+  protected readonly destinationDropdownOpen = signal(false);
 
   protected readonly peaTransferForcedClosure = computed(() =>
     this.isInvestmentAccount() &&
@@ -227,6 +233,20 @@ export class AddTransactionModalComponent implements OnInit {
 
   protected readonly step = signal<'form' | 'confirm'>('form');
   protected readonly selectedType = signal<TransactionType | ''>('');
+  protected readonly showConfirmation = signal(false);
+
+  protected readonly defaultTypeForAccount = computed((): TransactionType => {
+    const accountType = this.accountType();
+    if (ACCOUNT_CATEGORY[accountType] === 'investments') return 'BUY';
+    if (accountType === 'CRYPTO_WALLET') return 'BUY';
+    return 'TRANSFER';
+  });
+
+  protected readonly toAccountName = computed(() => {
+    const toId = this.form.get('toAccountId')?.value;
+    if (!toId) return null;
+    return this.accountService.accounts().find(a => a.id === toId)?.name ?? null;
+  });
 
   protected readonly requiresAsset = computed(() =>
     ['BUY', 'SELL'].includes(this.selectedType())
@@ -424,6 +444,7 @@ export class AddTransactionModalComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.selectTypeAndConfirm(this.defaultTypeForAccount());
     this.error.set(null);
     this.loading.set(false);
     if (this.accountSubType() === 'PEA' || this.accountSubType() === 'PEA_PME') {
@@ -458,7 +479,14 @@ export class AddTransactionModalComponent implements OnInit {
     qtyControl?.updateValueAndValidity({ emitEvent: false });
     this.selectedDestinationId.set('');
     this.transferMode.set('internal');
+    this.destinationDropdownOpen.set(false);
     this.resetDate();
+  }
+
+  protected selectDestination(accountId: string): void {
+    this.form.get('toAccountId')?.setValue(accountId);
+    this.selectedDestinationId.set(accountId);
+    this.destinationDropdownOpen.set(false);
   }
 
   protected selectType(value: string): void {
@@ -499,6 +527,25 @@ export class AddTransactionModalComponent implements OnInit {
     qtyControl?.updateValueAndValidity();
   }
 
+  private static readonly SUB_TYPE_LABELS: Record<string, string> = {
+    LIVRET_A:        'Livret A',
+    LDDS:            'LDDS',
+    LEP:             'LEP',
+    LIVRET_JEUNE:    'Livret Jeune',
+    PEA:             'PEA',
+    PEA_PME:         'PEA-PME',
+    COMPTE_TITRES:   'Compte Titres',
+    PER:             'PER',
+    ASSURANCE_VIE:   'Assurance Vie',
+    CASH_ACCOUNT:    'Compte Courant',
+    CRYPTO_WALLET:   'Portefeuille Crypto',
+  };
+
+  protected formatSubType(subType: string | null | undefined): string {
+    if (!subType) return '';
+    return AddTransactionModalComponent.SUB_TYPE_LABELS[subType] ?? subType.replace(/_/g, ' ');
+  }
+
   protected mouseDownOnBackdrop = false;
 
   protected onBackdropMouseDown(event: MouseEvent): void {
@@ -507,9 +554,43 @@ export class AddTransactionModalComponent implements OnInit {
 
   protected onBackdropMouseUp(event: MouseEvent): void {
     if (this.mouseDownOnBackdrop && event.target === event.currentTarget) {
-      this.closed.emit();
+      this.onClose();
     }
     this.mouseDownOnBackdrop = false;
+  }
+
+  protected onClose(): void {
+    this.showConfirmation.set(false);
+    this.destinationDropdownOpen.set(false);
+    this.closed.emit();
+  }
+
+  protected onReview(): void {
+    if (!this.isFormValid()) {
+      this.form.markAllAsTouched();
+      return;
+    }
+    if (!this.validateDateBeforeSubmit()) return;
+
+    const bypassConfirmation =
+      this.peaWithdrawalForcedClosure() ||
+      this.peaTransferForcedClosure() ||
+      this.peaOver5yWithdrawal();
+
+    if (bypassConfirmation) {
+      this.onSubmit();
+      return;
+    }
+    this.showConfirmation.set(true);
+  }
+
+  protected onEditBack(): void {
+    this.showConfirmation.set(false);
+  }
+
+  protected onConfirm(): void {
+    this.showConfirmation.set(false);
+    this.onSubmit();
   }
 
   protected onFeesFocus(): void {

@@ -363,4 +363,206 @@ describe('AddAccountModalComponent', () => {
     fixture.detectChanges();
     expect(form.get('initialBalance')!.value).toBe(0);
   });
+
+  // ── broker list by account category ────────────────────────────────────────
+
+  it('availableBrokers returns CRYPTO list for CRYPTO_WALLET', () => {
+    fixture.componentInstance['form'].get('accountType')!.setValue('CRYPTO_WALLET');
+    fixture.detectChanges();
+    const brokers = fixture.componentInstance['availableBrokers']();
+    expect(brokers.some(b => b.value === 'Binance')).toBe(true);
+    expect(brokers.some(b => b.value === 'BNP Paribas')).toBe(false);
+    expect(brokers.some(b => b.value === 'Other')).toBe(true);
+  });
+
+  it('availableBrokers returns TRADITIONAL list for other types', () => {
+    fixture.componentInstance['form'].get('accountType')!.setValue('PEA');
+    fixture.detectChanges();
+    const brokers = fixture.componentInstance['availableBrokers']();
+    expect(brokers.some(b => b.value === 'BNP Paribas')).toBe(true);
+    expect(brokers.some(b => b.value === 'Binance')).toBe(false);
+    expect(brokers.some(b => b.value === 'Other')).toBe(true);
+  });
+
+  it('broker resets when accountType changes', () => {
+    const form = fixture.componentInstance['form'];
+    form.get('accountType')!.setValue('PEA');
+    form.get('broker')!.setValue('Fortuneo');
+    fixture.detectChanges();
+    expect(form.get('broker')!.value).toBe('Fortuneo');
+
+    form.get('accountType')!.setValue('CRYPTO_WALLET');
+    fixture.detectChanges();
+    expect(form.get('broker')!.value).toBe('');
+  });
+
+  it('brokerDropdownOpen closes when accountType changes', () => {
+    fixture.componentInstance['form'].get('accountType')!.setValue('PEA');
+    fixture.componentInstance['brokerDropdownOpen'].set(true);
+    fixture.detectChanges();
+    fixture.componentInstance['form'].get('accountType')!.setValue('CRYPTO_WALLET');
+    fixture.detectChanges();
+    expect(fixture.componentInstance['brokerDropdownOpen']()).toBe(false);
+  });
+
+  it('selectBroker sets the form value and closes the dropdown', () => {
+    fixture.componentInstance['form'].get('accountType')!.setValue('PEA');
+    fixture.componentInstance['brokerDropdownOpen'].set(true);
+    fixture.componentInstance['selectBroker']('Fortuneo');
+    fixture.detectChanges();
+    expect(fixture.componentInstance['form'].get('broker')!.value).toBe('Fortuneo');
+    expect(fixture.componentInstance['brokerDropdownOpen']()).toBe(false);
+  });
+
+  it('selectedBrokerLabel resolves the label for the selected broker value', () => {
+    fixture.componentInstance['form'].get('accountType')!.setValue('PEA');
+    fixture.componentInstance['selectBroker']('Fortuneo');
+    fixture.detectChanges();
+    expect(fixture.componentInstance['selectedBrokerLabel']()).toBe('Fortuneo');
+  });
+
+  it('selectedBrokerLabel is null when no broker selected', () => {
+    expect(fixture.componentInstance['selectedBrokerLabel']()).toBeNull();
+  });
+
+  it('renders the broker dropdown trigger button, not a native select', () => {
+    expect(fixture.nativeElement.querySelector('select[formcontrolname="broker"]')).toBeNull();
+    const buttons: HTMLButtonElement[] = Array.from(
+      fixture.nativeElement.querySelectorAll('button[type="button"]')
+    );
+    expect(buttons.some(b => b.textContent?.includes('— Select broker —'))).toBe(true);
+  });
+
+  it('clicking the broker trigger opens the options panel', () => {
+    fixture.componentInstance['form'].get('accountType')!.setValue('PEA');
+    fixture.detectChanges();
+    const buttons: HTMLButtonElement[] = Array.from(
+      fixture.nativeElement.querySelectorAll('button[type="button"]')
+    );
+    const trigger = buttons.find(b => b.textContent?.includes('— Select broker —'));
+    trigger!.click();
+    fixture.detectChanges();
+    expect(fixture.componentInstance['brokerDropdownOpen']()).toBe(true);
+    expect(fixture.nativeElement.textContent).toContain('Fortuneo');
+  });
+
+  // ── broker search filter ─────────────────────────────────────────────────────
+
+  it('filteredBrokers filters by label', () => {
+    fixture.componentInstance['form'].get('accountType')!.setValue('PEA');
+    fixture.componentInstance['brokerSearch'].set('bnp');
+    fixture.detectChanges();
+    const results = fixture.componentInstance['filteredBrokers']();
+    expect(results.map(b => b.value)).toEqual(['BNP Paribas']);
+  });
+
+  it('filteredBrokers keeps Other visible when the search matches "other"', () => {
+    fixture.componentInstance['form'].get('accountType')!.setValue('PEA');
+    fixture.componentInstance['brokerSearch'].set('oth');
+    fixture.detectChanges();
+    const results = fixture.componentInstance['filteredBrokers']();
+    expect(results.map(b => b.value)).toEqual(['Other']);
+  });
+
+  it('filteredBrokers shows only Other when search matches nothing else', () => {
+    fixture.componentInstance['form'].get('accountType')!.setValue('PEA');
+    fixture.componentInstance['brokerSearch'].set('zzzzz');
+    fixture.detectChanges();
+    expect(fixture.componentInstance['filteredBrokers']()).toEqual([]);
+  });
+
+  it('closeBrokerDropdown resets search text', () => {
+    fixture.componentInstance['form'].get('accountType')!.setValue('PEA');
+    fixture.componentInstance['brokerSearch'].set('bnp');
+    fixture.componentInstance['closeBrokerDropdown']();
+    expect(fixture.componentInstance['brokerSearch']()).toBe('');
+  });
+
+  // ── broker dropdown keyboard navigation ───────────────────────────────────────
+
+  function brokerKeyEvent(key: string): KeyboardEvent {
+    return new KeyboardEvent('keydown', { key, cancelable: true });
+  }
+
+  it('onBrokerKeyDown does nothing when dropdown is closed', () => {
+    fixture.componentInstance['form'].get('accountType')!.setValue('PEA');
+    fixture.componentInstance['brokerDropdownOpen'].set(false);
+    fixture.componentInstance['onBrokerKeyDown'](brokerKeyEvent('ArrowDown'));
+    expect(fixture.componentInstance['brokerHighlightedIndex']()).toBe(-1);
+  });
+
+  it('ArrowDown moves brokerHighlightedIndex forward and clamps at the last option', () => {
+    fixture.componentInstance['form'].get('accountType')!.setValue('PEA');
+    fixture.componentInstance['brokerDropdownOpen'].set(true);
+    const count = fixture.componentInstance['filteredBrokers']().length;
+
+    for (let n = 0; n < count + 2; n++) {
+      fixture.componentInstance['onBrokerKeyDown'](brokerKeyEvent('ArrowDown'));
+    }
+    expect(fixture.componentInstance['brokerHighlightedIndex']()).toBe(count - 1);
+  });
+
+  it('ArrowUp moves brokerHighlightedIndex backward and clamps at 0', () => {
+    fixture.componentInstance['form'].get('accountType')!.setValue('PEA');
+    fixture.componentInstance['brokerDropdownOpen'].set(true);
+    fixture.componentInstance['brokerHighlightedIndex'].set(2);
+
+    fixture.componentInstance['onBrokerKeyDown'](brokerKeyEvent('ArrowUp'));
+    expect(fixture.componentInstance['brokerHighlightedIndex']()).toBe(1);
+
+    fixture.componentInstance['onBrokerKeyDown'](brokerKeyEvent('ArrowUp'));
+    fixture.componentInstance['onBrokerKeyDown'](brokerKeyEvent('ArrowUp'));
+    expect(fixture.componentInstance['brokerHighlightedIndex']()).toBe(0);
+  });
+
+  it('Enter selects the highlighted broker', () => {
+    fixture.componentInstance['form'].get('accountType')!.setValue('PEA');
+    fixture.componentInstance['brokerDropdownOpen'].set(true);
+    fixture.componentInstance['brokerHighlightedIndex'].set(0);
+    const firstBroker = fixture.componentInstance['filteredBrokers']()[0];
+
+    fixture.componentInstance['onBrokerKeyDown'](brokerKeyEvent('Enter'));
+
+    expect(fixture.componentInstance['form'].get('broker')!.value).toBe(firstBroker.value);
+    expect(fixture.componentInstance['brokerDropdownOpen']()).toBe(false);
+  });
+
+  it('Enter does nothing when no broker is highlighted', () => {
+    fixture.componentInstance['form'].get('accountType')!.setValue('PEA');
+    fixture.componentInstance['brokerDropdownOpen'].set(true);
+
+    fixture.componentInstance['onBrokerKeyDown'](brokerKeyEvent('Enter'));
+
+    expect(fixture.componentInstance['form'].get('broker')!.value).toBe('');
+  });
+
+  it('Escape closes the broker dropdown', () => {
+    fixture.componentInstance['form'].get('accountType')!.setValue('PEA');
+    fixture.componentInstance['brokerDropdownOpen'].set(true);
+
+    fixture.componentInstance['onBrokerKeyDown'](brokerKeyEvent('Escape'));
+
+    expect(fixture.componentInstance['brokerDropdownOpen']()).toBe(false);
+  });
+
+  it('onBrokerSearchInput updates search text and resets brokerHighlightedIndex', () => {
+    fixture.componentInstance['form'].get('accountType')!.setValue('PEA');
+    fixture.componentInstance['brokerHighlightedIndex'].set(3);
+
+    fixture.componentInstance['onBrokerSearchInput']('bnp');
+
+    expect(fixture.componentInstance['brokerSearch']()).toBe('bnp');
+    expect(fixture.componentInstance['brokerHighlightedIndex']()).toBe(-1);
+  });
+
+  it('highlighted broker option gets the highlight class', () => {
+    fixture.componentInstance['form'].get('accountType')!.setValue('PEA');
+    fixture.componentInstance['brokerDropdownOpen'].set(true);
+    fixture.componentInstance['brokerHighlightedIndex'].set(1);
+    fixture.detectChanges();
+
+    const el: HTMLElement | null = fixture.nativeElement.querySelector('#broker-option-1');
+    expect(el).toBeTruthy();
+    expect(el!.className).toContain('bg-primary-50');
+  });
 });
