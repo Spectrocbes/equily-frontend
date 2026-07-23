@@ -10,6 +10,7 @@ import { TickerSearchService, TickerSearchResult } from '../../../core/services/
   standalone: true,
   imports: [ReactiveFormsModule],
   templateUrl: './ticker-autocomplete.component.html',
+  host: { class: 'block' },
 })
 export class TickerAutocompleteComponent implements OnInit {
   label = input<string>('Ticker');

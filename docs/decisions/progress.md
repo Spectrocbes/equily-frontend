@@ -358,3 +358,13 @@
 - `TickerAutocompleteComponent`: fixed positioning (escapes modal `overflow` via `getBoundingClientRect()`), keyboard navigation, selected-ticker pill UX
 - Replaces the plain ticker `<input>` for BUY transactions in `AddTransactionModal`; SELL keeps its held-tickers-only dropdown (business rule, left untouched)
 - 496/496 tests, lint clean, build 0 errors
+
+## 2026-07-20 — feat/transaction-modal-ux (complete)
+- Default transaction type per account (BUY for INVESTMENT/CRYPTO, TRANSFER for SAVINGS/CASH)
+- From card: merged source account + available balance in one compact card
+- `formatSubType()`: human-readable subtype labels (LIVRET_A → Livret A, etc.)
+- Destination dropdown: custom styled (not native select)
+- Confirmation step: amount hero + details card + Edit/Confirm buttons
+- `TickerAutocompleteComponent`: `host: { class: 'block' }` fix for inline display
+- Field order: type → from → ticker/destination → amount → date → description
+- 535/535 tests, lint clean, build 0 errors

@@ -129,8 +129,8 @@ describe('AddTransactionModalComponent', () => {
     fixture.componentRef.setInput('accountType', 'CASH_ACCOUNT');
     fixture.componentRef.setInput('accountSubType', 'CASH_ACCOUNT');
     fixture.detectChanges();
-    // Open the custom dropdown to see the options in the DOM
-    fixture.componentInstance['typeDropdownOpen'].set(true);
+    // Un-confirm the auto-selected default type to see the options list in the DOM
+    fixture.componentInstance['changeType']();
     fixture.detectChanges();
     const text = fixture.nativeElement.textContent;
     ['Deposit', 'Withdrawal', 'Payment', 'Transfer', 'Buy', 'Sell', 'Interest']
@@ -243,7 +243,7 @@ describe('AddTransactionModalComponent', () => {
     fixture.componentInstance['form'].patchValue({ date: '2026-06-01' });
     fixture.detectChanges();
 
-    fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
+    fixture.componentInstance['onConfirm']();
     expect(mockService.executeTransfer).toHaveBeenCalledWith({
       fromAccountId: 'acc-1',
       toAccountId: 'cash-1',
@@ -264,7 +264,7 @@ describe('AddTransactionModalComponent', () => {
     });
     fixture.detectChanges();
 
-    fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
+    fixture.componentInstance['onConfirm']();
     expect(mockService.executeTransfer).toHaveBeenCalledWith(
       expect.objectContaining({
         toAccountId: null,
@@ -300,7 +300,7 @@ describe('AddTransactionModalComponent', () => {
     });
     fixture.detectChanges();
 
-    fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
+    fixture.componentInstance['onConfirm']();
     expect(mockService.recordTransaction).toHaveBeenCalled();
     expect(createdSpy).toHaveBeenCalled();
   });
@@ -316,7 +316,7 @@ describe('AddTransactionModalComponent', () => {
     fixture.componentInstance['form'].patchValue({ totalAmount: 1000, date: '2026-01-15' });
     fixture.detectChanges();
 
-    fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
+    fixture.componentInstance['onConfirm']();
     expect(toastSvc.error).toHaveBeenCalledWith('Insufficient balance on Mon Compte');
   });
 
@@ -331,11 +331,13 @@ describe('AddTransactionModalComponent', () => {
     fixture.componentInstance['form'].patchValue({ totalAmount: 1000, date: '2026-01-15' });
     fixture.detectChanges();
 
-    fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
+    fixture.componentInstance['onConfirm']();
     expect(toastSvc.error).toHaveBeenCalledWith('Insufficient balance on Mon Compte');
   });
 
   it('isFormValid returns false when no type selected', () => {
+    fixture.componentInstance['selectedType'].set('');
+    fixture.detectChanges();
     expect(fixture.componentInstance.isFormValid()).toBe(false);
   });
 
@@ -411,7 +413,7 @@ describe('AddTransactionModalComponent', () => {
       date: '2026-01-15',
     });
     fixture.detectChanges();
-    fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
+    fixture.componentInstance['onConfirm']();
     expect(mockService.recordTransaction).toHaveBeenCalledWith(
       'acc-1',
       expect.objectContaining({ currency: 'EUR' })
@@ -424,7 +426,7 @@ describe('AddTransactionModalComponent', () => {
       ticker: 'AAPL', quantity: 5, pricePerUnit: 200, date: '2026-01-15',
     });
     fixture.detectChanges();
-    fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
+    fixture.componentInstance['onConfirm']();
     expect(mockService.recordTransaction).toHaveBeenCalledWith(
       'acc-1',
       expect.objectContaining({ currency: 'EUR' })
@@ -699,14 +701,17 @@ describe('AddTransactionModalComponent', () => {
   });
 
   it('renders a custom dropdown (not a native select) for type selection when CASH_ACCOUNT', () => {
-    fixture.componentRef.setInput('accountId', 'cash-1');
-    fixture.componentRef.setInput('accountType', 'CASH_ACCOUNT');
-    fixture.componentRef.setInput('accountSubType', 'CASH_ACCOUNT');
-    fixture.detectChanges();
-    const nativeSelect = fixture.nativeElement.querySelector('select:not([formControlName])');
+    // Fresh instance so ngOnInit's Fix 1 default-type selection runs with CASH_ACCOUNT
+    const localFixture = TestBed.createComponent(AddTransactionModalComponent);
+    localFixture.componentRef.setInput('accountId', 'cash-1');
+    localFixture.componentRef.setInput('accountType', 'CASH_ACCOUNT');
+    localFixture.componentRef.setInput('accountSubType', 'CASH_ACCOUNT');
+    localFixture.detectChanges();
+    const nativeSelect = localFixture.nativeElement.querySelector('select:not([formControlName])');
     expect(nativeSelect).toBeFalsy();
-    const text = fixture.nativeElement.textContent;
-    expect(text).toContain('Select transaction type');
+    // Default type is auto-selected (Fix 1) and shown confirmed as a pill
+    const text = localFixture.nativeElement.textContent;
+    expect(text).toContain('Transfer');
   });
 
   // ── destinationAccounts filtering ─────────────────────────────────────────
@@ -812,8 +817,8 @@ describe('AddTransactionModalComponent', () => {
 
   // ── Fix 3: typeConfirmed + selectTypeAndConfirm + changeType ───────────────
 
-  it('typeConfirmed is false by default', () => {
-    expect(fixture.componentInstance['typeConfirmed']()).toBe(false);
+  it('typeConfirmed is true by default (Fix 1 auto-selects a default type on init)', () => {
+    expect(fixture.componentInstance['typeConfirmed']()).toBe(true);
   });
 
   it('selectTypeAndConfirm sets selectedType and marks typeConfirmed true', () => {
@@ -969,5 +974,407 @@ describe('AddTransactionModalComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.componentInstance['validateDateBeforeSubmit']()).toBe(true);
+  });
+
+  // ── Fix 1: defaultTypeForAccount + auto-select on init ─────────────────────
+
+  it('defaultTypeForAccount returns BUY for investment account categories (PEA)', () => {
+    fixture.componentRef.setInput('accountType', 'PEA');
+    fixture.detectChanges();
+    expect(fixture.componentInstance['defaultTypeForAccount']()).toBe('BUY');
+  });
+
+  it('defaultTypeForAccount returns BUY for investment account categories (COMPTE_TITRES)', () => {
+    fixture.componentRef.setInput('accountType', 'COMPTE_TITRES');
+    fixture.detectChanges();
+    expect(fixture.componentInstance['defaultTypeForAccount']()).toBe('BUY');
+  });
+
+  it('defaultTypeForAccount returns BUY for CRYPTO_WALLET', () => {
+    fixture.componentRef.setInput('accountType', 'CRYPTO_WALLET');
+    fixture.detectChanges();
+    expect(fixture.componentInstance['defaultTypeForAccount']()).toBe('BUY');
+  });
+
+  it('defaultTypeForAccount returns TRANSFER for SAVINGS_ACCOUNT', () => {
+    fixture.componentRef.setInput('accountType', 'SAVINGS_ACCOUNT');
+    fixture.detectChanges();
+    expect(fixture.componentInstance['defaultTypeForAccount']()).toBe('TRANSFER');
+  });
+
+  it('defaultTypeForAccount returns TRANSFER for CASH_ACCOUNT', () => {
+    fixture.componentRef.setInput('accountType', 'CASH_ACCOUNT');
+    fixture.detectChanges();
+    expect(fixture.componentInstance['defaultTypeForAccount']()).toBe('TRANSFER');
+  });
+
+  it('ngOnInit auto-selects the default type for the account and confirms it', () => {
+    const localFixture = TestBed.createComponent(AddTransactionModalComponent);
+    localFixture.componentRef.setInput('accountId', 'crypto-1');
+    localFixture.componentRef.setInput('accountType', 'CRYPTO_WALLET');
+    localFixture.detectChanges();
+    expect(localFixture.componentInstance['selectedType']()).toBe('BUY');
+    expect(localFixture.componentInstance['typeConfirmed']()).toBe(true);
+  });
+
+  // ── Fix 2: read-only "From" source account block ───────────────────────────
+
+  it('shows the read-only source account card with name, broker, and formatted subType', () => {
+    fixture.componentRef.setInput('account', mockAccount);
+    fixture.detectChanges();
+    const text = fixture.nativeElement.textContent;
+    expect(text).toContain('Mon PEA');
+    expect(text).toContain('Fortuneo');
+  });
+
+  it('hides the source account card when account input is not provided', () => {
+    const text = fixture.nativeElement.textContent;
+    expect(text).not.toContain('Fortuneo');
+  });
+
+  it('shows the available balance amount inside the source account card for BUY/SELL/TRANSFER/WITHDRAWAL', () => {
+    fixture.componentRef.setInput('account', mockAccount);
+    fixture.componentInstance.onTypeChange('BUY');
+    fixture.detectChanges();
+    const text = fixture.nativeElement.textContent;
+    expect(text).toContain('5,000.00');
+  });
+
+  it('hides the available balance amount for DEPOSIT', () => {
+    fixture.componentRef.setInput('account', mockAccount);
+    fixture.componentInstance.onTypeChange('DEPOSIT');
+    fixture.detectChanges();
+    const text = fixture.nativeElement.textContent;
+    expect(text).not.toContain('5,000.00');
+  });
+
+  // ── Fix 2: formatSubType ────────────────────────────────────────────────────
+
+  it('formatSubType maps known sub-types to their display label', () => {
+    expect(fixture.componentInstance['formatSubType']('LIVRET_A')).toBe('Livret A');
+    expect(fixture.componentInstance['formatSubType']('PEA_PME')).toBe('PEA-PME');
+    expect(fixture.componentInstance['formatSubType']('CASH_ACCOUNT')).toBe('Compte Courant');
+  });
+
+  it('formatSubType falls back to underscore-replaced value for unknown sub-types', () => {
+    expect(fixture.componentInstance['formatSubType']('SOME_NEW_TYPE')).toBe('SOME NEW TYPE');
+  });
+
+  it('formatSubType returns empty string for null or undefined', () => {
+    expect(fixture.componentInstance['formatSubType'](null)).toBe('');
+    expect(fixture.componentInstance['formatSubType'](undefined)).toBe('');
+  });
+
+  // ── Fix 1: showAvailableBalance ──────────────────────────────────────────────
+
+  it('showAvailableBalance is true for BUY, SELL, TRANSFER, WITHDRAWAL', () => {
+    for (const type of ['BUY', 'SELL', 'TRANSFER', 'WITHDRAWAL'] as const) {
+      fixture.componentInstance.onTypeChange(type);
+      fixture.detectChanges();
+      expect(fixture.componentInstance['showAvailableBalance']()).toBe(true);
+    }
+  });
+
+  it('showAvailableBalance is false for DEPOSIT', () => {
+    fixture.componentInstance.onTypeChange('DEPOSIT');
+    fixture.detectChanges();
+    expect(fixture.componentInstance['showAvailableBalance']()).toBe(false);
+  });
+
+  // ── Fix 4: confirmation step (onReview / onEditBack / onConfirm) ───────────
+
+  it('onReview shows confirmation when form valid', () => {
+    fixture.componentInstance.onTypeChange('DEPOSIT');
+    fixture.componentInstance['form'].patchValue({ totalAmount: 1000, date: '2026-01-15' });
+    fixture.detectChanges();
+
+    fixture.componentInstance['onReview']();
+
+    expect(fixture.componentInstance['showConfirmation']()).toBe(true);
+    expect(mockService.recordTransaction).not.toHaveBeenCalled();
+  });
+
+  it('onReview does not show confirmation when form invalid', () => {
+    fixture.componentInstance.onTypeChange('DEPOSIT');
+    fixture.detectChanges();
+
+    fixture.componentInstance['onReview']();
+
+    expect(fixture.componentInstance['showConfirmation']()).toBe(false);
+  });
+
+  it('onReview bypasses confirmation and submits directly for PEA forced closure', () => {
+    fixture.componentRef.setInput('accountSubType', 'PEA');
+    fixture.componentRef.setInput('peaUnder5Years', true);
+    fixture.componentRef.setInput('hasHoldings', false);
+    fixture.componentRef.setInput('currentBalance', 5000);
+    fixture.componentInstance.onTypeChange('WITHDRAWAL');
+    fixture.detectChanges();
+
+    const spy = jest.fn();
+    fixture.componentInstance.peaClosureRequested.subscribe(spy);
+    fixture.componentInstance['onReview']();
+
+    expect(spy).toHaveBeenCalled();
+    expect(fixture.componentInstance['showConfirmation']()).toBe(false);
+  });
+
+  it('onEditBack hides confirmation', () => {
+    fixture.componentInstance['showConfirmation'].set(true);
+    fixture.componentInstance['onEditBack']();
+    expect(fixture.componentInstance['showConfirmation']()).toBe(false);
+  });
+
+  it('onEditBack returns to the editable form view', () => {
+    fixture.componentInstance.onTypeChange('DEPOSIT');
+    fixture.componentInstance['form'].patchValue({ totalAmount: 1000, date: '2026-01-15' });
+    fixture.detectChanges();
+    fixture.componentInstance['onReview']();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('form')).toBeNull();
+
+    fixture.componentInstance['onEditBack']();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('form')).not.toBeNull();
+  });
+
+  it('onConfirm calls submit and hides confirmation', () => {
+    fixture.componentInstance.onTypeChange('DEPOSIT');
+    fixture.componentInstance['form'].patchValue({ totalAmount: 1000, date: '2026-01-15' });
+    fixture.detectChanges();
+
+    fixture.componentInstance['showConfirmation'].set(true);
+    fixture.componentInstance['onConfirm']();
+
+    expect(fixture.componentInstance['showConfirmation']()).toBe(false);
+    expect(mockService.recordTransaction).toHaveBeenCalled();
+  });
+
+  it('showConfirmation resets when modal is closed', () => {
+    fixture.componentInstance['showConfirmation'].set(true);
+    fixture.componentInstance['onClose']();
+    expect(fixture.componentInstance['showConfirmation']()).toBe(false);
+  });
+
+  it('backdrop mousedown+mouseup on the same element closes via onClose and resets confirmation', () => {
+    fixture.componentInstance['showConfirmation'].set(true);
+    const spy = jest.fn();
+    fixture.componentInstance.closed.subscribe(spy);
+
+    const backdrop = fixture.nativeElement.querySelector('[role="presentation"]');
+    const event = { target: backdrop, currentTarget: backdrop } as unknown as MouseEvent;
+    fixture.componentInstance['onBackdropMouseDown'](event);
+    fixture.componentInstance['onBackdropMouseUp'](event);
+
+    expect(spy).toHaveBeenCalled();
+    expect(fixture.componentInstance['showConfirmation']()).toBe(false);
+  });
+
+  it('backdrop mouseup does not close when mousedown originated on a child element', () => {
+    const spy = jest.fn();
+    fixture.componentInstance.closed.subscribe(spy);
+
+    const backdrop = fixture.nativeElement.querySelector('[role="presentation"]');
+    const child = fixture.nativeElement.querySelector('h2');
+    fixture.componentInstance['onBackdropMouseDown'](
+      { target: child, currentTarget: backdrop } as unknown as MouseEvent
+    );
+    fixture.componentInstance['onBackdropMouseUp'](
+      { target: backdrop, currentTarget: backdrop } as unknown as MouseEvent
+    );
+
+    expect(spy).not.toHaveBeenCalled();
+  });
+
+  it('toAccountName returns account name when toAccountId is set', () => {
+    fixture.componentInstance.onTypeChange('TRANSFER');
+    fixture.componentInstance['form'].patchValue({ toAccountId: 'cash-1' });
+    fixture.detectChanges();
+    expect(fixture.componentInstance['toAccountName']()).toBe('Mon Compte');
+  });
+
+  it('toAccountName returns null when toAccountId is empty', () => {
+    fixture.componentInstance.onTypeChange('TRANSFER');
+    fixture.detectChanges();
+    expect(fixture.componentInstance['toAccountName']()).toBeNull();
+  });
+
+  it('renders confirmation recap with type, from, amount, and date after onReview', () => {
+    fixture.componentRef.setInput('accountId', 'cash-1');
+    fixture.componentRef.setInput('accountType', 'CASH_ACCOUNT');
+    fixture.componentRef.setInput('account', mockCashAccount);
+    fixture.componentInstance.onTypeChange('DEPOSIT');
+    fixture.componentInstance['form'].patchValue({
+      totalAmount: 1000, date: '2026-01-15', description: 'Salary',
+    });
+    fixture.detectChanges();
+
+    fixture.componentInstance['onReview']();
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent;
+    expect(text).toContain('DEPOSIT');
+    expect(text).toContain('Mon Compte');
+    expect(text).toContain('Salary');
+  });
+
+  it('renders ticker and quantity rows in confirmation for BUY', () => {
+    fixture.componentInstance.onTypeChange('BUY');
+    fixture.componentInstance['form'].patchValue({
+      ticker: 'AAPL', quantity: 10, pricePerUnit: 150, date: '2026-01-15',
+    });
+    fixture.detectChanges();
+
+    fixture.componentInstance['onReview']();
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent;
+    expect(text).toContain('AAPL');
+    expect(text).toContain('10');
+  });
+
+  it('renders To row in confirmation for TRANSFER with destination account', () => {
+    fixture.componentInstance.onTypeChange('TRANSFER');
+    fixture.componentInstance['form'].patchValue({
+      totalAmount: 300, toAccountId: 'cash-1', date: '2026-01-15',
+    });
+    fixture.detectChanges();
+
+    fixture.componentInstance['onReview']();
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent;
+    expect(text).toContain('Mon Compte');
+  });
+
+  // ── Fix 3: destination custom dropdown ──────────────────────────────────────
+
+  it('does not render a native <select> for destination — custom dropdown instead', () => {
+    fixture.componentRef.setInput('accountId', 'cash-1');
+    fixture.componentRef.setInput('accountType', 'CASH_ACCOUNT');
+    fixture.componentInstance.onTypeChange('TRANSFER');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('select[formControlName="toAccountId"]')).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('Select destination account');
+  });
+
+  it('selectDestination sets toAccountId, selectedDestinationId, and closes the dropdown', () => {
+    fixture.componentRef.setInput('accountId', 'cash-1');
+    fixture.componentRef.setInput('accountType', 'CASH_ACCOUNT');
+    fixture.componentInstance.onTypeChange('TRANSFER');
+    fixture.componentInstance['destinationDropdownOpen'].set(true);
+    fixture.detectChanges();
+
+    fixture.componentInstance['selectDestination']('acc-1');
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance['form'].get('toAccountId')?.value).toBe('acc-1');
+    expect(fixture.componentInstance['selectedDestinationId']()).toBe('acc-1');
+    expect(fixture.componentInstance['destinationDropdownOpen']()).toBe(false);
+  });
+
+  it('shows the selected destination account name, formatted subType, and balance in the dropdown trigger', () => {
+    fixture.componentRef.setInput('accountId', 'cash-1');
+    fixture.componentRef.setInput('accountType', 'CASH_ACCOUNT');
+    fixture.componentInstance.onTypeChange('TRANSFER');
+    fixture.componentInstance['selectDestination']('acc-1');
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent;
+    expect(text).toContain('Mon PEA');
+    expect(text).toContain('PEA');
+  });
+
+  it('renders destination account options with formatSubType applied when dropdown is open', () => {
+    fixture.componentRef.setInput('accountId', 'cash-1');
+    fixture.componentRef.setInput('accountType', 'CASH_ACCOUNT');
+    fixture.componentInstance.onTypeChange('TRANSFER');
+    fixture.componentInstance['destinationDropdownOpen'].set(true);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Livret A');
+  });
+
+  it('shows "No available accounts" when destinationAccounts is empty and dropdown is open', () => {
+    accountsSignal.set([mockCashAccount]);
+    fixture.componentRef.setInput('accountId', 'cash-1');
+    fixture.componentRef.setInput('accountType', 'CASH_ACCOUNT');
+    fixture.componentInstance.onTypeChange('TRANSFER');
+    fixture.componentInstance['destinationDropdownOpen'].set(true);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('No available accounts');
+  });
+
+  it('destinationDropdownOpen resets to false on type change', () => {
+    fixture.componentRef.setInput('accountId', 'cash-1');
+    fixture.componentRef.setInput('accountType', 'CASH_ACCOUNT');
+    fixture.componentInstance.onTypeChange('TRANSFER');
+    fixture.componentInstance['destinationDropdownOpen'].set(true);
+
+    fixture.componentInstance.onTypeChange('DEPOSIT');
+
+    expect(fixture.componentInstance['destinationDropdownOpen']()).toBe(false);
+  });
+
+  it('destinationDropdownOpen resets to false on modal close', () => {
+    fixture.componentInstance['destinationDropdownOpen'].set(true);
+    fixture.componentInstance['onClose']();
+    expect(fixture.componentInstance['destinationDropdownOpen']()).toBe(false);
+  });
+
+  it('clicking the destination dropdown trigger toggles it open and closed', () => {
+    fixture.componentRef.setInput('accountId', 'cash-1');
+    fixture.componentRef.setInput('accountType', 'CASH_ACCOUNT');
+    fixture.componentInstance.onTypeChange('TRANSFER');
+    fixture.detectChanges();
+
+    const trigger = Array.from(
+      fixture.nativeElement.querySelectorAll('button[type="button"]')
+    ).find((b) => (b as HTMLElement).textContent?.includes('Select destination account')) as HTMLButtonElement;
+    expect(trigger).toBeTruthy();
+
+    trigger.click();
+    fixture.detectChanges();
+    expect(fixture.componentInstance['destinationDropdownOpen']()).toBe(true);
+
+    trigger.click();
+    fixture.detectChanges();
+    expect(fixture.componentInstance['destinationDropdownOpen']()).toBe(false);
+  });
+
+  it('clicking a destination option in the dropdown selects it', () => {
+    fixture.componentRef.setInput('accountId', 'cash-1');
+    fixture.componentRef.setInput('accountType', 'CASH_ACCOUNT');
+    fixture.componentInstance.onTypeChange('TRANSFER');
+    fixture.componentInstance['destinationDropdownOpen'].set(true);
+    fixture.detectChanges();
+
+    const optionButtons = Array.from(
+      fixture.nativeElement.querySelectorAll('button[type="button"]')
+    ) as HTMLButtonElement[];
+    const option = optionButtons.find(b => b.textContent?.includes('Mon PEA'));
+    expect(option).toBeTruthy();
+    option!.click();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance['form'].get('toAccountId')?.value).toBe('acc-1');
+    expect(fixture.componentInstance['destinationDropdownOpen']()).toBe(false);
+  });
+
+  it('clicking the dropdown backdrop closes it without selecting', () => {
+    fixture.componentRef.setInput('accountId', 'cash-1');
+    fixture.componentRef.setInput('accountType', 'CASH_ACCOUNT');
+    fixture.componentInstance.onTypeChange('TRANSFER');
+    fixture.componentInstance['destinationDropdownOpen'].set(true);
+    fixture.detectChanges();
+
+    const backdrop: HTMLElement = fixture.nativeElement.querySelector('.z-40');
+    expect(backdrop).toBeTruthy();
+    backdrop.click();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance['destinationDropdownOpen']()).toBe(false);
+    expect(fixture.componentInstance['form'].get('toAccountId')?.value).toBeFalsy();
   });
 });
