@@ -74,6 +74,33 @@ describe('LoginComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Invalid email or password');
   });
 
+  it('sends a normalized (lowercased, trimmed) email on submit', () => {
+    const authService = TestBed.inject(AuthService);
+    const loginSpy = jest.spyOn(authService, 'login').mockReturnValue(of({
+      accessToken: 'tok', refreshToken: 'ref',
+      email: 'test@example.com', displayName: 'Test',
+    }));
+
+    fixture.componentInstance['form'].setValue({
+      email: '  Test@EXAMPLE.com  ',
+      password: 'password',
+    });
+    fixture.nativeElement.querySelector('button[type="submit"]').click();
+
+    expect(loginSpy).toHaveBeenCalledWith({ email: 'test@example.com', password: 'password' });
+  });
+
+  it('onEmailBlur normalizes the visible input value', () => {
+    const emailInput = fixture.nativeElement.querySelector('input[type="email"]') as HTMLInputElement;
+    emailInput.value = '  Test@EXAMPLE.com  ';
+    emailInput.dispatchEvent(new Event('input'));
+    emailInput.dispatchEvent(new Event('blur'));
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance['form'].get('email')?.value).toBe('test@example.com');
+    expect(emailInput.value).toBe('test@example.com');
+  });
+
   it('navigates to /overview on successful login', () => {
     const authService = TestBed.inject(AuthService);
     const router      = TestBed.inject(Router);

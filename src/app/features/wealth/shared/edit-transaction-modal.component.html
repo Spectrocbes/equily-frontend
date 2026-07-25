@@ -145,7 +145,7 @@
           Date
         </span>
         <input formControlName="date" type="date"
-               min="1900-01-01"
+               min="1900-01-01" max="9999-12-31"
                class="w-full px-3 py-2 rounded-lg text-sm
                       bg-slate-50 dark:bg-slate-900
                       border border-slate-200 dark:border-slate-600
@@ -162,6 +162,7 @@
           <span class="text-slate-400 font-normal">(optional)</span>
         </span>
         <input formControlName="description" type="text"
+               maxlength="255"
                placeholder="e.g. Monthly savings"
                class="w-full px-3 py-2 rounded-lg text-sm
                       bg-slate-50 dark:bg-slate-900

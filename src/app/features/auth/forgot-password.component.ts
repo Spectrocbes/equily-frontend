@@ -3,6 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { AuthHeaderComponent } from './auth-header.component';
+import { normalizeEmail } from '../../core/utils/sanitize';
 
 @Component({
   selector: 'app-forgot-password',
@@ -26,11 +27,17 @@ export class ForgotPasswordComponent {
     email: ['', [Validators.required, Validators.email]],
   });
 
+  protected onEmailBlur(): void {
+    const ctrl = this.form.get('email');
+    ctrl?.setValue(normalizeEmail(ctrl.value), { emitEvent: false });
+  }
+
   protected onSubmit(): void {
+    this.onEmailBlur();
     this.submitted.set(true);
     if (this.form.invalid) return;
     this.loading.set(true);
-    this.authService.forgotPassword(this.form.value.email!).subscribe({
+    this.authService.forgotPassword(normalizeEmail(this.form.value.email)).subscribe({
       next: () => {
         this.sent.set(true);
         this.loading.set(false);

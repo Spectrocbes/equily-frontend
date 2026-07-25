@@ -368,3 +368,12 @@
 - `TickerAutocompleteComponent`: `host: { class: 'block' }` fix for inline display
 - Field order: type → from → ticker/destination → amount → date → description
 - 535/535 tests, lint clean, build 0 errors
+
+## 2026-07-25 — feat/email-sanitization — input sanitization (complete)
+- `sanitize.ts`: `normalizeEmail`, `normalizeText`, `normalizeTextOrUndefined`
+- Email: normalized on blur + on submit in login, register, forgot-password
+- Text fields: trim + collapse spaces in `displayName`, `name`, `ticker`, `description`, `externalAddress`
+- `maxlength` attributes on all text inputs (255 email, 72 password, 100 displayName, 255 name/description, 20 ticker)
+- `FormControl` validators on numeric fields (min on totalAmount, pricePerUnit, quantity, fees)
+- Register: 409 → toast "An account with this email already exists"
+- 570/570 tests, lint clean, build 0 errors

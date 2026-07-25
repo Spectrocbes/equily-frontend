@@ -3,6 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { AuthHeaderComponent } from './auth-header.component';
+import { normalizeEmail } from '../../core/utils/sanitize';
 
 @Component({
   selector: 'app-login',
@@ -31,7 +32,13 @@ export class LoginComponent {
     password: ['', Validators.required],
   });
 
+  protected onEmailBlur(): void {
+    const ctrl = this.form.get('email');
+    ctrl?.setValue(normalizeEmail(ctrl.value), { emitEvent: false });
+  }
+
   protected onSubmit(): void {
+    this.onEmailBlur();
     this.submitted.set(true);
     if (this.form.invalid) return;
     this.loading.set(true);
@@ -39,11 +46,12 @@ export class LoginComponent {
     this.unverifiedEmail.set(null);
     this.resendSent.set(false);
     const { email, password } = this.form.getRawValue();
-    this.authService.login({ email: email!, password: password! }).subscribe({
+    const normalizedEmail = normalizeEmail(email);
+    this.authService.login({ email: normalizedEmail, password: password! }).subscribe({
       next: () => this.router.navigate(['/overview']),
       error: (err) => {
         if (err.status === 403) {
-          this.unverifiedEmail.set(email ?? null);
+          this.unverifiedEmail.set(normalizedEmail);
           this.error.set('Please verify your email before signing in.');
         } else if (err.status === 401) {
           this.error.set('Invalid email or password');

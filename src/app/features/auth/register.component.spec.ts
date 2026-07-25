@@ -5,7 +5,8 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { AuthService } from '../../core/services/auth.service';
 import { PreferencesService } from '../../core/services/preferences.service';
-import { of } from 'rxjs';
+import { ToastService } from '../../shared/toast/toast.service';
+import { of, throwError } from 'rxjs';
 
 describe('RegisterComponent', () => {
   let fixture: ComponentFixture<RegisterComponent>;
@@ -101,6 +102,86 @@ describe('RegisterComponent', () => {
       password: 'password123',
     });
     expect(updateSpy).toHaveBeenCalledWith('USD', 'en');
+  });
+
+  it('sends normalized email and trimmed displayName on submit', () => {
+    const authService = TestBed.inject(AuthService);
+    const prefService = TestBed.inject(PreferencesService);
+    const registerSpy = jest.spyOn(authService, 'register').mockReturnValue(of({
+      accessToken: 'tok', refreshToken: 'ref',
+      email: 'john@example.com', displayName: 'John Doe',
+    }));
+    jest.spyOn(prefService, 'update').mockReturnValue(of({
+      currency: 'EUR', locale: 'fr',
+      supportedCurrencies: ['EUR'], eurToTargetRate: 1,
+    }));
+
+    fixture.componentInstance['form'].patchValue({
+      displayName: '  John Doe  ',
+      email: '  John@EXAMPLE.com  ',
+      password: 'password123',
+    });
+    fixture.componentInstance['nextStep']();
+    fixture.componentInstance['onSubmit']();
+
+    expect(registerSpy).toHaveBeenCalledWith({
+      displayName: 'John Doe',
+      email: 'john@example.com',
+      password: 'password123',
+    });
+  });
+
+  it('onEmailBlur normalizes the visible input value', () => {
+    const emailInput = fixture.nativeElement.querySelector('input[type="email"]') as HTMLInputElement;
+    emailInput.value = '  John@EXAMPLE.com  ';
+    emailInput.dispatchEvent(new Event('input'));
+    emailInput.dispatchEvent(new Event('blur'));
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance['form'].get('email')?.value).toBe('john@example.com');
+  });
+
+  it('shows toast on 409 duplicate email', () => {
+    const authService = TestBed.inject(AuthService);
+    const toastService = TestBed.inject(ToastService);
+    jest.spyOn(authService, 'register').mockReturnValue(
+      throwError(() => ({ status: 409, error: 'ignored' }))
+    );
+    jest.spyOn(toastService, 'error');
+
+    fixture.componentInstance['form'].patchValue({
+      displayName: 'John Doe',
+      email: 'john@example.com',
+      password: 'password123',
+    });
+    fixture.componentInstance['nextStep']();
+    fixture.componentInstance['onSubmit']();
+
+    expect(toastService.error).toHaveBeenCalledWith(
+      'An account with this email already exists.'
+    );
+    expect(fixture.componentInstance['loading']()).toBe(false);
+  });
+
+  it('shows backend message on non-409 registration error', () => {
+    const authService = TestBed.inject(AuthService);
+    const toastService = TestBed.inject(ToastService);
+    jest.spyOn(authService, 'register').mockReturnValue(
+      throwError(() => ({ status: 500, error: { code: 'oops' } }))
+    );
+    jest.spyOn(toastService, 'error');
+
+    fixture.componentInstance['form'].patchValue({
+      displayName: 'John Doe',
+      email: 'john@example.com',
+      password: 'password123',
+    });
+    fixture.componentInstance['nextStep']();
+    fixture.componentInstance['onSubmit']();
+
+    expect(toastService.error).toHaveBeenCalledWith(
+      'Registration failed. Please try again.'
+    );
   });
 
   it('navigates to /verify-email after successful registration', () => {

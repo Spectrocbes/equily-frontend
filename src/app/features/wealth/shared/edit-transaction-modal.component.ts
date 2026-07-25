@@ -1,9 +1,10 @@
 import { Component, OnInit, input, output, inject, signal, computed } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { AccountService } from '../../../core/services/account.service';
 import { Transaction } from '../../../core/models/account.model';
 import { ToastService } from '../../../shared/toast/toast.service';
+import { normalizeTextOrUndefined } from '../../../core/utils/sanitize';
 
 @Component({
   selector: 'app-edit-transaction-modal',
@@ -38,13 +39,21 @@ export class EditTransactionModalComponent implements OnInit {
       .includes(this.transaction().type)
   );
 
+  private static readonly dateRangeValidator = (control: AbstractControl) => {
+    const date = new Date(control.value);
+    if (isNaN(date.getTime())) return { invalidDate: true };
+    if (date.getFullYear() > 9999) return { invalidDate: true };
+    if (date.getFullYear() < 1900) return { invalidDate: true };
+    return null;
+  };
+
   protected readonly form = computed(() => {
     const tx = this.transaction();
     return this.fb.group({
       totalAmount:  [tx.totalAmount,  [Validators.min(0.01)]],
       quantity:     [tx.quantity,     [Validators.min(0.0001)]],
       pricePerUnit: [tx.pricePerUnit, [Validators.min(0.01)]],
-      date:         [tx.date,         [Validators.required]],
+      date:         [tx.date,         [Validators.required, EditTransactionModalComponent.dateRangeValidator]],
       fees:         [tx.fees ?? 0,    [Validators.min(0)]],
       description:  [tx.description,  []],
     });
@@ -135,7 +144,7 @@ export class EditTransactionModalComponent implements OnInit {
     const base = {
       date:        v.date!,
       fees:        v.fees ?? 0,
-      description: v.description ?? undefined,
+      description: normalizeTextOrUndefined(v.description),
     };
 
     const data = this.isBuyOrSell()

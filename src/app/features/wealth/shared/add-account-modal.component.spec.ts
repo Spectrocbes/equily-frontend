@@ -209,6 +209,21 @@ describe('AddAccountModalComponent', () => {
     );
   });
 
+  it('trims leading/trailing whitespace from name before submit', () => {
+    const form = fixture.componentInstance['form'];
+    form.setValue({
+      name: '  Test PEA  ', accountType: 'PEA', initialBalance: 1000,
+      broker: 'Fortuneo', subType: 'PEA', openedAt: '2020-01-01',
+      linkedCheckingAccountId: null,
+    });
+    fixture.componentInstance['step'].set(2);
+    fixture.detectChanges();
+    fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
+    expect(mockAccountService.createAccount).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'Test PEA' })
+    );
+  });
+
   it('shows success toast and emits created on successful submit', () => {
     const createdSpy = jest.fn();
     fixture.componentInstance.created.subscribe(createdSpy);

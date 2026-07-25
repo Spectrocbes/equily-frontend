@@ -346,6 +346,7 @@
                 Ticker symbol
               </label>
               <input id="ticker" formControlName="ticker" type="text"
+                     maxlength="20"
                      placeholder="e.g. AAPL, MC.PA, BTC"
                      class="w-full px-3 py-2 rounded-lg text-sm font-mono
                             bg-slate-50 dark:bg-slate-900
@@ -567,6 +568,7 @@
               @if (showExternalOption() && transferMode() === 'external') {
                 <input formControlName="externalAddress"
                        type="text"
+                       maxlength="255"
                        placeholder="Recipient name or address (optional)"
                        class="w-full px-3 py-2 rounded-lg text-sm
                               bg-slate-50 dark:bg-slate-900
@@ -591,6 +593,7 @@
             </label>
             <input id="paymentBeneficiary" formControlName="externalAddress"
                    type="text"
+                   maxlength="255"
                    placeholder="e.g. Supermarket, Rent, Electricity..."
                    class="w-full px-3 py-2 rounded-lg text-sm
                           bg-slate-50 dark:bg-slate-900
@@ -852,6 +855,7 @@
           </label>
           <input id="description" formControlName="description"
                  type="text"
+                 maxlength="255"
                  placeholder="e.g. DCA janvier, Renforcement mensuel"
                  class="w-full px-3 py-2 rounded-lg text-sm
                         bg-slate-50 dark:bg-slate-900
