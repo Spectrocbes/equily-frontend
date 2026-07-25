@@ -10,7 +10,7 @@
   <div class="relative w-full max-w-md rounded-2xl
               bg-white dark:bg-slate-800
               shadow-2xl border border-slate-200 dark:border-slate-700
-              p-6 space-y-5 max-h-[90vh] overflow-y-auto"
+              p-6 space-y-5 max-h-[90vh] overflow-y-auto custom-scrollbar"
        tabindex="-1"
        (click)="$event.stopPropagation()"
        (keydown.escape)="onClose()">
@@ -509,7 +509,7 @@
                                 rounded-xl border border-slate-200
                                 dark:border-slate-700
                                 bg-white dark:bg-slate-800
-                                shadow-lg max-h-48 overflow-y-auto">
+                                shadow-lg max-h-48 overflow-y-auto custom-scrollbar">
                       @for (acc of destinationAccounts(); track acc.id) {
                         <button type="button"
                                 (click)="selectDestination(acc.id)"
@@ -608,14 +608,21 @@
         @if (requiresAsset()) {
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label for="quantity" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                Quantity
+              <div class="flex items-center justify-between mb-1.5">
+                <label for="quantity" class="text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Quantity
+                </label>
                 @if (selectedType() === 'SELL' && maxSellQuantity() !== null) {
-                  <span class="text-slate-400 font-normal text-xs ml-1">
-                    (max: {{ maxSellQuantity() }})
-                  </span>
+                  <button type="button"
+                          (click)="fillMaxQuantity()"
+                          class="text-xs text-primary-500 hover:text-primary-600
+                                 dark:text-primary-400 dark:hover:text-primary-300
+                                 font-medium transition-colors cursor-pointer
+                                 underline underline-offset-2">
+                    Max: {{ maxSellQuantity() }}
+                  </button>
                 }
-              </label>
+              </div>
               <input id="quantity" formControlName="quantity" type="number" step="1" min="0"
                      [max]="selectedType() === 'SELL' ? maxSellQuantity() : null"
                      placeholder="0"

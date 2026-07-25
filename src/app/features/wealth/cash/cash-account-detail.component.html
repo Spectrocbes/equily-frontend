@@ -155,10 +155,11 @@
           <p class="text-slate-400 text-sm">No transactions yet</p>
         </div>
       } @else {
-        <div class="divide-y divide-slate-200 dark:divide-slate-700">
+        <div class="divide-y divide-slate-200 dark:divide-slate-700
+                    max-h-[32rem] overflow-y-auto custom-scrollbar">
           @for (tx of transactions(); track tx.id) {
             <div class="flex items-center gap-0 min-h-[52px] px-6
-                        hover:bg-slate-50 dark:hover:bg-slate-800/30
+                        hover:bg-slate-100/50 dark:hover:bg-slate-700/30
                         transition-colors group relative">
 
               <!-- Date -->
@@ -302,6 +303,7 @@
     <app-edit-transaction-modal
       [accountId]="account()!.id"
       [transaction]="editingTransaction()!"
+      [account]="account()"
       (closed)="editingTransaction.set(null)"
       (updated)="onTransactionUpdated()" />
   }

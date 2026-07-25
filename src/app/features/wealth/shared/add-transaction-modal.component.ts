@@ -510,6 +510,13 @@ export class AddTransactionModalComponent implements OnInit {
     }
   }
 
+  protected fillMaxQuantity(): void {
+    const max = this.maxSellQuantity();
+    if (max != null && max > 0) {
+      this.form.get('quantity')?.setValue(max);
+    }
+  }
+
   protected onSellTickerChange(): void {
     const symbol = this.form.get('ticker')?.value as string;
     const holding = this.heldTickers().find(h => h.symbol === symbol);
