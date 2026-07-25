@@ -13,6 +13,7 @@ import { ToastService } from '../../../shared/toast/toast.service';
 import { UserCurrencyPipe } from '../../../shared/pipes/user-currency.pipe';
 import { DatePickerComponent } from '../../../shared/components/date-picker/date-picker.component';
 import { TickerAutocompleteComponent } from '../../../shared/components/ticker-autocomplete/ticker-autocomplete.component';
+import { normalizeText, normalizeTextOrUndefined } from '../../../core/utils/sanitize';
 
 const ALL_TRANSACTION_TYPES: { value: TransactionType; label: string; icon: string }[] = [
   { value: 'DEPOSIT',    label: 'Deposit',    icon: '↓' },
@@ -258,10 +259,10 @@ export class AddTransactionModalComponent implements OnInit {
 
   protected readonly form = this.fb.group({
     ticker:               [''],
-    quantity:             [null as number | null],
-    pricePerUnit:         [null as number | null],
-    totalAmount:          [null as number | null],
-    fees:                 [0],
+    quantity:             [null as number | null, [Validators.min(0.00000001)]],
+    pricePerUnit:         [null as number | null, [Validators.min(0.01)]],
+    totalAmount:          [null as number | null, [Validators.min(0.01)]],
+    fees:                 [0, [Validators.min(0)]],
     date: [
       new Date().toISOString().split('T')[0],
       [
@@ -658,9 +659,9 @@ export class AddTransactionModalComponent implements OnInit {
       amount:          v.totalAmount!,
       currency:        this.transactionCurrency(),
       date:            v.date!,
-      description:     v.description || null,
+      description:     normalizeText(v.description),
       externalAddress: this.transferMode() === 'external'
-                         ? (v.externalAddress || null)
+                         ? normalizeText(v.externalAddress)
                          : null,
     };
 
@@ -701,15 +702,15 @@ export class AddTransactionModalComponent implements OnInit {
 
     const payload = {
       type,
-      ticker:          needsTicker ? v.ticker ?? undefined : undefined,
+      ticker:          needsTicker ? normalizeTextOrUndefined(v.ticker) : undefined,
       quantity:        needsAsset  ? v.quantity ?? undefined : undefined,
       pricePerUnit:    needsAsset  ? v.pricePerUnit ?? undefined : undefined,
       totalAmount,
       currency:        this.transactionCurrency(),
       fees:            v.fees ?? 0,
       date:            v.date!,
-      description:     v.description || undefined,
-      externalAddress: v.externalAddress || undefined,
+      description:     normalizeTextOrUndefined(v.description),
+      externalAddress: normalizeTextOrUndefined(v.externalAddress),
     };
     this.accountService.recordTransaction(this.accountId(), payload).subscribe({
       next: () => {

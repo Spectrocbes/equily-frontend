@@ -1377,4 +1377,68 @@ describe('AddTransactionModalComponent', () => {
     expect(fixture.componentInstance['destinationDropdownOpen']()).toBe(false);
     expect(fixture.componentInstance['form'].get('toAccountId')?.value).toBeFalsy();
   });
+
+  // ── input sanitization ─────────────────────────────────────────────────────
+
+  it('sends trimmed ticker and description on BUY submit', () => {
+    fixture.componentInstance.onTypeChange('BUY');
+    fixture.componentInstance['form'].patchValue({
+      ticker: '  AAPL  ', quantity: 5, pricePerUnit: 200, date: '2026-01-15',
+      description: '  DCA janvier  ',
+    });
+    fixture.detectChanges();
+
+    fixture.componentInstance['onConfirm']();
+    expect(mockService.recordTransaction).toHaveBeenCalledWith(
+      'acc-1',
+      expect.objectContaining({ ticker: 'AAPL', description: 'DCA janvier' })
+    );
+  });
+
+  it('sends undefined description when the field is whitespace-only', () => {
+    fixture.componentInstance.onTypeChange('BUY');
+    fixture.componentInstance['form'].patchValue({
+      ticker: 'AAPL', quantity: 5, pricePerUnit: 200, date: '2026-01-15',
+      description: '   ',
+    });
+    fixture.detectChanges();
+
+    fixture.componentInstance['onConfirm']();
+    expect(mockService.recordTransaction).toHaveBeenCalledWith(
+      'acc-1',
+      expect.objectContaining({ description: undefined })
+    );
+  });
+
+  // ── FormControl validators (Fix 4) ──────────────────────────────────────────
+
+  it('totalAmount validator rejects 0', () => {
+    fixture.componentInstance.onTypeChange('DEPOSIT');
+    const ctrl = fixture.componentInstance['form'].get('totalAmount');
+    ctrl?.setValue(0);
+    expect(ctrl?.invalid).toBe(true);
+    expect(ctrl?.hasError('min')).toBe(true);
+  });
+
+  it('totalAmount validator accepts a positive value', () => {
+    fixture.componentInstance.onTypeChange('DEPOSIT');
+    const ctrl = fixture.componentInstance['form'].get('totalAmount');
+    ctrl?.setValue(100);
+    expect(ctrl?.valid).toBe(true);
+  });
+
+  it('pricePerUnit validator rejects 0', () => {
+    fixture.componentInstance.onTypeChange('BUY');
+    const ctrl = fixture.componentInstance['form'].get('pricePerUnit');
+    ctrl?.setValue(0);
+    expect(ctrl?.invalid).toBe(true);
+    expect(ctrl?.hasError('min')).toBe(true);
+  });
+
+  it('fees validator rejects a negative value', () => {
+    fixture.componentInstance.onTypeChange('BUY');
+    const ctrl = fixture.componentInstance['form'].get('fees');
+    ctrl?.setValue(-1);
+    expect(ctrl?.invalid).toBe(true);
+  });
 });

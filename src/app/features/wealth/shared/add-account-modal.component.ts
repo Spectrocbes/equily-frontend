@@ -12,6 +12,7 @@ import { PreferencesService } from '../../../core/services/preferences.service';
 import { ToastService } from '../../../shared/toast/toast.service';
 import { DatePickerComponent } from '../../../shared/components/date-picker/date-picker.component';
 import { Broker, getBrokersForAccountType } from '../../../core/constants/brokers';
+import { normalizeTextOrUndefined } from '../../../core/utils/sanitize';
 
 @Component({
   selector: 'app-add-account-modal',
@@ -297,7 +298,7 @@ export class AddAccountModalComponent implements OnInit {
     if (this.form.invalid) return;
     const { name, accountType, initialBalance, broker, subType, openedAt, linkedCheckingAccountId } = this.form.getRawValue();
     this.accountService.createAccount({
-      name: name!,
+      name: normalizeTextOrUndefined(name) ?? '',
       accountType: accountType as AccountType,
       initialBalance: initialBalance!,
       currency: this.initialBalanceCurrency(),

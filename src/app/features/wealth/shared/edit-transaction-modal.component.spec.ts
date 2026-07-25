@@ -153,6 +153,33 @@ describe('EditTransactionModalComponent', () => {
     expect(mockToastService.success).toHaveBeenCalledWith('Transaction updated successfully');
   });
 
+  it('trims leading/trailing whitespace from description on submit', () => {
+    const form = fixture.componentInstance['form']();
+    form.get('description')?.setValue('  Updated note  ');
+    fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
+    expect(mockAccountService.updateTransaction).toHaveBeenCalledWith(
+      'acc-1', 'tx-1',
+      expect.objectContaining({ description: 'Updated note' })
+    );
+  });
+
+  it('sends undefined description when the field is whitespace-only', () => {
+    const form = fixture.componentInstance['form']();
+    form.get('description')?.setValue('   ');
+    fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
+    expect(mockAccountService.updateTransaction).toHaveBeenCalledWith(
+      'acc-1', 'tx-1',
+      expect.objectContaining({ description: undefined })
+    );
+  });
+
+  it('rejects a date beyond year 9999, aligned with add-transaction-modal', () => {
+    const form = fixture.componentInstance['form']();
+    form.get('date')?.setValue('10000-01-01');
+    expect(form.get('date')?.invalid).toBe(true);
+    expect(form.get('date')?.hasError('invalidDate')).toBe(true);
+  });
+
   it('shows toast error and keeps modal open on failure', () => {
     (mockAccountService.updateTransaction as jest.Mock).mockReturnValue(
       throwError(() => ({ error: 'Server error' }))

@@ -6,6 +6,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { PreferencesService } from '../../core/services/preferences.service';
 import { ToastService } from '../../shared/toast/toast.service';
 import { AuthHeaderComponent } from './auth-header.component';
+import { normalizeEmail, normalizeTextOrUndefined } from '../../core/utils/sanitize';
 
 @Component({
   selector: 'app-register',
@@ -55,7 +56,13 @@ export class RegisterComponent {
     locale:   ['fr',  Validators.required],
   });
 
+  protected onEmailBlur(): void {
+    const ctrl = this.form.get('email');
+    ctrl?.setValue(normalizeEmail(ctrl.value), { emitEvent: false });
+  }
+
   protected nextStep(): void {
+    this.onEmailBlur();
     this.submitted.set(true);
     if (this.form.invalid) return;
     this.submitted.set(false);
@@ -69,25 +76,32 @@ export class RegisterComponent {
 
     const { displayName, email, password } = this.form.getRawValue();
     const { currency, locale } = this.preferencesForm.getRawValue();
+    const normalizedEmail = normalizeEmail(email);
+    const trimmedDisplayName = normalizeTextOrUndefined(displayName) ?? '';
 
     this.authService.register({
-      displayName: displayName!,
-      email: email!,
+      displayName: trimmedDisplayName,
+      email: normalizedEmail,
       password: password!,
     }).pipe(
       switchMap(() => this.preferencesService.update(currency!, locale!))
     ).subscribe({
       next: () => this.router.navigate(
         ['/verify-email'],
-        { queryParams: { email: email! } }
+        { queryParams: { email: normalizedEmail } }
       ),
       error: (err) => {
-        this.toastService.error(
-          err.status === 409
-            ? 'An account with this email already exists'
-            : (err.error ?? 'Registration failed. Please try again.')
-        );
         this.loading.set(false);
+        if (err.status === 409) {
+          this.toastService.error(
+            'An account with this email already exists.'
+          );
+        } else {
+          const msg = typeof err.error === 'string'
+            ? err.error
+            : 'Registration failed. Please try again.';
+          this.toastService.error(msg);
+        }
       },
     });
   }
