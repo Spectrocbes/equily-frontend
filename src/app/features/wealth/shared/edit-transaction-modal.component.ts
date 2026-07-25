@@ -2,19 +2,21 @@ import { Component, OnInit, input, output, inject, signal, computed } from '@ang
 import { AbstractControl, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { AccountService } from '../../../core/services/account.service';
-import { Transaction } from '../../../core/models/account.model';
+import { FinancialAccount, Transaction } from '../../../core/models/account.model';
 import { ToastService } from '../../../shared/toast/toast.service';
 import { normalizeTextOrUndefined } from '../../../core/utils/sanitize';
+import { DatePickerComponent } from '../../../shared/components/date-picker/date-picker.component';
 
 @Component({
   selector: 'app-edit-transaction-modal',
   standalone: true,
-  imports: [ReactiveFormsModule, CurrencyPipe, DatePipe],
+  imports: [ReactiveFormsModule, CurrencyPipe, DatePipe, DatePickerComponent],
   templateUrl: './edit-transaction-modal.component.html',
 })
 export class EditTransactionModalComponent implements OnInit {
   accountId   = input.required<string>();
   transaction = input.required<Transaction>();
+  account     = input<FinancialAccount | null>(null);
   closed      = output<void>();
   updated     = output<void>();
 
@@ -89,6 +91,27 @@ export class EditTransactionModalComponent implements OnInit {
 
   protected showError(field: string): boolean {
     return this.submitted() && !!this.form().get(field)?.invalid;
+  }
+
+  protected readonly todayIso = new Date().toISOString().split('T')[0];
+
+  private static readonly SUB_TYPE_LABELS: Record<string, string> = {
+    LIVRET_A:        'Livret A',
+    LDDS:            'LDDS',
+    LEP:             'LEP',
+    LIVRET_JEUNE:    'Livret Jeune',
+    PEA:             'PEA',
+    PEA_PME:         'PEA-PME',
+    COMPTE_TITRES:   'Compte Titres',
+    PER:             'PER',
+    ASSURANCE_VIE:   'Assurance Vie',
+    CASH_ACCOUNT:    'Compte Courant',
+    CRYPTO_WALLET:   'Portefeuille Crypto',
+  };
+
+  protected formatSubType(subType: string | null | undefined): string {
+    if (!subType) return '';
+    return EditTransactionModalComponent.SUB_TYPE_LABELS[subType] ?? subType.replace(/_/g, ' ');
   }
 
   private _mouseDownOnBackdrop = false;

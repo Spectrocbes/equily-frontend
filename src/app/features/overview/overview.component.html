@@ -114,7 +114,7 @@
           No holdings data yet
         </p>
       } @else {
-        <div class="space-y-3">
+        <div class="space-y-3 max-h-64 overflow-y-auto custom-scrollbar">
           @for (p of topPerformers(); track p.ticker + '_' + p.accountName) {
             <div class="flex items-center justify-between">
               <div>

@@ -377,3 +377,13 @@
 - `FormControl` validators on numeric fields (min on totalAmount, pricePerUnit, quantity, fees)
 - Register: 409 → toast "An account with this email already exists"
 - 570/570 tests, lint clean, build 0 errors
+
+## 2026-07-25 — feat/ui-polish-pass (complete)
+- Custom scrollbar utility (`.custom-scrollbar`) applied globally
+- SELL: clickable "Max: X" button fills quantity
+- Edit transaction modal: From card, DatePicker, `formatSubType()`
+- Allocation + geo exposure: scrollable with max-height
+- Transaction row hover: visible in dark mode (`slate-700/30`)
+- Transition-colors audit on all buttons
+- Dark mode consistency audit (no gaps found)
+- 576/576 tests, lint clean, build 0 errors

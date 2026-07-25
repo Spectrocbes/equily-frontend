@@ -2,8 +2,27 @@ import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { EditTransactionModalComponent } from './edit-transaction-modal.component';
 import { AccountService } from '../../../core/services/account.service';
 import { ToastService } from '../../../shared/toast/toast.service';
-import { Transaction } from '../../../core/models/account.model';
+import { FinancialAccount, Transaction } from '../../../core/models/account.model';
 import { of, throwError } from 'rxjs';
+
+const mockAccount: FinancialAccount = {
+  id: 'acc-1',
+  name: 'Boursorama CTO',
+  accountType: 'COMPTE_TITRES',
+  subType: 'COMPTE_TITRES',
+  balance: 1000,
+  currency: 'EUR',
+  transactionCount: 3,
+  broker: 'Boursorama',
+  depositLimit: null,
+  totalDeposits: null,
+  remainingCapacity: null,
+  openedAt: '2023-01-01',
+  portfolioValue: 5000,
+  status: 'ACTIVE',
+  closedAt: null,
+  linkedCheckingAccountId: null,
+};
 
 const depositTransaction: Transaction = {
   id: 'tx-1',
@@ -307,5 +326,33 @@ describe('EditTransactionModalComponent', () => {
     interestFixture.componentInstance['onSubmit']();
     expect(mockToastService.error).toHaveBeenCalledWith('Amount must be greater than zero');
     expect(mockAccountService.updateTransaction).not.toHaveBeenCalled();
+  });
+
+  // ── From card + formatSubType ────────────────────────────────────────────
+
+  it('formatSubType returns human-readable labels for known sub-types', () => {
+    const comp = fixture.componentInstance;
+    expect(comp['formatSubType']('LIVRET_A')).toBe('Livret A');
+    expect(comp['formatSubType']('PEA_PME')).toBe('PEA-PME');
+    expect(comp['formatSubType']('COMPTE_TITRES')).toBe('Compte Titres');
+    expect(comp['formatSubType'](null)).toBe('');
+    expect(comp['formatSubType'](undefined)).toBe('');
+  });
+
+  it('does not render a From card when no account is provided', () => {
+    expect(fixture.nativeElement.textContent).not.toContain('Boursorama');
+  });
+
+  it('renders a From card with the account name, broker and sub-type when account is provided', () => {
+    const accFixture = TestBed.createComponent(EditTransactionModalComponent);
+    accFixture.componentRef.setInput('accountId', 'acc-1');
+    accFixture.componentRef.setInput('transaction', depositTransaction);
+    accFixture.componentRef.setInput('account', mockAccount);
+    accFixture.detectChanges();
+
+    const text = accFixture.nativeElement.textContent;
+    expect(text).toContain('Boursorama CTO');
+    expect(text).toContain('Boursorama');
+    expect(text).toContain('Compte Titres');
   });
 });

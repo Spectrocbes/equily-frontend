@@ -664,7 +664,45 @@ describe('AddTransactionModalComponent', () => {
     fixture.componentInstance['form'].get('ticker')?.setValue('AAPL');
     fixture.componentInstance['onSellTickerChange']();
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('max: 10');
+    expect(fixture.nativeElement.textContent).toContain('Max: 10');
+  });
+
+  it('fillMaxQuantity sets the quantity control to maxSellQuantity', () => {
+    fixture.componentRef.setInput('holdings', mockHoldings);
+    fixture.componentInstance.onTypeChange('SELL');
+    fixture.componentInstance['form'].get('ticker')?.setValue('AAPL');
+    fixture.componentInstance['onSellTickerChange']();
+    fixture.detectChanges();
+
+    fixture.componentInstance['fillMaxQuantity']();
+
+    expect(fixture.componentInstance['form'].get('quantity')?.value).toBe(10);
+  });
+
+  it('fillMaxQuantity does nothing when maxSellQuantity is null', () => {
+    fixture.componentInstance.onTypeChange('SELL');
+    fixture.detectChanges();
+
+    fixture.componentInstance['fillMaxQuantity']();
+
+    expect(fixture.componentInstance['form'].get('quantity')?.value).toBeNull();
+  });
+
+  it('clicking the Max button fills the quantity field', () => {
+    fixture.componentRef.setInput('holdings', mockHoldings);
+    fixture.componentInstance.onTypeChange('SELL');
+    fixture.componentInstance['form'].get('ticker')?.setValue('MSFT');
+    fixture.componentInstance['onSellTickerChange']();
+    fixture.detectChanges();
+
+    const maxButton: HTMLButtonElement = Array.from(
+      fixture.nativeElement.querySelectorAll('button')
+    ).find((b: HTMLButtonElement) => b.textContent?.includes('Max:')) as HTMLButtonElement;
+    expect(maxButton).toBeTruthy();
+    maxButton.click();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance['form'].get('quantity')?.value).toBe(5);
   });
 
   it('isFormValid is false when SELL quantity exceeds held quantity', () => {
