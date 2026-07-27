@@ -18,7 +18,7 @@
     <!-- Header -->
     <div class="flex items-center justify-between">
       <h2 class="text-lg font-semibold text-slate-900 dark:text-white">
-        {{ step() === 1 ? 'Add Account' : 'Confirm Account' }}
+        {{ (step() === 1 ? 'createAccount.title' : 'createAccount.step2Title') | translate }}
       </h2>
       <button type="button" (click)="closed.emit()"
               class="w-8 h-8 rounded-lg flex items-center justify-center
@@ -56,14 +56,14 @@
         <!-- Name -->
         <div>
           <label for="account-name" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-            Account name
+            {{ 'createAccount.name' | translate }}
           </label>
           <input
             id="account-name"
             formControlName="name"
             type="text"
             maxlength="255"
-            placeholder="e.g. Mon PEA Fortuneo"
+            [placeholder]="'createAccount.namePlaceholder' | translate"
             class="w-full px-3 py-2 rounded-lg text-sm
                    bg-slate-50 dark:bg-slate-900
                    border border-slate-200 dark:border-slate-600
@@ -72,7 +72,7 @@
                    focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
                    transition-colors"/>
           @if (showError('name')) {
-            <p class="text-rose-500 text-xs mt-1">Account name is required</p>
+            <p class="text-rose-500 text-xs mt-1">{{ 'createAccount.nameRequired' | translate }}</p>
           }
         </div>
 
@@ -80,7 +80,7 @@
           <!-- Account type -->
           <div>
             <label for="account-type" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-              Account type
+              {{ 'createAccount.accountType' | translate }}
             </label>
             <div class="relative">
               <select
@@ -93,7 +93,7 @@
                        text-slate-900 dark:text-white
                        focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
                        transition-colors">
-                <option value="" disabled selected>— Select account type —</option>
+                <option value="" disabled selected>{{ 'createAccount.selectType' | translate }}</option>
                 @for (type of filteredAccountTypes(); track type.value) {
                   <option [value]="type.value">{{ type.label }}</option>
                 }
@@ -105,7 +105,7 @@
               </svg>
             </div>
             @if (showError('accountType')) {
-              <p class="text-rose-500 text-xs mt-1">Account type is required</p>
+              <p class="text-rose-500 text-xs mt-1">{{ 'createAccount.accountTypeRequired' | translate }}</p>
             }
           </div>
         }
@@ -116,7 +116,7 @@
             <label for="account-sub-type"
                    class="block text-sm font-medium
                            text-slate-700 dark:text-slate-300 mb-1.5">
-              {{ isSingleAccountType() ? 'Account type' : 'Account sub-type' }}
+              {{ (isSingleAccountType() ? 'createAccount.accountType' : 'createAccount.subType') | translate }}
             </label>
             <div class="relative">
               <select id="account-sub-type" formControlName="subType"
@@ -126,9 +126,9 @@
                              border border-slate-200 dark:border-slate-600
                              text-slate-900 dark:text-white
                              focus:outline-none focus:ring-2 focus:ring-primary-500">
-                <option [value]="null" disabled selected>— Select type —</option>
+                <option [value]="null" disabled selected>{{ 'createAccount.selectSubType' | translate }}</option>
                 @for (st of availableSubTypes(); track st) {
-                  <option [value]="st">{{ ACCOUNT_SUB_TYPE_LABELS[st] }}</option>
+                  <option [value]="st">{{ 'subType.' + st | translate }}</option>
                 }
               </select>
               <svg class="absolute right-3 top-1/2 -translate-y-1/2
@@ -138,10 +138,10 @@
               </svg>
             </div>
             <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">
-              Enables deposit limit tracking (e.g. Livret A: 22 950 €)
+              {{ 'createAccount.depositLimitHint' | translate }}
             </p>
             @if (showError('subType')) {
-              <p class="text-rose-500 text-xs mt-1">Please select an account type</p>
+              <p class="text-rose-500 text-xs mt-1">{{ 'createAccount.subTypeRequired' | translate }}</p>
             }
           </div>
         }
@@ -150,7 +150,7 @@
         @if (isPeaSubType()) {
           <div>
             <label for="linkedCheckingAccountId" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-              Linked checking account
+              {{ 'createAccount.linkedCheckingAccount' | translate }}
               <span class="text-rose-500 ml-1">*</span>
             </label>
 
@@ -164,7 +164,7 @@
                                text-slate-900 dark:text-white
                                focus:outline-none focus:ring-2
                                focus:ring-primary-500">
-                  <option [value]="null">Select a checking account</option>
+                  <option [value]="null">{{ 'createAccount.selectCheckingAccount' | translate }}</option>
                   @for (acc of checkingAccounts(); track acc.id) {
                     <option [value]="acc.id">{{ acc.name }}</option>
                   }
@@ -181,8 +181,7 @@
               <div class="rounded-xl bg-amber-50 dark:bg-amber-900/20
                           border border-amber-200 dark:border-amber-700
                           px-4 py-3 text-sm text-amber-600 dark:text-amber-400">
-                ⚠️ No checking account found. Please create a checking
-                account first before opening a PEA.
+                ⚠️ {{ 'createAccount.noCheckingAccountWarning' | translate }}
               </div>
             }
           </div>
@@ -191,7 +190,7 @@
         <!-- Broker -->
         <div>
           <p class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-            Broker / Platform
+            {{ 'createAccount.broker' | translate }}
           </p>
           <div class="relative">
             <!-- Trigger button -->
@@ -206,7 +205,7 @@
                            focus:outline-none focus:ring-2
                            focus:ring-primary-500 transition-colors">
               <span [class.text-slate-400]="!selectedBrokerLabel()">
-                {{ selectedBrokerLabel() ?? '— Select broker —' }}
+                {{ selectedBrokerLabel() ?? ('createAccount.selectBroker' | translate) }}
               </span>
               <svg class="w-4 h-4 text-slate-400 flex-shrink-0
                           transition-transform"
@@ -238,7 +237,7 @@
                             dark:border-slate-700">
                   <div class="relative">
                     <input type="text"
-                           placeholder="Search broker..."
+                           [placeholder]="'createAccount.searchBroker' | translate"
                            [value]="brokerSearch()"
                            (input)="onBrokerSearchInput($any($event.target).value)"
                            (keydown)="onBrokerKeyDown($event)"
@@ -264,7 +263,7 @@
                 <div class="max-h-48 overflow-y-auto custom-scrollbar">
                   @if (filteredBrokers().length === 0) {
                     <p class="px-4 py-3 text-sm text-slate-400 text-center">
-                      No broker found
+                      {{ 'createAccount.noBrokerFound' | translate }}
                     </p>
                   }
                   @for (broker of filteredBrokers(); track broker.value; let i = $index) {
@@ -296,14 +295,14 @@
           </div>
 
           @if (showError('broker')) {
-            <p class="text-rose-500 text-xs mt-1">Broker is required</p>
+            <p class="text-rose-500 text-xs mt-1">{{ 'createAccount.brokerRequired' | translate }}</p>
           }
         </div>
 
         <!-- Opening date -->
         <div>
           <app-date-picker
-            label="Opening date"
+            [label]="'createAccount.openingDate' | translate"
             controlName="openedAt"
             [parentForm]="form"
             [maxDate]="todayIso" />
@@ -313,7 +312,7 @@
         @if (showInitialBalance()) {
           <div>
             <label for="initial-balance" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-              Initial balance
+              {{ 'createAccount.initialBalance' | translate }}
               <span class="text-slate-400 font-normal text-xs ml-1">
                 ({{ initialBalanceCurrency() }})
               </span>
@@ -351,13 +350,13 @@
                          text-slate-700 dark:text-slate-300
                          hover:bg-slate-50 dark:hover:bg-slate-700
                          transition-colors">
-            Cancel
+            {{ 'common.cancel' | translate }}
           </button>
           <button type="button" (click)="nextStep()"
                   class="flex-1 px-4 py-2 rounded-lg text-sm font-medium
                          bg-primary-500 hover:bg-primary-600
                          text-white transition-colors">
-            Next →
+            {{ 'common.next' | translate }}
           </button>
         </div>
 
@@ -370,36 +369,36 @@
                     border border-slate-200 dark:border-slate-700 p-4 space-y-3">
 
           <div class="flex justify-between text-sm">
-            <span class="text-slate-500 dark:text-slate-400">Name</span>
+            <span class="text-slate-500 dark:text-slate-400">{{ 'createAccount.summaryName' | translate }}</span>
             <span class="font-medium text-slate-900 dark:text-white">{{ form.value.name }}</span>
           </div>
 
           @if (isSingleAccountType() && form.value.subType) {
             <div class="flex justify-between text-sm">
-              <span class="text-slate-500 dark:text-slate-400">Type</span>
+              <span class="text-slate-500 dark:text-slate-400">{{ 'createAccount.summaryType' | translate }}</span>
               <span class="font-medium text-slate-900 dark:text-white">
-                {{ ACCOUNT_SUB_TYPE_LABELS[form.value.subType!] }}
+                {{ 'subType.' + form.value.subType | translate }}
               </span>
             </div>
           } @else {
             <div class="flex justify-between text-sm">
-              <span class="text-slate-500 dark:text-slate-400">Type</span>
+              <span class="text-slate-500 dark:text-slate-400">{{ 'createAccount.summaryType' | translate }}</span>
               <span class="font-medium text-slate-900 dark:text-white">
-                {{ ACCOUNT_TYPE_LABELS[form.value.accountType!] }}
+                {{ accountTypeTranslationKey(form.value.accountType) | translate }}
               </span>
             </div>
           }
 
           @if (form.value.broker) {
             <div class="flex justify-between text-sm">
-              <span class="text-slate-500 dark:text-slate-400">Broker</span>
+              <span class="text-slate-500 dark:text-slate-400">{{ 'createAccount.summaryBroker' | translate }}</span>
               <span class="font-medium text-slate-900 dark:text-white">{{ form.value.broker }}</span>
             </div>
           }
 
           @if (form.value.openedAt) {
             <div class="flex justify-between text-sm">
-              <span class="text-slate-500 dark:text-slate-400">Opened</span>
+              <span class="text-slate-500 dark:text-slate-400">{{ 'account.openedAt' | translate }}</span>
               <span class="font-medium text-slate-900 dark:text-white">
                 {{ form.value.openedAt | date:'mediumDate' }}
               </span>
@@ -408,7 +407,7 @@
 
           @if (isPeaSubType() && linkedAccountName()) {
             <div class="flex justify-between text-sm">
-              <span class="text-slate-500 dark:text-slate-400">Linked account</span>
+              <span class="text-slate-500 dark:text-slate-400">{{ 'createAccount.summaryLinkedAccount' | translate }}</span>
               <span class="font-medium text-slate-900 dark:text-white">
                 {{ linkedAccountName() }}
               </span>
@@ -417,7 +416,7 @@
 
           @if (showInitialBalance()) {
             <div class="flex justify-between text-sm">
-              <span class="text-slate-500 dark:text-slate-400">Initial balance</span>
+              <span class="text-slate-500 dark:text-slate-400">{{ 'createAccount.initialBalance' | translate }}</span>
               <span class="font-medium font-mono text-slate-900 dark:text-white">
                 {{ form.value.initialBalance | number:'1.2-2' }} {{ initialBalanceCurrencySymbol() }}
               </span>
@@ -434,7 +433,7 @@
                          text-slate-700 dark:text-slate-300
                          hover:bg-slate-50 dark:hover:bg-slate-700
                          transition-colors">
-            ← Back
+            ← {{ 'common.back' | translate }}
           </button>
           <button type="submit"
                   [disabled]="loading()"
@@ -443,9 +442,9 @@
                          disabled:bg-primary-300 dark:disabled:bg-primary-800
                          text-white transition-colors">
             @if (loading()) {
-              <span>Creating...</span>
+              <span>{{ 'createAccount.creating' | translate }}</span>
             } @else {
-              <span>Confirm & Create</span>
+              <span>{{ 'createAccount.confirmCreate' | translate }}</span>
             }
           </button>
         </div>

@@ -6,6 +6,7 @@ import { SettingsComponent } from './settings.component';
 import { PreferencesService } from '../../core/services/preferences.service';
 import { ToastService } from '../../shared/toast/toast.service';
 import { UserPreferences } from '../../core/models/account.model';
+import { provideTestTranslations, useTestTranslations } from '../../../testing/translate-testing';
 
 const mockPrefs: UserPreferences = {
   currency: 'EUR',
@@ -18,6 +19,7 @@ function createPrefsServiceMock(prefs = mockPrefs) {
   return {
     preferences: _prefs.asReadonly(),
     currency: () => _prefs().currency,
+    locale: () => _prefs().locale,
     currencySymbol: () => '€',
     load: jest.fn(),
     update: jest.fn().mockReturnValue(of({ ...prefs })),
@@ -35,6 +37,7 @@ describe('SettingsComponent', () => {
     await TestBed.configureTestingModule({
       imports: [SettingsComponent],
       providers: [
+        provideTestTranslations(),
         { provide: PreferencesService, useValue: prefsService },
         { provide: ToastService, useValue: toastService },
       ],
@@ -43,17 +46,53 @@ describe('SettingsComponent', () => {
 
   function createComponent() {
     const fixture = TestBed.createComponent(SettingsComponent);
+    useTestTranslations();
     fixture.detectChanges();
     return fixture;
   }
 
-  it('renders one nav button per section (3 sections)', () => {
+  it('renders one nav button per section (4 sections)', () => {
     const fixture = createComponent();
     const navButtons = fixture.debugElement.queryAll(By.css('nav button'));
-    expect(navButtons.length).toBe(3);
+    expect(navButtons.length).toBe(4);
     expect(navButtons[0].nativeElement.textContent.trim()).toBe('Currency');
-    expect(navButtons[1].nativeElement.textContent.trim()).toBe('Appearance');
-    expect(navButtons[2].nativeElement.textContent.trim()).toBe('Notifications');
+    expect(navButtons[1].nativeElement.textContent.trim()).toBe('Language');
+    expect(navButtons[2].nativeElement.textContent.trim()).toBe('Appearance');
+    expect(navButtons[3].nativeElement.textContent.trim()).toBe('Notifications');
+  });
+
+  it('switching to language section shows EN/FR buttons', () => {
+    const fixture = createComponent();
+    const component = fixture.componentInstance as unknown as {
+      activeSection: ReturnType<typeof signal<'currency' | 'language' | 'appearance' | 'notifications'>>;
+    };
+    component.activeSection.set('language');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('English');
+    expect(fixture.nativeElement.textContent).toContain('Français');
+  });
+
+  it('setLocale calls preferencesService.update with current currency and new locale', () => {
+    const fixture = createComponent();
+    const component = fixture.componentInstance as unknown as {
+      activeSection: ReturnType<typeof signal<'currency' | 'language' | 'appearance' | 'notifications'>>;
+      setLocale: (locale: string) => void;
+    };
+    component.activeSection.set('language');
+    fixture.detectChanges();
+    component.setLocale('fr-FR');
+    expect(prefsService.update).toHaveBeenCalledWith('EUR', 'fr-FR');
+    expect(toastService.success).toHaveBeenCalledWith('Preferences saved');
+  });
+
+  it('setLocale shows an error toast when the update fails', () => {
+    prefsService.update.mockReturnValue(throwError(() => new Error('fail')));
+    const fixture = createComponent();
+    const component = fixture.componentInstance as unknown as {
+      setLocale: (locale: string) => void;
+    };
+    component.setLocale('en');
+    expect(toastService.error).toHaveBeenCalledWith('An error occurred');
   });
 
   it('defaults to currency section showing pill buttons', () => {
@@ -71,7 +110,7 @@ describe('SettingsComponent', () => {
   it('switching to appearance section hides currency pills', () => {
     const fixture = createComponent();
     const component = fixture.componentInstance as unknown as {
-      activeSection: ReturnType<typeof signal<'currency' | 'appearance' | 'notifications'>>;
+      activeSection: ReturnType<typeof signal<'currency' | 'language' | 'appearance' | 'notifications'>>;
     };
     component.activeSection.set('appearance');
     fixture.detectChanges();
@@ -84,7 +123,7 @@ describe('SettingsComponent', () => {
   it('switching to notifications section shows notifications content', () => {
     const fixture = createComponent();
     const component = fixture.componentInstance as unknown as {
-      activeSection: ReturnType<typeof signal<'currency' | 'appearance' | 'notifications'>>;
+      activeSection: ReturnType<typeof signal<'currency' | 'language' | 'appearance' | 'notifications'>>;
     };
     component.activeSection.set('notifications');
     fixture.detectChanges();

@@ -5,6 +5,7 @@ import { signal } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { AccountSummary, FinancialAccount, AccountPortfolioSummary } from '../../core/models/account.model';
+import { provideTestTranslations, useTestTranslations } from '../../../testing/translate-testing';
 
 const peaAccount: FinancialAccount = {
   id: '1', name: 'Mon PEA', accountType: 'PEA',
@@ -47,6 +48,7 @@ describe('OverviewComponent', () => {
       providers: [
         provideRouter([]),
         provideHttpClient(),
+        provideTestTranslations(),
         {
           provide: AccountService,
           useValue: {
@@ -68,6 +70,7 @@ describe('OverviewComponent', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(OverviewComponent);
+    useTestTranslations();
     fixture.detectChanges();
   });
 

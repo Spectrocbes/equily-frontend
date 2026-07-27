@@ -1,4 +1,5 @@
 import { Component, input, output, inject, signal, computed } from '@angular/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AccountService } from '../../../core/services/account.service';
 import { ToastService } from '../../../shared/toast/toast.service';
 import {
@@ -8,7 +9,7 @@ import {
 @Component({
   selector: 'app-csv-import-modal',
   standalone: true,
-  imports: [],
+  imports: [TranslatePipe],
   templateUrl: './csv-import-modal.component.html',
 })
 export class CsvImportModalComponent {
@@ -18,6 +19,7 @@ export class CsvImportModalComponent {
 
   private readonly accountService = inject(AccountService);
   private readonly toastService   = inject(ToastService);
+  private readonly translate      = inject(TranslateService);
 
   protected readonly step =
     signal<'select' | 'result'>('select');
@@ -47,17 +49,17 @@ export class CsvImportModalComponent {
   ];
 
   protected readonly modes: {
-    value: CsvMode; label: string; description: string
+    value: CsvMode; labelKey: string; descriptionKey: string
   }[] = [
     {
       value: 'OPERATIONS',
-      label: 'Operations history',
-      description: 'Import all transactions (deposits, buys, sells...) — recommended'
+      labelKey: 'csvImport.operationsLabel',
+      descriptionKey: 'csvImport.operationsDescription',
     },
     {
       value: 'POSITIONS',
-      label: 'Current positions',
-      description: 'Import current holdings as synthetic BUY transactions'
+      labelKey: 'csvImport.positionsLabel',
+      descriptionKey: 'csvImport.positionsDescription',
     },
   ];
 
@@ -104,13 +106,13 @@ export class CsvImportModalComponent {
         this.imported.emit(res);
       },
       error: (err) => {
-        let message = 'Import failed. Please try again.';
+        let message = this.translate.instant('csvImport.importFailed');
         if (err.error && typeof err.error === 'string') {
           message = err.error;
         } else if (err.error?.message && typeof err.error.message === 'string') {
           message = err.error.message;
         } else if (err.status === 400) {
-          message = 'Invalid file — no valid transactions found.';
+          message = this.translate.instant('csvImport.invalidFile');
         }
         this.toastService.error(message);
         this.loading.set(false);

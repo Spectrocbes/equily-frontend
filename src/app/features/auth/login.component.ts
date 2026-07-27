@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../core/services/auth.service';
 import { AuthHeaderComponent } from './auth-header.component';
 import { normalizeEmail } from '../../core/utils/sanitize';
@@ -8,13 +9,14 @@ import { normalizeEmail } from '../../core/utils/sanitize';
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, AuthHeaderComponent],
+  imports: [ReactiveFormsModule, RouterLink, AuthHeaderComponent, TranslatePipe],
   templateUrl: './login.component.html',
 })
 export class LoginComponent {
   private readonly fb          = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly router      = inject(Router);
+  private readonly translate   = inject(TranslateService);
 
   protected readonly loading         = signal(false);
   protected readonly error           = signal<string | null>(null);
@@ -52,24 +54,16 @@ export class LoginComponent {
       error: (err) => {
         if (err.status === 403) {
           this.unverifiedEmail.set(normalizedEmail);
-          this.error.set('Please verify your email before signing in.');
+          this.error.set(this.translate.instant('auth.pleaseVerifyEmail'));
         } else if (err.status === 401) {
-          this.error.set('Invalid email or password');
+          this.error.set(this.translate.instant('auth.invalidCredentials'));
         } else {
-          this.error.set('Login failed. Please try again.');
+          this.error.set(this.translate.instant('auth.loginFailed'));
         }
         this.loading.set(false);
       },
     });
   }
-
-  protected readonly rightPanelItems = [
-    'All account types — stocks, ETFs, crypto, savings',
-    'Broker CSV import — no manual entry',
-    'Holdings, P&L, and fee tracking',
-    'Multi-user with strict data isolation',
-    'Dark mode included',
-  ];
 
   protected resendVerification(): void {
     const email = this.unverifiedEmail();

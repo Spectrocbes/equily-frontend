@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
+import { provideTranslateService, TranslateService } from '@ngx-translate/core';
 import { PreferencesService } from './preferences.service';
 import { UserPreferences } from '../models/account.model';
 
@@ -13,13 +14,19 @@ const mockPreferences: UserPreferences = {
 describe('PreferencesService', () => {
   let service: PreferencesService;
   let httpMock: HttpTestingController;
+  let translate: TranslateService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideTranslateService({ lang: 'en', fallbackLang: 'en' }),
+      ],
     });
     service = TestBed.inject(PreferencesService);
     httpMock = TestBed.inject(HttpTestingController);
+    translate = TestBed.inject(TranslateService);
   });
 
   afterEach(() => httpMock.verify());
@@ -96,5 +103,23 @@ describe('PreferencesService', () => {
       currency: 'JPY',
     });
     expect(service.currencySymbol()).toBe('JPY');
+  });
+
+  it('load() switches the translate language to fr for a fr locale', () => {
+    service.load();
+    httpMock.expectOne('/api/v1/preferences').flush({ ...mockPreferences, locale: 'fr-FR' });
+    expect(translate.getCurrentLang()).toBe('fr');
+  });
+
+  it('load() switches the translate language to en for a non-fr locale', () => {
+    service.load();
+    httpMock.expectOne('/api/v1/preferences').flush({ ...mockPreferences, locale: 'en-US' });
+    expect(translate.getCurrentLang()).toBe('en');
+  });
+
+  it('update() switches the translate language to match the new locale', () => {
+    service.update('EUR', 'fr').subscribe();
+    httpMock.expectOne('/api/v1/preferences').flush({ ...mockPreferences, locale: 'fr' });
+    expect(translate.getCurrentLang()).toBe('fr');
   });
 });

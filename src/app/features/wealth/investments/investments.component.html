@@ -4,23 +4,23 @@
   <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
     <div>
       <h1 class="text-2xl font-bold text-slate-900 dark:text-white">
-        Investments
+        {{ 'investments.title' | translate }}
       </h1>
       <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-        PEA, CTO, Assurance Vie, PER
+        {{ 'investments.subtitle' | translate }}
       </p>
     </div>
     <div class="flex items-center gap-4 self-start sm:self-auto">
       <div class="text-right">
         <p class="text-xs text-slate-400 dark:text-slate-500 uppercase tracking-wide">
-          Total
+          {{ 'transaction.total' | translate }}
         </p>
         <p class="text-xl font-bold font-mono text-slate-900 dark:text-white">
           {{ totalPortfolioValue() | userCurrency }}
         </p>
         @if (totalCash() > 0) {
           <p class="text-xs text-slate-400 dark:text-slate-500">
-            + {{ totalCash() | userCurrency:'1.0-0' }} cash
+            + {{ totalCash() | userCurrency:'1.0-0' }} {{ 'account.cash' | translate }}
           </p>
         }
       </div>
@@ -34,7 +34,7 @@
              stroke="currentColor" stroke-width="2.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
         </svg>
-        Add Account
+        {{ 'account.addAccount' | translate }}
       </button>
     </div>
   </div>
@@ -64,12 +64,12 @@
 
     <div class="px-5 py-4 bg-slate-50 dark:bg-slate-800/80
                 border-b border-slate-200 dark:border-slate-700">
-      <h2 class="font-medium text-slate-900 dark:text-white">Accounts</h2>
+      <h2 class="font-medium text-slate-900 dark:text-white">{{ 'account.accounts' | translate }}</h2>
     </div>
 
     @if (accounts().length === 0) {
       <div class="p-8 text-center">
-        <p class="text-slate-400 text-sm">No investment accounts yet</p>
+        <p class="text-slate-400 text-sm">{{ 'investments.noAccounts' | translate }}</p>
       </div>
     } @else {
 
@@ -85,7 +85,7 @@
                       ? 'border-primary-500 text-primary-600 dark:text-primary-400'
                       : 'border-transparent text-slate-500 dark:text-slate-400
                          hover:text-slate-700 dark:hover:text-slate-300'">
-              <span>Active</span>
+              <span>{{ 'account.status.active' | translate }}</span>
               <span class="px-1.5 py-0.5 rounded-full text-xs leading-none
                            bg-slate-100 dark:bg-slate-700
                            text-slate-500 dark:text-slate-400">
@@ -100,7 +100,7 @@
                       ? 'border-rose-500 text-rose-600 dark:text-rose-400'
                       : 'border-transparent text-slate-500 dark:text-slate-400
                          hover:text-slate-700 dark:hover:text-slate-300'">
-              <span>Closed</span>
+              <span>{{ 'account.status.closed' | translate }}</span>
               <span class="px-1.5 py-0.5 rounded-full text-xs leading-none"
                     [class]="activeAccountTab() === 'closed'
                       ? 'bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400'
@@ -129,7 +129,7 @@
                     {{ account.name }}
                   </p>
                   <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
-                    {{ account.broker }} · {{ ACCOUNT_TYPE_LABELS[account.accountType] }}
+                    {{ account.broker }} · {{ 'subType.' + account.accountType | translate }}
                   </p>
                 </div>
 
@@ -142,7 +142,7 @@
                        [class]="isPriceAvailable(account.id)
                          ? 'text-slate-400 dark:text-slate-500'
                          : 'text-amber-500 dark:text-amber-400'">
-                      {{ isPriceAvailable(account.id) ? 'live' : 'at cost' }}
+                      {{ (isPriceAvailable(account.id) ? 'account.live' : 'account.atCost') | translate }}
                     </p>
                   </div>
                   <svg class="w-4 h-4 text-slate-300 dark:text-slate-600
@@ -177,20 +177,20 @@
                     @if (account.subType === 'PEA' || account.subType === 'PEA_PME') {
                       <span class="text-xs text-slate-400 flex items-center gap-1">
                         @if (account.depositNote) {
-                          {{ (account.ownDeposits ?? 0) | userCurrency:'1.0-0' }} deposited
+                          {{ (account.ownDeposits ?? 0) | userCurrency:'1.0-0' }} {{ 'account.deposited' | translate }}
                           <span class="cursor-help" [title]="account.depositNote">ⓘ</span>
                         } @else {
-                          {{ (account.totalDeposits ?? 0) | userCurrency:'1.0-0' }} deposited
+                          {{ (account.totalDeposits ?? 0) | userCurrency:'1.0-0' }} {{ 'account.deposited' | translate }}
                         }
                       </span>
                     } @else {
                       <span class="text-xs text-slate-400">
-                        {{ account.balance | userCurrency:'1.0-0' }} balance
+                        {{ account.balance | userCurrency:'1.0-0' }} {{ 'account.balance' | translate }}
                       </span>
                     }
                     <span class="text-xs"
                           [class]="progressPercent(account) >= 90 ? 'text-amber-500' : 'text-slate-400'">
-                      {{ (account.remainingCapacity ?? 0) | userCurrency:'1.0-0' }} remaining
+                      {{ (account.remainingCapacity ?? 0) | userCurrency:'1.0-0' }} {{ 'account.remaining' | translate }}
                     </span>
                   </div>
                 </div>
@@ -205,7 +205,7 @@
                     bg-primary-50/50 dark:bg-primary-900/10
                     border-t-2 border-primary-100 dark:border-primary-900/30">
           <span class="text-sm font-semibold text-primary-600 dark:text-primary-400">
-            Total investments
+            {{ 'investments.totalInvestments' | translate }}
           </span>
           <p class="text-sm font-bold font-mono text-primary-600 dark:text-primary-400">
             {{ totalPortfolioValue() | userCurrency }}
@@ -227,8 +227,8 @@
               </p>
               <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
                 {{ account.broker }} ·
-                {{ ACCOUNT_TYPE_LABELS[account.accountType] }}
-                · 🔒 Closed {{ account.closedAt | date:'mediumDate' }}
+                {{ 'subType.' + account.accountType | translate }}
+                · 🔒 {{ 'account.status.closed' | translate }} {{ account.closedAt | date:'mediumDate' }}
               </p>
             </div>
             <svg class="w-4 h-4 text-slate-300 dark:text-slate-600

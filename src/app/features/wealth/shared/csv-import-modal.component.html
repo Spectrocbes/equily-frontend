@@ -15,10 +15,10 @@
     <div class="flex items-center justify-between">
       <div>
         <h2 class="text-lg font-semibold text-slate-900 dark:text-white">
-          Import from CSV
+          {{ 'csvImport.title' | translate }}
         </h2>
         <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-          Import your transaction history from your broker
+          {{ 'csvImport.subtitle' | translate }}
         </p>
       </div>
       <button type="button" (click)="closed.emit()"
@@ -40,7 +40,7 @@
         <div>
           <p class="block text-sm font-medium
                     text-slate-700 dark:text-slate-300 mb-2">
-            Broker
+            {{ 'csvImport.broker' | translate }}
           </p>
           <div class="flex gap-2">
             @for (broker of brokers; track broker.value) {
@@ -59,7 +59,7 @@
         <div>
           <p class="block text-sm font-medium
                     text-slate-700 dark:text-slate-300 mb-2">
-            File type
+            {{ 'csvImport.fileType' | translate }}
           </p>
           <div class="space-y-2">
             @for (mode of modes; track mode.value) {
@@ -69,10 +69,10 @@
                         ? 'w-full px-4 py-3 rounded-lg text-left border-2 border-primary-500 bg-primary-50 dark:bg-primary-900/20'
                         : 'w-full px-4 py-3 rounded-lg text-left border border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500 transition-colors'">
                 <p class="text-sm font-medium text-slate-900 dark:text-white">
-                  {{ mode.label }}
+                  {{ mode.labelKey | translate }}
                 </p>
                 <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  {{ mode.description }}
+                  {{ mode.descriptionKey | translate }}
                 </p>
               </button>
             }
@@ -83,7 +83,7 @@
         <div>
           <p class="block text-sm font-medium
                     text-slate-700 dark:text-slate-300 mb-2">
-            CSV file
+            {{ 'csvImport.csvFile' | translate }}
           </p>
           <label for="csv-file-input"
                  class="flex flex-col items-center justify-center
@@ -104,7 +104,7 @@
                 {{ selectedFile()!.name }}
               </p>
               <p class="text-xs text-slate-400 mt-0.5">
-                {{ (selectedFile()!.size / 1024).toFixed(1) }} KB — click to change
+                {{ (selectedFile()!.size / 1024).toFixed(1) }} KB — {{ 'csvImport.clickToChange' | translate }}
               </p>
             } @else {
               <svg class="w-6 h-6 text-slate-400 mb-1" fill="none"
@@ -113,10 +113,10 @@
                       d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/>
               </svg>
               <p class="text-sm text-slate-500 dark:text-slate-400">
-                Click to select a CSV file
+                {{ 'csvImport.clickToSelect' | translate }}
               </p>
               <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
-                .csv files only
+                {{ 'csvImport.csvOnly' | translate }}
               </p>
             }
           </label>
@@ -137,7 +137,7 @@
                          border border-slate-200 dark:border-slate-600
                          text-slate-700 dark:text-slate-300
                          hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-            Cancel
+            {{ 'common.cancel' | translate }}
           </button>
           <button type="button"
                   (click)="doImport()"
@@ -146,9 +146,9 @@
                          bg-primary-500 hover:bg-primary-600
                          disabled:opacity-50 text-white transition-colors">
             @if (loading()) {
-              <span>Importing...</span>
+              <span>{{ 'csvImport.importing' | translate }}</span>
             } @else {
-              <span>Import</span>
+              <span>{{ 'csvImport.import' | translate }}</span>
             }
           </button>
         </div>
@@ -170,7 +170,7 @@
                     d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
             <p class="text-sm font-semibold text-emerald-700 dark:text-emerald-300">
-              Import complete
+              {{ 'csvImport.importComplete' | translate }}
             </p>
           </div>
           <div [class]="result()!.skipped > 0 ? 'grid grid-cols-3 gap-3' : 'grid grid-cols-2 gap-3'">
@@ -178,9 +178,9 @@
               <p class="text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400">
                 {{ displayedImported() }}
               </p>
-              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Imported</p>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ 'csvImport.imported' | translate }}</p>
               @if (autoDepositAdded()) {
-                <p class="text-xs text-primary-400 mt-0.5">+ 1 auto-deposit</p>
+                <p class="text-xs text-primary-400 mt-0.5">{{ 'csvImport.autoDeposit' | translate }}</p>
               }
             </div>
             @if (result()!.skipped > 0) {
@@ -189,7 +189,7 @@
                   {{ result()!.skipped }}
                 </p>
                 <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Skipped
+                  {{ 'csvImport.skipped' | translate }}
                 </p>
               </div>
             }
@@ -200,7 +200,7 @@
                 {{ result()!.errors }}
               </p>
               <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Errors
+                {{ 'csvImport.errors' | translate }}
               </p>
             </div>
           </div>
@@ -211,7 +211,7 @@
           <div class="rounded-lg bg-rose-50 dark:bg-rose-900/20
                       border border-rose-200 dark:border-rose-800 p-3 space-y-1">
             <p class="text-xs font-medium text-rose-700 dark:text-rose-400 mb-2">
-              Error details:
+              {{ 'csvImport.errorDetails' | translate }}
             </p>
             @for (detail of result()!.errorDetails; track detail) {
               <p class="text-xs text-rose-600 dark:text-rose-400 font-mono">
@@ -226,7 +226,7 @@
                 class="w-full px-4 py-2 rounded-lg text-sm font-medium
                        bg-primary-500 hover:bg-primary-600
                        text-white transition-colors">
-          Close
+          {{ 'common.close' | translate }}
         </button>
 
       </div>

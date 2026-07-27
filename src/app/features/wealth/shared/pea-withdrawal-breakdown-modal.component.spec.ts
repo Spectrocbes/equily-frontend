@@ -1,6 +1,7 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { PeaWithdrawalBreakdownModalComponent } from './pea-withdrawal-breakdown-modal.component';
 import { PeaWithdrawalSimulation } from '../../../core/models/account.model';
+import { provideTestTranslations, useTestTranslations } from '../../../../testing/translate-testing';
 
 const simBase: PeaWithdrawalSimulation = {
   liquidationValue: 15000,
@@ -22,6 +23,7 @@ describe('PeaWithdrawalBreakdownModalComponent', () => {
 
   function create(sim: PeaWithdrawalSimulation): void {
     fixture = TestBed.createComponent(PeaWithdrawalBreakdownModalComponent);
+    useTestTranslations();
     fixture.componentRef.setInput('simulation', sim);
     fixture.detectChanges();
   }
@@ -29,6 +31,7 @@ describe('PeaWithdrawalBreakdownModalComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [PeaWithdrawalBreakdownModalComponent],
+      providers: [provideTestTranslations()],
     }).compileComponents();
   });
 
@@ -84,6 +87,7 @@ describe('PeaWithdrawalBreakdownModalComponent', () => {
 
   it('shows Processing... when loading', () => {
     fixture = TestBed.createComponent(PeaWithdrawalBreakdownModalComponent);
+    useTestTranslations();
     fixture.componentRef.setInput('simulation', simBase);
     fixture.componentRef.setInput('loading', true);
     fixture.detectChanges();

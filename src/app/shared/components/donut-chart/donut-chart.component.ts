@@ -1,5 +1,6 @@
 import { Component, input, computed } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
+import { TranslatePipe } from '@ngx-translate/core';
 
 export interface DonutSlice {
   label: string;
@@ -10,7 +11,7 @@ export interface DonutSlice {
 @Component({
   selector: 'app-donut-chart',
   standalone: true,
-  imports: [CurrencyPipe],
+  imports: [CurrencyPipe, TranslatePipe],
   templateUrl: './donut-chart.component.html',
 })
 export class DonutChartComponent {

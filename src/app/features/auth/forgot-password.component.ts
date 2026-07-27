@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService } from '../../core/services/auth.service';
 import { AuthHeaderComponent } from './auth-header.component';
 import { normalizeEmail } from '../../core/utils/sanitize';
@@ -8,7 +9,7 @@ import { normalizeEmail } from '../../core/utils/sanitize';
 @Component({
   selector: 'app-forgot-password',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, AuthHeaderComponent],
+  imports: [ReactiveFormsModule, RouterLink, AuthHeaderComponent, TranslatePipe],
   templateUrl: './forgot-password.component.html',
 })
 export class ForgotPasswordComponent {

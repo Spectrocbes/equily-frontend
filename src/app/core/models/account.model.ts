@@ -3,22 +3,6 @@ export type AccountSubType =
   | 'PEA' | 'PEA_PME' | 'COMPTE_TITRES' | 'PER' | 'ASSURANCE_VIE'
   | 'CRYPTO_WALLET' | 'CASH_ACCOUNT' | 'REAL_ESTATE' | 'OTHER';
 
-export const ACCOUNT_SUB_TYPE_LABELS: Record<AccountSubType, string> = {
-  LIVRET_A:      'Livret A',
-  LDDS:          'LDDS',
-  LEP:           'LEP',
-  LIVRET_JEUNE:  'Livret Jeune',
-  PEA:           'PEA',
-  PEA_PME:       'PEA-PME',
-  COMPTE_TITRES: 'Compte Titres',
-  PER:           'PER',
-  ASSURANCE_VIE: 'Assurance Vie',
-  CRYPTO_WALLET: 'Crypto Wallet',
-  CASH_ACCOUNT:  'Compte Courant',
-  REAL_ESTATE:   'Immobilier',
-  OTHER:         'Autre',
-};
-
 export const ACCOUNT_TYPE_SUB_TYPES: Partial<Record<AccountType, AccountSubType[]>> = {
   SAVINGS_ACCOUNT: ['LIVRET_A', 'LDDS', 'LEP', 'LIVRET_JEUNE'],
   PEA:             ['PEA'],
@@ -155,18 +139,6 @@ export type WealthCategory =
   | 'crypto'
   | 'savings'
   | 'cash';
-
-export const ACCOUNT_TYPE_LABELS: Record<AccountType, string> = {
-  PEA:             'PEA',
-  PEA_PME:         'PEA-PME',
-  COMPTE_TITRES:   'Compte Titres',
-  PER:             'PER',
-  ASSURANCE_VIE:   'Assurance Vie',
-  SAVINGS_ACCOUNT: 'Savings',
-  CASH_ACCOUNT:    'Cash',
-  CRYPTO_WALLET:   'Crypto',
-  REAL_ESTATE:     'Real Estate',
-};
 
 export const ACCOUNT_CATEGORY: Record<AccountType, WealthCategory> = {
   PEA:             'investments',

@@ -3,6 +3,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { EvolutionChartComponent } from './evolution-chart.component';
 import { PortfolioHistoryPoint, ChartPeriod } from '../../../core/models/account.model';
+import { provideTestTranslations, useTestTranslations } from '../../../../testing/translate-testing';
 
 const twoPoints: PortfolioHistoryPoint[] = [
   { date: '2026-01-01', value: 10000, invested: 9000, pnl: 1000 },
@@ -21,7 +22,7 @@ describe('EvolutionChartComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [EvolutionChartComponent],
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideTestTranslations()],
     }).compileComponents();
 
     httpMock = TestBed.inject(HttpTestingController);
@@ -32,6 +33,7 @@ describe('EvolutionChartComponent', () => {
     }));
 
     fixture = TestBed.createComponent(EvolutionChartComponent);
+    useTestTranslations();
   });
 
   afterEach(() => httpMock.verify());

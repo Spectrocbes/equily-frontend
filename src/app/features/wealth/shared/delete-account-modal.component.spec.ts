@@ -3,6 +3,7 @@ import { DeleteAccountModalComponent } from './delete-account-modal.component';
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { FinancialAccount } from '../../../core/models/account.model';
+import { provideTestTranslations, useTestTranslations } from '../../../../testing/translate-testing';
 
 const mockAccount: FinancialAccount = {
   id: 'acc-1', name: 'Mon PEA', accountType: 'PEA',
@@ -19,10 +20,11 @@ describe('DeleteAccountModalComponent', () => {
   async function setup(loading = false, account: FinancialAccount = mockAccount): Promise<void> {
     await TestBed.configureTestingModule({
       imports: [DeleteAccountModalComponent],
-      providers: [provideRouter([]), provideHttpClient()],
+      providers: [provideRouter([]), provideHttpClient(), provideTestTranslations()],
     }).compileComponents();
 
     fixture = TestBed.createComponent(DeleteAccountModalComponent);
+    useTestTranslations();
     comp = fixture.componentInstance;
     fixture.componentRef.setInput('account', account);
     fixture.componentRef.setInput('loading', loading);

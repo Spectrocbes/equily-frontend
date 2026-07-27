@@ -4,6 +4,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { AnalyticsService } from './analytics.service';
 import { PortfolioHistoryPoint, GeographicExposure, TopPerformer } from '../models/account.model';
 import { UserPreferences } from '../models/account.model';
+import { provideTestTranslations } from '../../../testing/translate-testing';
 
 const mockPreferences: UserPreferences = {
   currency: 'EUR',
@@ -40,7 +41,7 @@ describe('AnalyticsService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideTestTranslations()],
     });
     service  = TestBed.inject(AnalyticsService);
     httpMock = TestBed.inject(HttpTestingController);

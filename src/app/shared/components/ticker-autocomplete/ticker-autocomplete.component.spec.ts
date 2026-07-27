@@ -3,6 +3,7 @@ import { FormBuilder } from '@angular/forms';
 import { of } from 'rxjs';
 import { TickerAutocompleteComponent } from './ticker-autocomplete.component';
 import { TickerSearchService, TickerSearchResult } from '../../../core/services/ticker-search.service';
+import { provideTestTranslations, useTestTranslations } from '../../../../testing/translate-testing';
 
 const mockResults: TickerSearchResult[] = [
   { symbol: 'AAPL', name: 'Apple Inc.', type: 'Equity', exchange: 'NMS', currency: 'USD' },
@@ -31,10 +32,12 @@ describe('TickerAutocompleteComponent', () => {
       imports: [TickerAutocompleteComponent],
       providers: [
         { provide: TickerSearchService, useValue: mockTickerSearch },
+        provideTestTranslations(),
       ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TickerAutocompleteComponent);
+    useTestTranslations();
     fixture.componentRef.setInput('controlName', 'ticker');
     fixture.componentRef.setInput('parentForm', form);
     fixture.detectChanges();

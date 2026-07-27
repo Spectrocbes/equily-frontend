@@ -9,6 +9,7 @@ import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { of, throwError } from 'rxjs';
 import { ChartPeriod, FinancialAccount, PortfolioHistoryPoint, Transaction } from '../../../core/models/account.model';
+import { provideTestTranslations, useTestTranslations } from '../../../../testing/translate-testing';
 
 const mockAccount: FinancialAccount = {
   id: 'savings-1', name: 'Livret A', accountType: 'SAVINGS_ACCOUNT',
@@ -35,6 +36,7 @@ describe('SavingsAccountDetailComponent', () => {
       providers: [
         provideRouter([]),
         provideHttpClient(),
+        provideTestTranslations(),
         {
           provide: AccountService,
           useValue: {
@@ -63,6 +65,7 @@ describe('SavingsAccountDetailComponent', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(SavingsAccountDetailComponent);
+    useTestTranslations();
     fixture.detectChanges();
   });
 

@@ -1,6 +1,7 @@
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { FormControl, FormGroup } from '@angular/forms';
 import { DatePickerComponent } from './date-picker.component';
+import { provideTestTranslations, useTestTranslations } from '../../../../testing/translate-testing';
 
 describe('DatePickerComponent', () => {
   let fixture: ComponentFixture<DatePickerComponent>;
@@ -9,8 +10,10 @@ describe('DatePickerComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [DatePickerComponent],
+      providers: [provideTestTranslations()],
     }).compileComponents();
 
+    useTestTranslations();
     fixture = TestBed.createComponent(DatePickerComponent);
     form = new FormGroup({ date: new FormControl('') });
     fixture.componentRef.setInput('controlName', 'date');
@@ -151,7 +154,7 @@ describe('DatePickerComponent', () => {
       fixture.nativeElement.querySelectorAll('button[type="button"]') as NodeListOf<HTMLButtonElement>
     );
     const monthYearBtn = buttons.find(b =>
-      b.textContent?.includes(fixture.componentInstance['MONTHS'][fixture.componentInstance['viewMonth']()])
+      b.textContent?.includes(fixture.componentInstance['MONTHS']()[fixture.componentInstance['viewMonth']()])
     );
     expect(monthYearBtn).toBeTruthy();
     monthYearBtn!.click();

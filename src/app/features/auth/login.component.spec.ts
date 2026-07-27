@@ -5,6 +5,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { AuthService } from '../../core/services/auth.service';
 import { of, throwError } from 'rxjs';
+import { provideTestTranslations, useTestTranslations } from '../../../testing/translate-testing';
 
 describe('LoginComponent', () => {
   let fixture: ComponentFixture<LoginComponent>;
@@ -16,10 +17,12 @@ describe('LoginComponent', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         provideRouter([{ path: 'overview', redirectTo: '' }]),
+        provideTestTranslations(),
       ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(LoginComponent);
+    useTestTranslations();
     fixture.detectChanges();
   });
 

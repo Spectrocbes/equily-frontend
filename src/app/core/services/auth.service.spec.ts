@@ -7,6 +7,7 @@ import { AuthService } from './auth.service';
 import { AccountService } from './account.service';
 import { AuthResponse } from '../models/auth.model';
 import { UserPreferences } from '../models/account.model';
+import { provideTestTranslations } from '../../../testing/translate-testing';
 
 const mockPreferences: UserPreferences = {
   currency: 'EUR',
@@ -36,6 +37,7 @@ describe('AuthService', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         provideRouter([]),
+        provideTestTranslations(),
       ],
     });
     service  = TestBed.inject(AuthService);

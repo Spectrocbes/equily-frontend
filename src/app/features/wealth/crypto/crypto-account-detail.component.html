@@ -9,7 +9,7 @@
          stroke="currentColor" stroke-width="2">
       <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
     </svg>
-    Crypto
+    {{ 'nav.crypto' | translate }}
   </a>
 
   <!-- Loading -->
@@ -36,12 +36,8 @@
         <div class="flex items-center gap-2 mb-1">
           <span class="text-xs font-medium px-2 py-0.5 rounded-full
                        bg-amber-50 dark:bg-amber-900/30
-                       text-amber-700 dark:text-amber-300">
-            {{ ACCOUNT_TYPE_LABELS[account()!.accountType] }}
-          </span>
-          <span class="text-xs text-slate-400 dark:text-slate-500">
-            {{ account()!.broker }}
-          </span>
+                       text-amber-700 dark:text-amber-300">{{ 'accountType.' + account()!.accountType | translate }}</span>
+          <span class="text-xs text-slate-400 dark:text-slate-500">{{ account()!.broker }}</span>
         </div>
         <h1 class="text-2xl font-semibold text-slate-900 dark:text-white">
           {{ account()!.name }}
@@ -55,7 +51,7 @@
         <!-- Portfolio Value — primary, large -->
         <div>
           <p class="text-xs text-slate-500 dark:text-slate-400 mb-1">
-            Portfolio Value
+            {{ 'account.portfolioValue' | translate }}
           </p>
           <p class="text-2xl font-bold font-mono transition-colors duration-300"
              [class]="balanceFlash() === 'gain' ? 'text-emerald-500'
@@ -94,13 +90,13 @@
         <!-- Cash Available — secondary, smaller -->
         <div class="border-l border-slate-200 dark:border-slate-700 pl-6">
           <p class="text-xs text-slate-400 dark:text-slate-500 mb-1">
-            Cash Available
+            {{ 'account.cashAvailable' | translate }}
           </p>
           <p class="text-lg font-semibold font-mono text-slate-500 dark:text-slate-400">
             {{ account()!.balance | userCurrency }}
           </p>
           <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
-            Not invested
+            {{ 'account.notInvested' | translate }}
           </p>
         </div>
 
@@ -135,7 +131,7 @@
                            text-sm text-rose-600 dark:text-rose-400
                            hover:bg-rose-50 dark:hover:bg-rose-900/20
                            transition-colors text-left">
-              <span>Delete account</span>
+              <span>{{ 'account.deleteAccount' | translate }}</span>
             </button>
           </div>
         }
@@ -157,10 +153,10 @@
     <!-- Allocation -->
     <div class="rounded-xl border border-slate-200 dark:border-slate-700
                 bg-white dark:bg-slate-800 p-6">
-      <h2 class="font-medium text-slate-900 dark:text-white mb-4">Allocation</h2>
+      <h2 class="font-medium text-slate-900 dark:text-white mb-4">{{ 'overview.allocation' | translate }}</h2>
       @if (donutData().length === 0) {
         <div class="h-32 flex items-center justify-center">
-          <p class="text-slate-400 text-sm">No holdings yet</p>
+          <p class="text-slate-400 text-sm">{{ 'holdings.noHoldings' | translate }}</p>
         </div>
       } @else {
         <div class="flex items-center gap-4">
@@ -196,7 +192,7 @@
                 [class]="activeTab() === 'holdings'
                   ? 'px-4 py-2.5 text-sm font-medium text-primary-600 dark:text-primary-400 border-b-2 border-primary-500 -mb-px'
                   : 'px-4 py-2.5 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors'">
-          Holdings
+          {{ 'holdings.title' | translate }}
           <span class="ml-1.5 px-1.5 py-0.5 rounded text-xs
                        bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
             {{ enrichedHoldings().length }}
@@ -207,7 +203,7 @@
                 [class]="activeTab() === 'transactions'
                   ? 'px-4 py-2.5 text-sm font-medium text-primary-600 dark:text-primary-400 border-b-2 border-primary-500 -mb-px'
                   : 'px-4 py-2.5 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors'">
-          Transactions
+          {{ 'holdings.transactions' | translate }}
           <span class="ml-1.5 px-1.5 py-0.5 rounded text-xs
                        bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
             {{ transactions().length }}
@@ -229,7 +225,7 @@
           <path stroke-linecap="round" stroke-linejoin="round"
                 d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/>
         </svg>
-        Import CSV
+        {{ 'account.importCsv' | translate }}
       </button>
 
       <!-- Add Transaction button -->
@@ -242,7 +238,7 @@
              stroke="currentColor" stroke-width="2.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
         </svg>
-        Add Transaction
+        {{ 'transaction.addTransaction' | translate }}
       </button>
     </div>
 
@@ -257,14 +253,17 @@
                       border-b border-slate-100 dark:border-slate-800">
             <div class="w-3 h-3 rounded-full border border-primary-400
                         border-t-transparent animate-spin"></div>
-            Fetching live prices...
+            {{ 'holdings.fetchingPrices' | translate }}
           </div>
         }
 
         @if (enrichedHoldings().length === 0) {
           <div class="p-8 text-center">
-            <p class="text-slate-400 text-sm">
-              No open positions — add a BUY transaction to see holdings
+            <p class="text-slate-400 text-sm font-medium">
+              {{ 'holdings.noHoldings' | translate }}
+            </p>
+            <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">
+              {{ 'holdings.noHoldingsHint' | translate }}
             </p>
           </div>
         } @else {
@@ -273,11 +272,11 @@
           <div class="grid grid-cols-7 gap-4 px-4 py-2 text-xs font-medium
                       text-slate-500 dark:text-slate-400 uppercase tracking-wide
                       border-b border-slate-200 dark:border-slate-700 min-w-[640px]">
-            <span class="col-span-2">Asset</span>
-            <span class="text-right">Quantity</span>
-            <span class="text-right">Avg cost</span>
-            <span class="text-right">Live price</span>
-            <span class="text-right">Market value</span>
+            <span class="col-span-2">{{ 'holdings.asset' | translate }}</span>
+            <span class="text-right">{{ 'holdings.quantityHeader' | translate }}</span>
+            <span class="text-right">{{ 'holdings.avgCost' | translate }}</span>
+            <span class="text-right">{{ 'holdings.livePrice' | translate }}</span>
+            <span class="text-right">{{ 'holdings.marketValue' | translate }}</span>
             <div class="flex justify-end">
               <button (click)="togglePnlMode()"
                       class="text-xs font-medium uppercase tracking-wide
@@ -302,7 +301,7 @@
                   {{ holding.ticker }}
                 </p>
                 <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
-                  Fees {{ holding.totalFeesPaid | userCurrency }}
+                  {{ 'transaction.fees' | translate }} {{ holding.totalFeesPaid | userCurrency }}
                 </p>
               </div>
 
@@ -346,7 +345,7 @@
                   <p class="text-sm text-slate-600 dark:text-slate-300 font-mono">
                     {{ holding.totalInvested | userCurrency }}
                   </p>
-                  <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">at cost</p>
+                  <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{{ 'account.atCost' | translate }}</p>
                 }
               </div>
 
@@ -379,7 +378,7 @@
                       border-t-2 border-slate-200 dark:border-slate-700
                       bg-slate-50 dark:bg-slate-800/50">
             <span class="col-span-2 text-sm font-semibold
-                         text-slate-900 dark:text-white">Total</span>
+                         text-slate-900 dark:text-white">{{ 'transaction.total' | translate }}</span>
             <span class="col-span-2"></span>
             <span></span>
             <p class="text-right text-sm font-bold
@@ -416,7 +415,7 @@
 
         @if (transactions().length === 0) {
           <div class="p-8 text-center">
-            <p class="text-slate-400 text-sm">No transactions yet</p>
+            <p class="text-slate-400 text-sm">{{ 'transaction.noTransactions' | translate }}</p>
           </div>
         } @else {
           <div class="divide-y divide-slate-200 dark:divide-slate-700
@@ -459,7 +458,7 @@
                   @if (tx.type === 'TRANSFER' && tx.linkedAccountId) {
                     <p class="text-xs text-slate-400 dark:text-slate-500"
                        [class.mt-0.5]="tx.description">
-                      ⇄ {{ getLinkedAccountName(tx.linkedAccountId) ?? 'Unknown' }}
+                      ⇄ {{ getLinkedAccountName(tx.linkedAccountId) ?? ('account.unknown' | translate) }}
                     </p>
                   }
                   @if ((tx.type === 'TRANSFER' || tx.type === 'PAYMENT') && tx.externalAddress) {
@@ -527,7 +526,7 @@
                                        002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828
                                        15H9v-2.828l8.586-8.586z"/>
                             </svg>
-                            Edit
+                            {{ 'common.edit' | translate }}
                           </button>
                           <div class="border-t border-slate-100 dark:border-slate-700"></div>
                           <button type="button"
@@ -543,7 +542,7 @@
                                        01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0
                                        00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                             </svg>
-                            Delete
+                            {{ 'common.delete' | translate }}
                           </button>
                         </div>
                       }

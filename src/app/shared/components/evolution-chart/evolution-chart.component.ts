@@ -3,6 +3,7 @@ import {
   ViewChild, ElementRef, input, output, signal, computed,
 } from '@angular/core';
 import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
+import { TranslatePipe } from '@ngx-translate/core';
 import * as d3 from 'd3';
 import { ChartPeriod, PortfolioHistoryPoint } from '../../../core/models/account.model';
 
@@ -15,7 +16,7 @@ interface DataPoint {
 @Component({
   selector: 'app-evolution-chart',
   standalone: true,
-  imports: [CurrencyPipe, DatePipe, DecimalPipe],
+  imports: [CurrencyPipe, DatePipe, DecimalPipe, TranslatePipe],
   templateUrl: './evolution-chart.component.html',
 })
 export class EvolutionChartComponent implements OnChanges, AfterViewInit, OnDestroy {
@@ -36,13 +37,13 @@ export class EvolutionChartComponent implements OnChanges, AfterViewInit, OnDest
 
   private resizeObserver?: ResizeObserver;
 
-  protected readonly PERIODS: { value: ChartPeriod; label: string }[] = [
-    { value: 'ONE_DAY',   label: '1D' },
-    { value: 'ONE_WEEK',  label: '1W' },
-    { value: 'ONE_MONTH', label: '1M' },
-    { value: 'YTD',       label: 'YTD' },
-    { value: 'ONE_YEAR',  label: '1Y' },
-    { value: 'ALL',       label: 'ALL' },
+  protected readonly PERIODS: { value: ChartPeriod; labelKey: string }[] = [
+    { value: 'ONE_DAY',   labelKey: 'chart.period.1D' },
+    { value: 'ONE_WEEK',  labelKey: 'chart.period.1W' },
+    { value: 'ONE_MONTH', labelKey: 'chart.period.1M' },
+    { value: 'YTD',       labelKey: 'chart.period.YTD' },
+    { value: 'ONE_YEAR',  labelKey: 'chart.period.1Y' },
+    { value: 'ALL',       labelKey: 'chart.period.ALL' },
   ];
 
   protected readonly effectivePoints = computed((): PortfolioHistoryPoint[] => {

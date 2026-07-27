@@ -8,6 +8,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { Signal, signal } from '@angular/core';
 import { FinancialAccount, AccountPortfolioSummary, PortfolioHistoryPoint } from '../../../core/models/account.model';
 import { of } from 'rxjs';
+import { provideTestTranslations, useTestTranslations } from '../../../../testing/translate-testing';
 
 interface InvestmentsComponentPublic {
   liveValue: (accountId: string) => number;
@@ -56,6 +57,7 @@ describe('InvestmentsComponent', () => {
       providers: [
         provideRouter([]),
         provideHttpClient(),
+        provideTestTranslations(),
         {
           provide: AccountService,
           useValue: {
@@ -84,6 +86,7 @@ describe('InvestmentsComponent', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(InvestmentsComponent);
+    useTestTranslations();
   });
 
   it('liveValue returns livePortfolioValue from summary when available', () => {

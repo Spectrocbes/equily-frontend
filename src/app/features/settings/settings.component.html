@@ -1,10 +1,10 @@
 <div class="max-w-4xl mx-auto">
   <div class="mb-6">
     <h1 class="text-2xl font-bold text-slate-900 dark:text-white">
-      Settings
+      {{ 'settings.title' | translate }}
     </h1>
     <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
-      Manage your account preferences
+      {{ 'settings.subtitle' | translate }}
     </p>
   </div>
 
@@ -20,7 +20,7 @@
                   [class]="activeSection() === section.id
                     ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 font-medium'
                     : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white'">
-            {{ section.label }}
+            {{ section.labelKey | translate }}
           </button>
         }
       </nav>
@@ -33,11 +33,10 @@
         <div class="rounded-2xl border border-slate-200 dark:border-slate-700
                     bg-white dark:bg-slate-800/50 p-6">
           <h2 class="text-base font-semibold text-slate-900 dark:text-white mb-1">
-            Reference currency
+            {{ 'settings.referenceCurrency' | translate }}
           </h2>
           <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">
-            All portfolio values and P&amp;L will be displayed in this currency.
-            Live prices are converted automatically.
+            {{ 'settings.currencyHint' | translate }}
           </p>
 
           <!-- Currency pill selector -->
@@ -62,7 +61,7 @@
           <div class="mt-6 flex items-center justify-between">
             <p class="text-xs text-slate-400 dark:text-slate-500">
               @if (selectedCurrency() !== preferences().currency) {
-                Unsaved changes
+                {{ 'common.unsavedChanges' | translate }}
               }
             </p>
             <button (click)="save()"
@@ -71,7 +70,42 @@
                     class="px-4 py-2 rounded-lg text-sm font-medium
                            bg-primary-500 hover:bg-primary-600
                            disabled:opacity-50 text-white transition-colors">
-              @if (loading()) { Saving... } @else { Save changes }
+              @if (loading()) { {{ 'common.saving' | translate }} } @else { {{ 'common.saveChanges' | translate }} }
+            </button>
+          </div>
+        </div>
+      }
+
+      @if (activeSection() === 'language') {
+        <div class="rounded-2xl border border-slate-200 dark:border-slate-700
+                    bg-white dark:bg-slate-800/50 p-6">
+          <h2 class="text-base font-semibold text-slate-900 dark:text-white mb-3">
+            {{ 'settings.locale' | translate }}
+          </h2>
+          <div class="flex gap-2">
+            <button (click)="setLocale('en')"
+                    type="button"
+                    [disabled]="localeLoading()"
+                    class="px-4 py-2 rounded-lg text-sm font-medium
+                           transition-colors disabled:opacity-50"
+                    [class]="currentLocale().startsWith('en')
+                      ? 'bg-primary-500 text-white'
+                      : 'bg-slate-100 dark:bg-slate-700
+                         text-slate-700 dark:text-slate-300
+                         hover:bg-slate-200 dark:hover:bg-slate-600'">
+              English
+            </button>
+            <button (click)="setLocale('fr-FR')"
+                    type="button"
+                    [disabled]="localeLoading()"
+                    class="px-4 py-2 rounded-lg text-sm font-medium
+                           transition-colors disabled:opacity-50"
+                    [class]="currentLocale().startsWith('fr')
+                      ? 'bg-primary-500 text-white'
+                      : 'bg-slate-100 dark:bg-slate-700
+                         text-slate-700 dark:text-slate-300
+                         hover:bg-slate-200 dark:hover:bg-slate-600'">
+              Français
             </button>
           </div>
         </div>
@@ -81,10 +115,10 @@
         <div class="rounded-2xl border border-slate-200 dark:border-slate-700
                     bg-white dark:bg-slate-800/50 p-6">
           <h2 class="text-base font-semibold text-slate-900 dark:text-white mb-1">
-            Appearance
+            {{ 'settings.navAppearance' | translate }}
           </h2>
           <p class="text-sm text-slate-500 dark:text-slate-400">
-            Theme and display options — coming soon.
+            {{ 'settings.themeComingSoon' | translate }}
           </p>
         </div>
       }
@@ -93,10 +127,10 @@
         <div class="rounded-2xl border border-slate-200 dark:border-slate-700
                     bg-white dark:bg-slate-800/50 p-6">
           <h2 class="text-base font-semibold text-slate-900 dark:text-white mb-1">
-            Notifications
+            {{ 'settings.navNotifications' | translate }}
           </h2>
           <p class="text-sm text-slate-500 dark:text-slate-400">
-            Notification preferences — coming soon.
+            {{ 'settings.notificationsComingSoon' | translate }}
           </p>
         </div>
       }

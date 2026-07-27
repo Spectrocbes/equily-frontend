@@ -4,6 +4,7 @@ import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { ResetPasswordComponent } from './reset-password.component';
+import { provideTestTranslations, useTestTranslations } from '../../../testing/translate-testing';
 
 const makeRoute = (params: Record<string, string>) => ({
   provide: ActivatedRoute,
@@ -25,9 +26,11 @@ describe('ResetPasswordComponent — no token', () => {
         provideHttpClientTesting(),
         provideRouter([]),
         makeRoute({}),
+        provideTestTranslations(),
       ],
     });
     fixture = TestBed.createComponent(ResetPasswordComponent);
+    useTestTranslations();
     fixture.detectChanges();
   });
 
@@ -54,10 +57,12 @@ describe('ResetPasswordComponent — with token, valid', () => {
         provideHttpClientTesting(),
         provideRouter([]),
         makeRoute({ token: 'valid-token' }),
+        provideTestTranslations(),
       ],
     });
     httpMock = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(ResetPasswordComponent);
+    useTestTranslations();
     fixture.detectChanges();
   });
 
@@ -93,10 +98,12 @@ describe('ResetPasswordComponent — with token, invalid', () => {
         provideHttpClientTesting(),
         provideRouter([]),
         makeRoute({ token: 'expired-token' }),
+        provideTestTranslations(),
       ],
     });
     httpMock = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(ResetPasswordComponent);
+    useTestTranslations();
     fixture.detectChanges();
   });
 

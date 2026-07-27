@@ -1,6 +1,7 @@
 import { Component, OnInit, input, output, inject, signal, computed } from '@angular/core';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CurrencyPipe, DatePipe } from '@angular/common';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AccountService } from '../../../core/services/account.service';
 import { FinancialAccount, Transaction } from '../../../core/models/account.model';
 import { ToastService } from '../../../shared/toast/toast.service';
@@ -10,7 +11,7 @@ import { DatePickerComponent } from '../../../shared/components/date-picker/date
 @Component({
   selector: 'app-edit-transaction-modal',
   standalone: true,
-  imports: [ReactiveFormsModule, CurrencyPipe, DatePipe, DatePickerComponent],
+  imports: [ReactiveFormsModule, CurrencyPipe, DatePipe, DatePickerComponent, TranslatePipe],
   templateUrl: './edit-transaction-modal.component.html',
 })
 export class EditTransactionModalComponent implements OnInit {
@@ -22,6 +23,7 @@ export class EditTransactionModalComponent implements OnInit {
 
   private readonly accountService = inject(AccountService);
   private readonly toastService   = inject(ToastService);
+  private readonly translate      = inject(TranslateService);
   private readonly fb             = inject(FormBuilder);
 
   protected readonly loading   = signal(false);
@@ -95,23 +97,9 @@ export class EditTransactionModalComponent implements OnInit {
 
   protected readonly todayIso = new Date().toISOString().split('T')[0];
 
-  private static readonly SUB_TYPE_LABELS: Record<string, string> = {
-    LIVRET_A:        'Livret A',
-    LDDS:            'LDDS',
-    LEP:             'LEP',
-    LIVRET_JEUNE:    'Livret Jeune',
-    PEA:             'PEA',
-    PEA_PME:         'PEA-PME',
-    COMPTE_TITRES:   'Compte Titres',
-    PER:             'PER',
-    ASSURANCE_VIE:   'Assurance Vie',
-    CASH_ACCOUNT:    'Compte Courant',
-    CRYPTO_WALLET:   'Portefeuille Crypto',
-  };
-
   protected formatSubType(subType: string | null | undefined): string {
     if (!subType) return '';
-    return EditTransactionModalComponent.SUB_TYPE_LABELS[subType] ?? subType.replace(/_/g, ' ');
+    return this.translate.instant('subType.' + subType);
   }
 
   private _mouseDownOnBackdrop = false;
@@ -135,29 +123,29 @@ export class EditTransactionModalComponent implements OnInit {
       const qty   = this.liveQuantity();
       const price = this.livePricePerUnit();
       if (!qty || qty <= 0) {
-        this.toastService.error('Quantity must be greater than zero');
+        this.toastService.error(this.translate.instant('validation.quantityMustBeGreaterThanZero'));
         return;
       }
       if (!price || price <= 0) {
-        this.toastService.error('Price per unit must be greater than zero');
+        this.toastService.error(this.translate.instant('validation.pricePerUnitMustBeGreaterThanZero'));
         return;
       }
     } else {
       const amount = f.get('totalAmount')?.value;
       if (!amount || amount <= 0) {
-        this.toastService.error('Amount must be greater than zero');
+        this.toastService.error(this.translate.instant('validation.amountMustBeGreaterThanZero'));
         return;
       }
     }
 
     if (!f.get('date')?.value) {
-      this.toastService.error('Date is required');
+      this.toastService.error(this.translate.instant('validation.dateRequired'));
       return;
     }
 
     const fees = f.get('fees')?.value ?? 0;
     if (fees < 0) {
-      this.toastService.error('Brokerage fees cannot be negative');
+      this.toastService.error(this.translate.instant('validation.feesCannotBeNegative'));
       return;
     }
 
@@ -180,12 +168,12 @@ export class EditTransactionModalComponent implements OnInit {
       data
     ).subscribe({
       next: () => {
-        this.toastService.success('Transaction updated successfully');
+        this.toastService.success(this.translate.instant('validation.transactionUpdated'));
         this.updated.emit();
         this.closed.emit();
       },
       error: () => {
-        this.toastService.error('Failed to update transaction. Please try again.');
+        this.toastService.error(this.translate.instant('validation.failedToUpdateTransaction'));
         this.loading.set(false);
       },
     });

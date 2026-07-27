@@ -1,10 +1,11 @@
 import { Component, input, output, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive],
+  imports: [RouterLink, RouterLinkActive, TranslatePipe],
   templateUrl: './sidebar.component.html',
 })
 export class SidebarComponent {
@@ -18,9 +19,9 @@ export class SidebarComponent {
   }
 
   protected readonly wealthItems = [
-    { label: 'Investments', route: '/wealth/investments' },
-    { label: 'Crypto',      route: '/wealth/crypto'      },
-    { label: 'Savings',     route: '/wealth/savings'     },
-    { label: 'Cash',        route: '/wealth/cash'        },
+    { labelKey: 'nav.investments', route: '/wealth/investments' },
+    { labelKey: 'nav.crypto',      route: '/wealth/crypto'      },
+    { labelKey: 'nav.savings',     route: '/wealth/savings'     },
+    { labelKey: 'nav.cash',        route: '/wealth/cash'        },
   ];
 }

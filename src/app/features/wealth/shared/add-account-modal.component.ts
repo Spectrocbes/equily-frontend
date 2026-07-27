@@ -1,11 +1,12 @@
 import { Component, OnInit, output, input, inject, signal, computed } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DatePipe, DecimalPipe } from '@angular/common';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { AccountService } from '../../../core/services/account.service';
 import {
   AccountType, AccountSubType,
-  ACCOUNT_TYPE_SUB_TYPES, ACCOUNT_SUB_TYPE_LABELS, ACCOUNT_TYPE_LABELS,
+  ACCOUNT_TYPE_SUB_TYPES, ACCOUNT_CATEGORY,
   CURRENCY_SYMBOLS, isEurOnlyAccount,
 } from '../../../core/models/account.model';
 import { PreferencesService } from '../../../core/services/preferences.service';
@@ -17,7 +18,7 @@ import { normalizeTextOrUndefined } from '../../../core/utils/sanitize';
 @Component({
   selector: 'app-add-account-modal',
   standalone: true,
-  imports: [ReactiveFormsModule, DecimalPipe, DatePipe, DatePickerComponent],
+  imports: [ReactiveFormsModule, DecimalPipe, DatePipe, DatePickerComponent, TranslatePipe],
   templateUrl: './add-account-modal.component.html',
 })
 export class AddAccountModalComponent implements OnInit {
@@ -29,6 +30,7 @@ export class AddAccountModalComponent implements OnInit {
   private readonly accountService = inject(AccountService);
   private readonly preferencesService = inject(PreferencesService);
   private readonly toastService = inject(ToastService);
+  private readonly translate = inject(TranslateService);
 
   protected readonly loading = this.accountService.modalLoading;
   protected readonly error = this.accountService.modalError;
@@ -40,12 +42,21 @@ export class AddAccountModalComponent implements OnInit {
     return this.submitted() && !!this.form.get(field)?.invalid;
   }
 
-  protected readonly ACCOUNT_SUB_TYPE_LABELS = ACCOUNT_SUB_TYPE_LABELS;
-  protected readonly ACCOUNT_TYPE_LABELS     = ACCOUNT_TYPE_LABELS as Record<string, string>;
-
   protected readonly isSingleAccountType = computed(() =>
     (this.allowedTypes()?.length ?? 0) === 1
   );
+
+  /**
+   * accountType values double as investment product codes (PEA, PEA_PME, ...), which
+   * live under the 'subType.*' i18n namespace rather than 'accountType.*' — only the
+   * broad categories (savings/cash/crypto) have their own 'accountType.*' entries.
+   */
+  protected accountTypeTranslationKey(type: string | null | undefined): string {
+    if (!type) return '';
+    return ACCOUNT_CATEGORY[type as AccountType] === 'investments'
+      ? 'subType.' + type
+      : 'accountType.' + type;
+  }
 
   private readonly accountTypes: { value: AccountType; label: string }[] = [
     { value: 'PEA', label: 'PEA — Plan Épargne Actions' },
@@ -286,7 +297,7 @@ export class AddAccountModalComponent implements OnInit {
     const requiresSubType = ['SAVINGS_ACCOUNT', 'INVESTMENT'].includes(accountType ?? '');
 
     if (requiresSubType && !subType) {
-      this.toastService.error('Please select an account type before continuing.');
+      this.toastService.error(this.translate.instant('createAccount.subTypeRequiredToast'));
       return;
     }
 
@@ -308,14 +319,14 @@ export class AddAccountModalComponent implements OnInit {
       linkedCheckingAccountId: linkedCheckingAccountId ?? null,
     }).subscribe({
       next: () => {
-        this.toastService.success('Account created');
+        this.toastService.success(this.translate.instant('validation.accountCreated'));
         this.created.emit();
         this.closed.emit();
       },
       error: (err) => {
         const msg = typeof err.error === 'string'
           ? err.error
-          : 'Failed to create account';
+          : this.translate.instant('validation.failedToCreateAccount');
         this.toastService.error(msg);
       },
     });

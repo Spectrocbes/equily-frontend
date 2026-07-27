@@ -1,11 +1,12 @@
 import { Component, input, output } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { TranslatePipe } from '@ngx-translate/core';
 import { UserCurrencyPipe } from '../../../shared/pipes/user-currency.pipe';
 
 @Component({
   selector: 'app-delete-transaction-modal',
   standalone: true,
-  imports: [DatePipe, UserCurrencyPipe],
+  imports: [DatePipe, UserCurrencyPipe, TranslatePipe],
   templateUrl: './delete-transaction-modal.component.html',
 })
 export class DeleteTransactionModalComponent {

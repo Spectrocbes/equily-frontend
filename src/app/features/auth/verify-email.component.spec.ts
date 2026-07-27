@@ -4,6 +4,7 @@ import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { VerifyEmailComponent } from './verify-email.component';
+import { provideTestTranslations, useTestTranslations } from '../../../testing/translate-testing';
 
 const makeRoute = (params: Record<string, string>) => ({
   provide: ActivatedRoute,
@@ -25,9 +26,11 @@ describe('VerifyEmailComponent — no token', () => {
         provideHttpClientTesting(),
         provideRouter([]),
         makeRoute({}),
+        provideTestTranslations(),
       ],
     });
     fixture = TestBed.createComponent(VerifyEmailComponent);
+    useTestTranslations();
     fixture.detectChanges();
   });
 
@@ -54,10 +57,12 @@ describe('VerifyEmailComponent — with token, success', () => {
         provideHttpClientTesting(),
         provideRouter([]),
         makeRoute({ token: 'abc123' }),
+        provideTestTranslations(),
       ],
     });
     httpMock = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(VerifyEmailComponent);
+    useTestTranslations();
     fixture.detectChanges();
   });
 
@@ -88,10 +93,12 @@ describe('VerifyEmailComponent — with token, failure', () => {
         provideHttpClientTesting(),
         provideRouter([]),
         makeRoute({ token: 'bad-token' }),
+        provideTestTranslations(),
       ],
     });
     httpMock = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(VerifyEmailComponent);
+    useTestTranslations();
     fixture.detectChanges();
   });
 

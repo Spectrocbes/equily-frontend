@@ -6,6 +6,7 @@ import { ToastService } from '../../../shared/toast/toast.service';
 import { signal, WritableSignal } from '@angular/core';
 import { of, throwError } from 'rxjs';
 import { FinancialAccount } from '../../../core/models/account.model';
+import { provideTestTranslations, useTestTranslations } from '../../../../testing/translate-testing';
 
 const mockCheckingAccount: FinancialAccount = {
   id: 'cash-1', name: 'Mon Compte Courant', accountType: 'CASH_ACCOUNT',
@@ -41,10 +42,12 @@ describe('AddAccountModalComponent', () => {
         { provide: AccountService, useValue: mockAccountService },
         { provide: PreferencesService, useValue: mockPrefsService },
         { provide: ToastService, useValue: mockToastService },
+        provideTestTranslations(),
       ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(AddAccountModalComponent);
+    useTestTranslations();
     fixture.detectChanges();
   });
 

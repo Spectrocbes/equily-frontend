@@ -1,12 +1,13 @@
 import { Component, input, output, signal } from '@angular/core';
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
+import { TranslatePipe } from '@ngx-translate/core';
 import { FinancialAccount, PeaWithdrawalSimulation } from '../../../core/models/account.model';
 import { UserCurrencyPipe } from '../../../shared/pipes/user-currency.pipe';
 
 @Component({
   selector: 'app-pea-closure-modal',
   standalone: true,
-  imports: [CurrencyPipe, DecimalPipe, UserCurrencyPipe],
+  imports: [CurrencyPipe, DecimalPipe, UserCurrencyPipe, TranslatePipe],
   templateUrl: './pea-closure-modal.component.html',
 })
 export class PeaClosureModalComponent {

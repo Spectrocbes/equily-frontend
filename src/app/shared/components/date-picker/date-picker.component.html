@@ -16,7 +16,7 @@
                  focus:outline-none focus:ring-2
                  focus:ring-primary-500 transition-colors">
     <span [class.text-slate-400]="!selectedDate()">
-      {{ displayValue() || 'Select a date' }}
+      {{ displayValue() || ('datePicker.selectDate' | translate) }}
     </span>
     <svg class="w-4 h-4 text-slate-400 flex-shrink-0"
          fill="none" viewBox="0 0 24 24"
@@ -73,7 +73,7 @@
                          text-slate-900 dark:text-white
                          hover:text-primary-500 dark:hover:text-primary-400
                          transition-colors">
-            {{ MONTHS[viewMonth()] }} {{ viewYear() }}
+            {{ MONTHS()[viewMonth()] }} {{ viewYear() }}
             <svg class="w-3.5 h-3.5 text-slate-400" fill="none"
                  viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round"
@@ -108,7 +108,7 @@
             </svg>
           </button>
           <span class="text-sm font-semibold text-slate-900 dark:text-white">
-            Select year
+            {{ 'datePicker.selectYear' | translate }}
           </span>
           <div class="w-8"></div>
         }
@@ -127,7 +127,7 @@
             </svg>
           </button>
           <span class="text-sm font-semibold text-slate-900 dark:text-white">
-            Select month
+            {{ 'datePicker.selectMonth' | translate }}
           </span>
           <div class="w-8"></div>
         }
@@ -137,7 +137,7 @@
       @if (headerMode() === 'calendar') {
         <!-- Day headers -->
         <div class="grid grid-cols-7 px-3 pt-2">
-          @for (day of DAYS; track day) {
+          @for (day of DAYS(); track day) {
             <div class="h-8 flex items-center justify-center
                          text-xs font-medium
                          text-slate-400 dark:text-slate-500">
@@ -193,7 +193,7 @@
 
       @if (headerMode() === 'month') {
         <div class="px-3 py-2 grid grid-cols-3 gap-1">
-          @for (month of MONTHS; track $index) {
+          @for (month of MONTHS_SHORT(); track $index) {
             <button type="button"
                     (click)="selectMonth($index)"
                     class="py-2 rounded-lg text-sm transition-colors"
@@ -201,7 +201,7 @@
                       ? 'bg-primary-500 text-white font-semibold'
                       : 'text-slate-700 dark:text-slate-200
                          hover:bg-slate-100 dark:hover:bg-slate-700'">
-              {{ month.slice(0, 3) }}
+              {{ month }}
             </button>
           }
         </div>
@@ -214,7 +214,7 @@
           <button type="button" (click)="selectToday()"
                   class="text-xs text-primary-500 hover:text-primary-600
                          dark:text-primary-400 font-medium transition-colors">
-            Today
+            {{ 'common.today' | translate }}
           </button>
         </div>
       }
