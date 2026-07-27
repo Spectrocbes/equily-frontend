@@ -7,6 +7,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { PreferencesService } from '../../core/services/preferences.service';
 import { ToastService } from '../../shared/toast/toast.service';
 import { of, throwError } from 'rxjs';
+import { provideTestTranslations, useTestTranslations } from '../../../testing/translate-testing';
 
 describe('RegisterComponent', () => {
   let fixture: ComponentFixture<RegisterComponent>;
@@ -18,10 +19,12 @@ describe('RegisterComponent', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         provideRouter([{ path: 'verify-email', redirectTo: '' }]),
+        provideTestTranslations(),
       ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(RegisterComponent);
+    useTestTranslations();
     fixture.detectChanges();
   });
 

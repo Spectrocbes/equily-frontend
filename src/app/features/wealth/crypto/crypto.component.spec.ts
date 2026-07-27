@@ -8,6 +8,7 @@ import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { FinancialAccount } from '../../../core/models/account.model';
 import { of } from 'rxjs';
+import { provideTestTranslations, useTestTranslations } from '../../../../testing/translate-testing';
 
 interface CryptoComponentSignals {
   totalCryptoValue: Signal<number>;
@@ -42,6 +43,7 @@ describe('CryptoComponent', () => {
       providers: [
         provideRouter([]),
         provideHttpClient(),
+        provideTestTranslations(),
         {
           provide: AccountService,
           useValue: {
@@ -66,6 +68,7 @@ describe('CryptoComponent', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(CryptoComponent);
+    useTestTranslations();
   });
 
   it('totalCryptoValue sums portfolioValue for CRYPTO_WALLET accounts only', () => {

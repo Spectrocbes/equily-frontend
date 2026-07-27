@@ -1,18 +1,20 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../core/services/auth.service';
 import { AuthHeaderComponent } from './auth-header.component';
 
 @Component({
   selector: 'app-verify-email',
   standalone: true,
-  imports: [RouterLink, AuthHeaderComponent],
+  imports: [RouterLink, AuthHeaderComponent, TranslatePipe],
   templateUrl: './verify-email.component.html',
 })
 export class VerifyEmailComponent implements OnInit {
   private readonly route       = inject(ActivatedRoute);
   private readonly authService = inject(AuthService);
   private readonly router      = inject(Router);
+  private readonly translate   = inject(TranslateService);
 
   protected readonly state = signal<'pending' | 'verifying' | 'success' | 'error' | 'no-token'>('pending');
   protected readonly error  = signal<string | null>(null);
@@ -29,7 +31,7 @@ export class VerifyEmailComponent implements OnInit {
       this.authService.verifyEmail(token).subscribe({
         next: () => this.state.set('success'),
         error: (err) => {
-          this.error.set(err.error ?? 'Invalid or expired token');
+          this.error.set(err.error ?? this.translate.instant('auth.invalidOrExpiredToken'));
           this.state.set('error');
         },
       });

@@ -1,12 +1,13 @@
 import { Component, OnInit, inject, computed, signal } from '@angular/core';
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
+import { TranslatePipe } from '@ngx-translate/core';
 import { UserCurrencyPipe } from '../../shared/pipes/user-currency.pipe';
 import { RouterLink } from '@angular/router';
 import { AccountService } from '../../core/services/account.service';
 import { AnalyticsService } from '../../core/services/analytics.service';
 import { PreferencesService } from '../../core/services/preferences.service';
 import {
-  AccountType, WealthCategory, ACCOUNT_CATEGORY, WEALTH_CATEGORY_LABELS,
+  AccountType, WealthCategory, ACCOUNT_CATEGORY, WEALTH_CATEGORY_LABELS, WEALTH_CATEGORY_ROUTE,
   ChartPeriod, PortfolioHistoryPoint, TopPerformer,
 } from '../../core/models/account.model';
 import { DonutChartComponent } from '../../shared/components/donut-chart/donut-chart.component';
@@ -26,7 +27,7 @@ const DONUT_COLORS: Record<WealthCategory, string> = {
   imports: [
     CurrencyPipe, DecimalPipe, RouterLink,
     DonutChartComponent, EvolutionChartComponent,
-    AddAccountModalComponent, UserCurrencyPipe,
+    AddAccountModalComponent, UserCurrencyPipe, TranslatePipe,
   ],
   templateUrl: './overview.component.html',
 })
@@ -89,7 +90,10 @@ export class OverviewComponent implements OnInit {
     return (Object.entries(totals) as [WealthCategory, number][])
       .filter(([, value]) => value > 0)
       .map(([cat, value]) => ({
+        category: cat,
         label: WEALTH_CATEGORY_LABELS[cat],
+        labelKey: 'nav.' + cat,
+        route: WEALTH_CATEGORY_ROUTE[cat],
         value,
         color: DONUT_COLORS[cat],
       }));

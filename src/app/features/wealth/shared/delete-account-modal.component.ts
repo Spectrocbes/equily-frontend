@@ -1,10 +1,11 @@
 import { Component, input, output } from '@angular/core';
-import { FinancialAccount, ACCOUNT_SUB_TYPE_LABELS } from '../../../core/models/account.model';
+import { TranslatePipe } from '@ngx-translate/core';
+import { FinancialAccount } from '../../../core/models/account.model';
 
 @Component({
   selector: 'app-delete-account-modal',
   standalone: true,
-  imports: [],
+  imports: [TranslatePipe],
   templateUrl: './delete-account-modal.component.html',
 })
 export class DeleteAccountModalComponent {
@@ -13,8 +14,6 @@ export class DeleteAccountModalComponent {
 
   confirmed = output<void>();
   closed    = output<void>();
-
-  protected readonly ACCOUNT_SUB_TYPE_LABELS = ACCOUNT_SUB_TYPE_LABELS;
 
   protected mouseDownOnBackdrop = false;
 

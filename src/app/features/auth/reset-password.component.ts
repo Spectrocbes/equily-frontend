@@ -1,13 +1,14 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../core/services/auth.service';
 import { AuthHeaderComponent } from './auth-header.component';
 
 @Component({
   selector: 'app-reset-password',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, AuthHeaderComponent],
+  imports: [ReactiveFormsModule, RouterLink, AuthHeaderComponent, TranslatePipe],
   templateUrl: './reset-password.component.html',
 })
 export class ResetPasswordComponent implements OnInit {
@@ -15,6 +16,7 @@ export class ResetPasswordComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly router      = inject(Router);
   private readonly fb          = inject(FormBuilder);
+  private readonly translate   = inject(TranslateService);
 
   protected readonly tokenState = signal<'validating' | 'valid' | 'invalid'>('validating');
   protected readonly token     = signal<string | null>(null);
@@ -36,7 +38,7 @@ export class ResetPasswordComponent implements OnInit {
     const token = this.route.snapshot.queryParamMap.get('token');
     if (!token) {
       this.tokenState.set('invalid');
-      this.error.set('Invalid reset link. Please request a new one.');
+      this.error.set(this.translate.instant('auth.invalidResetLink'));
       return;
     }
     this.token.set(token);
@@ -45,7 +47,7 @@ export class ResetPasswordComponent implements OnInit {
       next: () => this.tokenState.set('valid'),
       error: (err) => {
         this.tokenState.set('invalid');
-        this.error.set(err.error ?? 'Invalid or expired reset link.');
+        this.error.set(err.error ?? this.translate.instant('auth.invalidOrExpiredResetLink'));
       },
     });
   }
@@ -62,7 +64,7 @@ export class ResetPasswordComponent implements OnInit {
         setTimeout(() => this.router.navigate(['/login']), 3000);
       },
       error: (err) => {
-        this.error.set(err.error ?? 'Invalid or expired link.');
+        this.error.set(err.error ?? this.translate.instant('auth.invalidOrExpiredLink'));
         this.loading.set(false);
       },
     });

@@ -1,6 +1,7 @@
 import { Component, OnInit, input, inject, signal, DestroyRef, ViewChild, ElementRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { TranslatePipe } from '@ngx-translate/core';
 import { of } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { TickerSearchService, TickerSearchResult } from '../../../core/services/ticker-search.service';
@@ -8,7 +9,7 @@ import { TickerSearchService, TickerSearchResult } from '../../../core/services/
 @Component({
   selector: 'app-ticker-autocomplete',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, TranslatePipe],
   templateUrl: './ticker-autocomplete.component.html',
   host: { class: 'block' },
 })

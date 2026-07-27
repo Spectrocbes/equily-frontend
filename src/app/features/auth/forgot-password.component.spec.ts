@@ -3,6 +3,7 @@ import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { ForgotPasswordComponent } from './forgot-password.component';
+import { provideTestTranslations, useTestTranslations } from '../../../testing/translate-testing';
 
 describe('ForgotPasswordComponent', () => {
   let httpMock: HttpTestingController;
@@ -15,10 +16,12 @@ describe('ForgotPasswordComponent', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         provideRouter([]),
+        provideTestTranslations(),
       ],
     });
     httpMock = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(ForgotPasswordComponent);
+    useTestTranslations();
     fixture.detectChanges();
   });
 

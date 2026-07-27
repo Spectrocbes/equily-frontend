@@ -5,7 +5,7 @@
   <div class="flex items-start justify-between mb-4">
     <div>
       <h3 class="text-sm font-medium text-slate-500 dark:text-slate-400">
-        Portfolio Value
+        {{ 'chart.portfolioValue' | translate }}
       </h3>
       @if (!loading() && points().length > 0) {
         <p class="text-2xl font-bold text-slate-900 dark:text-white mt-0.5"
@@ -35,7 +35,7 @@
                 [class]="selectedPeriod() === p.value
                   ? 'bg-primary-500 text-white'
                   : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'">
-          {{ p.label }}
+          {{ p.labelKey | translate }}
         </button>
       }
     </div>
@@ -51,7 +51,7 @@
   } @else if (points().length < 2) {
     <div class="h-48 flex items-center justify-center">
       <p class="text-sm text-slate-400 dark:text-slate-500">
-        Not enough data for this period
+        {{ 'chart.notEnoughData' | translate }}
       </p>
     </div>
   } @else {

@@ -4,6 +4,7 @@ import { AccountService } from '../../../core/services/account.service';
 import { ToastService } from '../../../shared/toast/toast.service';
 import { FinancialAccount, Transaction } from '../../../core/models/account.model';
 import { of, throwError } from 'rxjs';
+import { provideTestTranslations, useTestTranslations } from '../../../../testing/translate-testing';
 
 const mockAccount: FinancialAccount = {
   id: 'acc-1',
@@ -119,10 +120,12 @@ describe('EditTransactionModalComponent', () => {
       providers: [
         { provide: AccountService, useValue: mockAccountService },
         { provide: ToastService, useValue: mockToastService },
+        provideTestTranslations(),
       ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(EditTransactionModalComponent);
+    useTestTranslations();
     fixture.componentRef.setInput('accountId', 'acc-1');
     fixture.componentRef.setInput('transaction', depositTransaction);
     fixture.detectChanges();
@@ -140,7 +143,7 @@ describe('EditTransactionModalComponent', () => {
 
   it('shows type as read-only badge', () => {
     const badge = fixture.nativeElement.querySelector('span.inline-flex');
-    expect(badge.textContent).toContain('DEPOSIT');
+    expect(badge.textContent).toContain('Deposit');
   });
 
   it('shows totalAmount field for DEPOSIT transaction', () => {
@@ -169,7 +172,7 @@ describe('EditTransactionModalComponent', () => {
 
     expect(updatedSpy).toHaveBeenCalled();
     expect(closedSpy).toHaveBeenCalled();
-    expect(mockToastService.success).toHaveBeenCalledWith('Transaction updated successfully');
+    expect(mockToastService.success).toHaveBeenCalledWith('Transaction updated');
   });
 
   it('trims leading/trailing whitespace from description on submit', () => {
@@ -324,7 +327,7 @@ describe('EditTransactionModalComponent', () => {
 
     // Call onSubmit directly (protected method via bracket access)
     interestFixture.componentInstance['onSubmit']();
-    expect(mockToastService.error).toHaveBeenCalledWith('Amount must be greater than zero');
+    expect(mockToastService.error).toHaveBeenCalledWith('Amount must be greater than 0');
     expect(mockAccountService.updateTransaction).not.toHaveBeenCalled();
   });
 

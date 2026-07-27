@@ -4,6 +4,7 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { UserCurrencyPipe } from '../../../shared/pipes/user-currency.pipe';
 import { AccountService } from '../../../core/services/account.service';
 import { AnalyticsService } from '../../../core/services/analytics.service';
@@ -11,7 +12,7 @@ import { PreferencesService } from '../../../core/services/preferences.service';
 import { ToastService } from '../../../shared/toast/toast.service';
 import {
   FinancialAccount, EnrichedHolding, Transaction, TransactionType,
-  ACCOUNT_TYPE_LABELS, CURRENCY_SYMBOLS,
+  CURRENCY_SYMBOLS,
   ChartPeriod, PortfolioHistoryPoint,
 } from '../../../core/models/account.model';
 import { AddTransactionModalComponent } from '../shared/add-transaction-modal.component';
@@ -30,7 +31,7 @@ import { EvolutionChartComponent } from '../../../shared/components/evolution-ch
     AddTransactionModalComponent, EditTransactionModalComponent,
     DeleteTransactionModalComponent, CsvImportModalComponent,
     DeleteAccountModalComponent,
-    DonutChartComponent, EvolutionChartComponent, UserCurrencyPipe,
+    DonutChartComponent, EvolutionChartComponent, UserCurrencyPipe, TranslatePipe,
   ],
   templateUrl: './crypto-account-detail.component.html',
 })
@@ -40,9 +41,9 @@ export class CryptoAccountDetailComponent implements OnInit, OnDestroy {
   private readonly accountService   = inject(AccountService);
   private readonly analyticsService = inject(AnalyticsService);
   private readonly toastService     = inject(ToastService);
+  private readonly translate        = inject(TranslateService);
   protected readonly preferencesService = inject(PreferencesService);
 
-  protected readonly ACCOUNT_TYPE_LABELS = ACCOUNT_TYPE_LABELS;
   protected readonly CURRENCY_SYMBOLS    = CURRENCY_SYMBOLS;
 
   protected readonly account          = signal<FinancialAccount | null>(null);
@@ -183,7 +184,7 @@ export class CryptoAccountDetailComponent implements OnInit, OnDestroy {
         this.loading.set(false);
       },
       error: (err) => {
-        this.error.set(err.message ?? 'Failed to load account');
+        this.error.set(err.message ?? this.translate.instant('validation.failedToLoadAccount'));
         this.loading.set(false);
       },
     });
@@ -256,14 +257,16 @@ export class CryptoAccountDetailComponent implements OnInit, OnDestroy {
     this.deleteLoading.set(true);
     this.accountService.deleteTransaction(accountId, tx.id).subscribe({
       next: () => {
-        this.toastService.success('Transaction deleted');
+        this.toastService.success(this.translate.instant('validation.transactionDeleted'));
         this.deletingTransaction.set(null);
         this.deleteLoading.set(false);
         this.loadAll(accountId);
         this.accountService.loadPortfolioSummaries();
       },
       error: (err) => {
-        const msg = typeof err.error === 'string' ? err.error : 'Failed to delete transaction';
+        const msg = typeof err.error === 'string'
+          ? err.error
+          : this.translate.instant('validation.failedToDeleteTransaction');
         this.toastService.error(msg);
         this.deleteLoading.set(false);
       },
@@ -277,7 +280,7 @@ export class CryptoAccountDetailComponent implements OnInit, OnDestroy {
     this.accountDeleteLoading.set(true);
     this.accountService.deleteAccount(account.id).subscribe({
       next: () => {
-        this.toastService.success('Account deleted');
+        this.toastService.success(this.translate.instant('validation.accountDeleted'));
         this.accountDeleteLoading.set(false);
         this.showDeleteAccountModal.set(false);
         this.accountService.loadAccounts();
@@ -285,7 +288,9 @@ export class CryptoAccountDetailComponent implements OnInit, OnDestroy {
         this.router.navigate(['/wealth/crypto']);
       },
       error: (err) => {
-        const msg = typeof err.error === 'string' ? err.error : 'Failed to delete account';
+        const msg = typeof err.error === 'string'
+          ? err.error
+          : this.translate.instant('validation.failedToDeleteAccount');
         this.toastService.error(msg);
         this.accountDeleteLoading.set(false);
         this.showDeleteAccountModal.set(false);
@@ -321,10 +326,7 @@ export class CryptoAccountDetailComponent implements OnInit, OnDestroy {
   }
 
   protected badgeLabel(type: string): string {
-    const labels: Record<string, string> = {
-      'WITHDRAWAL': 'WITHDRAW',
-    };
-    return labels[type] ?? type;
+    return this.translate.instant('transaction.badgeLabel.' + type);
   }
 
   protected getLinkedAccountName(linkedAccountId: string | null): string | null {

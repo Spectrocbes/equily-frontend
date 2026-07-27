@@ -2,6 +2,7 @@ import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { PeaClosureModalComponent } from './pea-closure-modal.component';
 import { FinancialAccount, PeaWithdrawalSimulation } from '../../../core/models/account.model';
+import { provideTestTranslations, useTestTranslations } from '../../../../testing/translate-testing';
 
 const simBase: PeaWithdrawalSimulation = {
   liquidationValue: 12000,
@@ -23,6 +24,7 @@ describe('PeaClosureModalComponent', () => {
 
   function create(sim: PeaWithdrawalSimulation): void {
     fixture = TestBed.createComponent(PeaClosureModalComponent);
+    useTestTranslations();
     fixture.componentRef.setInput('simulation', sim);
     fixture.detectChanges();
   }
@@ -30,7 +32,7 @@ describe('PeaClosureModalComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [PeaClosureModalComponent],
-      providers: [provideHttpClient()],
+      providers: [provideHttpClient(), provideTestTranslations()],
     }).compileComponents();
   });
 
@@ -163,6 +165,7 @@ describe('PeaClosureModalComponent', () => {
 
   it('shows Closing... when loading', () => {
     fixture = TestBed.createComponent(PeaClosureModalComponent);
+    useTestTranslations();
     fixture.componentRef.setInput('simulation', simBase);
     fixture.componentRef.setInput('loading', true);
     fixture.detectChanges();

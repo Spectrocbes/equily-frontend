@@ -11,6 +11,7 @@ import { of, throwError } from 'rxjs';
 import {
   ChartPeriod, EnrichedHolding, FinancialAccount, PortfolioHistoryPoint, Transaction,
 } from '../../../core/models/account.model';
+import { provideTestTranslations, useTestTranslations } from '../../../../testing/translate-testing';
 
 interface CryptoSignals {
   enrichedHoldings: WritableSignal<EnrichedHolding[]>;
@@ -59,6 +60,7 @@ describe('CryptoAccountDetailComponent', () => {
       providers: [
         provideRouter([]),
         provideHttpClient(),
+        provideTestTranslations(),
         {
           provide: AccountService,
           useValue: {
@@ -91,6 +93,7 @@ describe('CryptoAccountDetailComponent', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(CryptoAccountDetailComponent);
+    useTestTranslations();
     fixture.detectChanges();
   });
 

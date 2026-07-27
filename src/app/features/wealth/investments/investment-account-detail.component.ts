@@ -4,13 +4,14 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { UserCurrencyPipe } from '../../../shared/pipes/user-currency.pipe';
 import { AccountService } from '../../../core/services/account.service';
 import { PreferencesService } from '../../../core/services/preferences.service';
 import { ToastService } from '../../../shared/toast/toast.service';
 import {
   FinancialAccount, EnrichedHolding, Transaction, TransactionType, accountAgeYears,
-  ACCOUNT_TYPE_LABELS, CURRENCY_SYMBOLS, PeaWithdrawalSimulation,
+  CURRENCY_SYMBOLS, PeaWithdrawalSimulation,
   ChartPeriod, PortfolioHistoryPoint, GeographicExposure,
 } from '../../../core/models/account.model';
 import { AnalyticsService } from '../../../core/services/analytics.service';
@@ -33,7 +34,7 @@ import { DonutChartComponent, DonutSlice } from '../../../shared/components/donu
     DeleteTransactionModalComponent,
     CsvImportModalComponent, PeaClosureModalComponent,
     PeaWithdrawalBreakdownModalComponent, DeleteAccountModalComponent,
-    DonutChartComponent, EvolutionChartComponent, UserCurrencyPipe,
+    DonutChartComponent, EvolutionChartComponent, UserCurrencyPipe, TranslatePipe,
   ],
   templateUrl: './investment-account-detail.component.html',
 })
@@ -44,13 +45,13 @@ export class InvestmentAccountDetailComponent implements OnInit {
   private readonly analyticsService = inject(AnalyticsService);
   protected readonly preferencesService = inject(PreferencesService);
   private readonly toastService = inject(ToastService);
+  private readonly translate    = inject(TranslateService);
 
   protected readonly account      = signal<FinancialAccount | null>(null);
   protected readonly transactions = signal<Transaction[]>([]);
   protected readonly loading      = signal(false);
   protected readonly error        = signal<string | null>(null);
 
-  protected readonly ACCOUNT_TYPE_LABELS = ACCOUNT_TYPE_LABELS;
   protected readonly CURRENCY_SYMBOLS    = CURRENCY_SYMBOLS;
   protected readonly showTransactionModal  = signal(false);
   protected readonly showCsvModal         = signal(false);
@@ -223,7 +224,7 @@ export class InvestmentAccountDetailComponent implements OnInit {
         this.loading.set(false);
       },
       error: (err) => {
-        this.error.set(err.message ?? 'Failed to load account');
+        this.error.set(err.message ?? this.translate.instant('validation.failedToLoadAccount'));
         this.loading.set(false);
       },
     });
@@ -312,7 +313,7 @@ export class InvestmentAccountDetailComponent implements OnInit {
     this.deleteLoading.set(true);
     this.accountService.deleteTransaction(accountId, tx.id).subscribe({
       next: () => {
-        this.toastService.success('Transaction deleted');
+        this.toastService.success(this.translate.instant('validation.transactionDeleted'));
         this.deletingTransaction.set(null);
         this.deleteLoading.set(false);
         this.loadAll(accountId);
@@ -321,7 +322,9 @@ export class InvestmentAccountDetailComponent implements OnInit {
         this.accountService.loadPortfolioSummaries();
       },
       error: (err) => {
-        const msg = typeof err.error === 'string' ? err.error : 'Failed to delete transaction';
+        const msg = typeof err.error === 'string'
+          ? err.error
+          : this.translate.instant('validation.failedToDeleteTransaction');
         this.toastService.error(msg);
         this.deleteLoading.set(false);
       },
@@ -363,7 +366,9 @@ export class InvestmentAccountDetailComponent implements OnInit {
         this.showWithdrawalBreakdownModal.set(true);
       },
       error: (err) => {
-        const msg = typeof err.error === 'string' ? err.error : 'Cannot simulate withdrawal';
+        const msg = typeof err.error === 'string'
+          ? err.error
+          : this.translate.instant('validation.cannotSimulateWithdrawal');
         this.toastService.error(msg);
         this.withdrawalLoading.set(false);
       },
@@ -378,7 +383,9 @@ export class InvestmentAccountDetailComponent implements OnInit {
         this.showClosureModal.set(true);
       },
       error: (err) => {
-        const msg = typeof err.error === 'string' ? err.error : 'Cannot simulate closure';
+        const msg = typeof err.error === 'string'
+          ? err.error
+          : this.translate.instant('validation.cannotSimulateClosure');
         this.toastService.error(msg);
       },
     });
@@ -396,14 +403,16 @@ export class InvestmentAccountDetailComponent implements OnInit {
       date: new Date().toISOString().split('T')[0],
     }).subscribe({
       next: () => {
-        this.toastService.success('Withdrawal recorded');
+        this.toastService.success(this.translate.instant('validation.withdrawalRecorded'));
         this.showWithdrawalBreakdownModal.set(false);
         this.withdrawalBreakdown.set(null);
         this.withdrawalLoading.set(false);
         this.loadAll(id);
       },
       error: (err) => {
-        const msg = typeof err.error === 'string' ? err.error : 'Failed to record withdrawal';
+        const msg = typeof err.error === 'string'
+          ? err.error
+          : this.translate.instant('validation.failedToRecordWithdrawal');
         this.toastService.error(msg);
         this.withdrawalLoading.set(false);
       },
@@ -415,7 +424,7 @@ export class InvestmentAccountDetailComponent implements OnInit {
     this.closureLoading.set(true);
     this.accountService.closePea(id).subscribe({
       next: () => {
-        this.toastService.success('PEA closed successfully');
+        this.toastService.success(this.translate.instant('validation.peaClosedSuccessfully'));
         this.showClosureModal.set(false);
         this.showTransactionModal.set(false);
         this.simulation.set(null);
@@ -423,7 +432,9 @@ export class InvestmentAccountDetailComponent implements OnInit {
         this.loadAll(id);
       },
       error: (err) => {
-        const msg = typeof err.error === 'string' ? err.error : 'Failed to close PEA';
+        const msg = typeof err.error === 'string'
+          ? err.error
+          : this.translate.instant('validation.failedToClosePea');
         this.toastService.error(msg);
         this.closureLoading.set(false);
       },
@@ -437,7 +448,7 @@ export class InvestmentAccountDetailComponent implements OnInit {
     this.accountDeleteLoading.set(true);
     this.accountService.deleteAccount(account.id).subscribe({
       next: () => {
-        this.toastService.success('Account deleted');
+        this.toastService.success(this.translate.instant('validation.accountDeleted'));
         this.accountDeleteLoading.set(false);
         this.showDeleteAccountModal.set(false);
         this.accountService.loadAccounts();
@@ -445,7 +456,9 @@ export class InvestmentAccountDetailComponent implements OnInit {
         this.router.navigate(['/wealth/investments']);
       },
       error: (err) => {
-        const msg = typeof err.error === 'string' ? err.error : 'Failed to delete account';
+        const msg = typeof err.error === 'string'
+          ? err.error
+          : this.translate.instant('validation.failedToDeleteAccount');
         this.toastService.error(msg);
         this.accountDeleteLoading.set(false);
         this.showDeleteAccountModal.set(false);
@@ -483,10 +496,7 @@ export class InvestmentAccountDetailComponent implements OnInit {
   }
 
   protected badgeLabel(type: string): string {
-    const labels: Record<string, string> = {
-      'WITHDRAWAL': 'WITHDRAW',
-    };
-    return labels[type] ?? type;
+    return this.translate.instant('transaction.badgeLabel.' + type);
   }
 
   protected getLinkedAccountName(linkedAccountId: string | null): string | null {

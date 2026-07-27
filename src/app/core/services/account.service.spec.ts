@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideHttpClient } from '@angular/common/http';
 import { AccountService } from './account.service';
 import { AccountPortfolioSummary, FinancialAccount } from '../models/account.model';
+import { provideTestTranslations } from '../../../testing/translate-testing';
 
 function makeAccount(id: string, name: string): FinancialAccount {
   return {
@@ -27,7 +28,7 @@ describe('AccountService.deleteAccount', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideTestTranslations()],
     });
     service = TestBed.inject(AccountService);
     httpMock = TestBed.inject(HttpTestingController);

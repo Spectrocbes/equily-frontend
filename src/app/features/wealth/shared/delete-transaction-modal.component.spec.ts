@@ -2,6 +2,7 @@ import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { DeleteTransactionModalComponent } from './delete-transaction-modal.component';
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
+import { provideTestTranslations, useTestTranslations } from '../../../../testing/translate-testing';
 
 describe('DeleteTransactionModalComponent', () => {
   let fixture: ComponentFixture<DeleteTransactionModalComponent>;
@@ -10,10 +11,11 @@ describe('DeleteTransactionModalComponent', () => {
   async function setup(loading = false): Promise<void> {
     await TestBed.configureTestingModule({
       imports: [DeleteTransactionModalComponent],
-      providers: [provideRouter([]), provideHttpClient()],
+      providers: [provideRouter([]), provideHttpClient(), provideTestTranslations()],
     }).compileComponents();
 
     fixture = TestBed.createComponent(DeleteTransactionModalComponent);
+    useTestTranslations();
     comp = fixture.componentInstance;
     fixture.componentRef.setInput('transactionType', 'BUY');
     fixture.componentRef.setInput('transactionDate', '2026-01-15');
@@ -26,7 +28,7 @@ describe('DeleteTransactionModalComponent', () => {
     await setup();
     const text = fixture.nativeElement.textContent;
     expect(text).toContain('Delete transaction');
-    expect(text).toContain('BUY');
+    expect(text).toContain('Buy');
   });
 
   it('shows permanent deletion warning', async () => {

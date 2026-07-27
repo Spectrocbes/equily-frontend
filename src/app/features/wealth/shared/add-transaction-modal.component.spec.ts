@@ -8,6 +8,7 @@ import { PreferencesService } from '../../../core/services/preferences.service';
 import { ToastService } from '../../../shared/toast/toast.service';
 import { EnrichedHolding, FinancialAccount } from '../../../core/models/account.model';
 import { of, throwError } from 'rxjs';
+import { provideTestTranslations, useTestTranslations } from '../../../../testing/translate-testing';
 
 const mockHoldings: EnrichedHolding[] = [
   {
@@ -92,10 +93,12 @@ describe('AddTransactionModalComponent', () => {
         provideHttpClientTesting(),
         { provide: AccountService, useValue: mockService },
         { provide: PreferencesService, useValue: mockPrefsService },
+        provideTestTranslations(),
       ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(AddTransactionModalComponent);
+    useTestTranslations();
     fixture.componentRef.setInput('accountId', 'acc-1');
     fixture.componentRef.setInput('accountType', 'PEA');
     fixture.detectChanges();
@@ -883,7 +886,7 @@ describe('AddTransactionModalComponent', () => {
     fixture.detectChanges();
     const cap = fixture.componentInstance['destinationCapacityInfo']();
     expect(cap).not.toBeNull();
-    expect(cap!.label).toBe('PEA deposited');
+    expect(cap!.labelKey).toBe('pea.peaCapacity');
     expect(cap!.current).toBe(10000);
     expect(cap!.remaining).toBe(140000);
   });
@@ -897,7 +900,7 @@ describe('AddTransactionModalComponent', () => {
     fixture.detectChanges();
     const cap = fixture.componentInstance['destinationCapacityInfo']();
     expect(cap).not.toBeNull();
-    expect(cap!.label).toBe('Balance');
+    expect(cap!.labelKey).toBe('account.balanceLabel');
     expect(cap!.remaining).toBe(19950);
   });
 
@@ -1088,14 +1091,14 @@ describe('AddTransactionModalComponent', () => {
 
   // ── Fix 2: formatSubType ────────────────────────────────────────────────────
 
-  it('formatSubType maps known sub-types to their display label', () => {
+  it('formatSubType maps known sub-types to their translated label', () => {
     expect(fixture.componentInstance['formatSubType']('LIVRET_A')).toBe('Livret A');
     expect(fixture.componentInstance['formatSubType']('PEA_PME')).toBe('PEA-PME');
-    expect(fixture.componentInstance['formatSubType']('CASH_ACCOUNT')).toBe('Compte Courant');
+    expect(fixture.componentInstance['formatSubType']('CASH_ACCOUNT')).toBe('Cash Account');
   });
 
-  it('formatSubType falls back to underscore-replaced value for unknown sub-types', () => {
-    expect(fixture.componentInstance['formatSubType']('SOME_NEW_TYPE')).toBe('SOME NEW TYPE');
+  it('formatSubType falls back to the raw translation key for unknown sub-types', () => {
+    expect(fixture.componentInstance['formatSubType']('SOME_NEW_TYPE')).toBe('subType.SOME_NEW_TYPE');
   });
 
   it('formatSubType returns empty string for null or undefined', () => {
@@ -1251,7 +1254,7 @@ describe('AddTransactionModalComponent', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent;
-    expect(text).toContain('DEPOSIT');
+    expect(text).toContain('Deposit');
     expect(text).toContain('Mon Compte');
     expect(text).toContain('Salary');
   });

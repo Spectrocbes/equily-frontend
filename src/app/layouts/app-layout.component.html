@@ -5,7 +5,7 @@
       <div class="fixed inset-0 z-20 bg-black/50 lg:hidden"
            role="button"
            tabindex="0"
-           aria-label="Close sidebar"
+           [attr.aria-label]="'nav.closeSidebar' | translate"
            (click)="sidebarOpen.set(false)"
            (keydown.enter)="sidebarOpen.set(false)"
            (keydown.space)="sidebarOpen.set(false)">

@@ -1,6 +1,7 @@
 import { Component, OnInit, ViewChild, input, output, inject, computed, signal, effect } from '@angular/core';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { AccountService } from '../../../core/services/account.service';
 import { PreferencesService } from '../../../core/services/preferences.service';
@@ -15,21 +16,21 @@ import { DatePickerComponent } from '../../../shared/components/date-picker/date
 import { TickerAutocompleteComponent } from '../../../shared/components/ticker-autocomplete/ticker-autocomplete.component';
 import { normalizeText, normalizeTextOrUndefined } from '../../../core/utils/sanitize';
 
-const ALL_TRANSACTION_TYPES: { value: TransactionType; label: string; icon: string }[] = [
-  { value: 'DEPOSIT',    label: 'Deposit',    icon: '↓' },
-  { value: 'WITHDRAWAL', label: 'Withdrawal', icon: '↑' },
-  { value: 'PAYMENT',    label: 'Payment',    icon: '💳' },
-  { value: 'TRANSFER',   label: 'Transfer',   icon: '⇄' },
-  { value: 'BUY',        label: 'Buy',        icon: '📈' },
-  { value: 'SELL',       label: 'Sell',       icon: '📉' },
-  { value: 'DIVIDEND',   label: 'Dividend',   icon: '💰' },
-  { value: 'INTEREST',   label: 'Interest',   icon: '🏦' },
+const ALL_TRANSACTION_TYPES: { value: TransactionType; labelKey: string; icon: string }[] = [
+  { value: 'DEPOSIT',    labelKey: 'transaction.type.DEPOSIT',    icon: '↓' },
+  { value: 'WITHDRAWAL', labelKey: 'transaction.type.WITHDRAWAL', icon: '↑' },
+  { value: 'PAYMENT',    labelKey: 'transaction.type.PAYMENT',    icon: '💳' },
+  { value: 'TRANSFER',   labelKey: 'transaction.type.TRANSFER',   icon: '⇄' },
+  { value: 'BUY',        labelKey: 'transaction.type.BUY',        icon: '📈' },
+  { value: 'SELL',       labelKey: 'transaction.type.SELL',       icon: '📉' },
+  { value: 'DIVIDEND',   labelKey: 'transaction.type.DIVIDEND',   icon: '💰' },
+  { value: 'INTEREST',   labelKey: 'transaction.type.INTEREST',   icon: '🏦' },
 ];
 
 @Component({
   selector: 'app-add-transaction-modal',
   standalone: true,
-  imports: [ReactiveFormsModule, DecimalPipe, CurrencyPipe, DatePipe, UserCurrencyPipe, DatePickerComponent, TickerAutocompleteComponent],
+  imports: [ReactiveFormsModule, DecimalPipe, CurrencyPipe, DatePipe, UserCurrencyPipe, DatePickerComponent, TickerAutocompleteComponent, TranslatePipe],
   templateUrl: './add-transaction-modal.component.html',
 })
 export class AddTransactionModalComponent implements OnInit {
@@ -56,6 +57,7 @@ export class AddTransactionModalComponent implements OnInit {
   protected readonly accountService = inject(AccountService);
   protected readonly preferencesService = inject(PreferencesService);
   private readonly toastService = inject(ToastService);
+  private readonly translate = inject(TranslateService);
 
   protected readonly transactionCurrency = computed(() =>
     isEurOnlyAccount(this.accountType(), this.accountSubType())
@@ -124,7 +126,7 @@ export class AddTransactionModalComponent implements OnInit {
 
   protected readonly selectedTypeLabel = computed(() => {
     const type = this.selectedType();
-    return this.availableTransactionTypes().find(t => t.value === type)?.label ?? '';
+    return this.availableTransactionTypes().find(t => t.value === type)?.labelKey ?? '';
   });
 
   protected readonly showTransferForm = computed(() =>
@@ -207,7 +209,7 @@ export class AddTransactionModalComponent implements OnInit {
     if (dest.depositLimit == null || dest.depositLimit === 0) return null;
     const isPea = dest.subType === 'PEA' || dest.subType === 'PEA_PME';
     return {
-      label:     isPea ? 'PEA deposited' : 'Balance',
+      labelKey:  isPea ? 'pea.peaCapacity' : 'account.balanceLabel',
       current:   dest.totalDeposits ?? dest.balance,
       limit:     dest.depositLimit,
       remaining: dest.remainingCapacity ?? 0,
@@ -535,23 +537,9 @@ export class AddTransactionModalComponent implements OnInit {
     qtyControl?.updateValueAndValidity();
   }
 
-  private static readonly SUB_TYPE_LABELS: Record<string, string> = {
-    LIVRET_A:        'Livret A',
-    LDDS:            'LDDS',
-    LEP:             'LEP',
-    LIVRET_JEUNE:    'Livret Jeune',
-    PEA:             'PEA',
-    PEA_PME:         'PEA-PME',
-    COMPTE_TITRES:   'Compte Titres',
-    PER:             'PER',
-    ASSURANCE_VIE:   'Assurance Vie',
-    CASH_ACCOUNT:    'Compte Courant',
-    CRYPTO_WALLET:   'Portefeuille Crypto',
-  };
-
   protected formatSubType(subType: string | null | undefined): string {
     if (!subType) return '';
-    return AddTransactionModalComponent.SUB_TYPE_LABELS[subType] ?? subType.replace(/_/g, ' ');
+    return this.translate.instant('subType.' + subType);
   }
 
   protected mouseDownOnBackdrop = false;
@@ -626,7 +614,9 @@ export class AddTransactionModalComponent implements OnInit {
     const min     = this.effectiveMinDate();
     if (min && dateVal && dateVal < min) {
       this.toastService.error(
-        `Date cannot be before ${new Date(min).toLocaleDateString('fr-FR')}`
+        this.translate.instant('validation.dateBeforeMin', {
+          date: new Date(min).toLocaleDateString('fr-FR'),
+        })
       );
       return false;
     }
@@ -675,14 +665,14 @@ export class AddTransactionModalComponent implements OnInit {
     this.loading.set(true);
     this.accountService.executeTransfer(request).subscribe({
       next: () => {
-        this.toastService.success('Transfer completed');
+        this.toastService.success(this.translate.instant('validation.transferCompleted'));
         this.created.emit({ type: 'TRANSFER', amount: request.amount });
         this.closed.emit();
       },
       error: (err) => {
         const msg = typeof err.error === 'string'
           ? err.error
-          : err.error?.message ?? 'Failed to execute transfer';
+          : err.error?.message ?? this.translate.instant('validation.failedToExecuteTransfer');
         this.toastService.error(msg);
         this.loading.set(false);
       }
@@ -725,15 +715,15 @@ export class AddTransactionModalComponent implements OnInit {
         this.closed.emit();
       },
       error: (err) => {
-        let message = 'Transaction failed. Please try again.';
+        let message = this.translate.instant('validation.transactionFailedRetry');
         if (typeof err.error === 'string') {
           message = err.error;
         } else if (err.error?.message) {
           message = err.error.message;
         } else if (err.status === 422) {
-          message = 'Transaction exceeds account limits or available balance.';
+          message = this.translate.instant('validation.transactionExceedsLimits');
         } else if (err.status === 403) {
-          message = 'Session expired. Please sign in again.';
+          message = this.translate.instant('validation.sessionExpired');
         }
         this.toastService.error(message);
         this.loading.set(false);

@@ -1,5 +1,6 @@
 import { Component, OnInit, inject, computed, signal } from '@angular/core';
 import { CurrencyPipe, DatePipe } from '@angular/common';
+import { TranslatePipe } from '@ngx-translate/core';
 import { UserCurrencyPipe } from '../../../shared/pipes/user-currency.pipe';
 import { RouterLink } from '@angular/router';
 import { AccountService } from '../../../core/services/account.service';
@@ -7,7 +8,7 @@ import { AnalyticsService } from '../../../core/services/analytics.service';
 import { PreferencesService } from '../../../core/services/preferences.service';
 import {
   AccountType, ACCOUNT_CATEGORY, FinancialAccount,
-  ACCOUNT_TYPE_LABELS, PeaSummary, ChartPeriod, PortfolioHistoryPoint,
+  PeaSummary, ChartPeriod, PortfolioHistoryPoint,
 } from '../../../core/models/account.model';
 import { AddAccountModalComponent } from '../shared/add-account-modal.component';
 import { EvolutionChartComponent } from '../../../shared/components/evolution-chart/evolution-chart.component';
@@ -17,7 +18,7 @@ import { EvolutionChartComponent } from '../../../shared/components/evolution-ch
   standalone: true,
   imports: [
     CurrencyPipe, DatePipe, RouterLink,
-    AddAccountModalComponent, UserCurrencyPipe, EvolutionChartComponent,
+    AddAccountModalComponent, UserCurrencyPipe, EvolutionChartComponent, TranslatePipe,
   ],
   templateUrl: './investments.component.html',
 })
@@ -36,8 +37,6 @@ export class InvestmentsComponent implements OnInit {
   protected readonly allowedTypes: AccountType[] = [
     'PEA', 'PEA_PME', 'COMPTE_TITRES', 'PER', 'ASSURANCE_VIE',
   ];
-  protected readonly ACCOUNT_TYPE_LABELS = ACCOUNT_TYPE_LABELS;
-
   protected readonly accounts = computed(() =>
     this.accountService.accounts().filter(
       a => ACCOUNT_CATEGORY[a.accountType] === 'investments'

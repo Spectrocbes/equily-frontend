@@ -4,6 +4,7 @@ import { AccountService } from '../../../core/services/account.service';
 import { ToastService } from '../../../shared/toast/toast.service';
 import { of, throwError } from 'rxjs';
 import { CsvImportResponse } from '../../../core/models/account.model';
+import { provideTestTranslations, useTestTranslations } from '../../../../testing/translate-testing';
 
 const mockResult: CsvImportResponse = {
   imported: 2, skipped: 1, errors: 0, errorDetails: []
@@ -25,10 +26,12 @@ describe('CsvImportModalComponent', () => {
       providers: [
         { provide: AccountService, useValue: mockService },
         { provide: ToastService, useValue: mockToast },
+        provideTestTranslations(),
       ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(CsvImportModalComponent);
+    useTestTranslations();
     fixture.componentRef.setInput('accountId', 'acc-1');
     fixture.detectChanges();
   });

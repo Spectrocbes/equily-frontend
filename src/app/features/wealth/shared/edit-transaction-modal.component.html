@@ -15,13 +15,12 @@
     <div class="flex items-center justify-between">
       <div>
         <h2 class="text-lg font-semibold text-slate-900 dark:text-white">
-          Edit transaction
+          {{ 'transaction.editTransaction' | translate }}
         </h2>
         <span class="inline-flex mt-1 px-2 py-0.5 rounded-md text-xs font-medium
                      bg-slate-100 dark:bg-slate-700
                      text-slate-600 dark:text-slate-300">
-          {{ transaction().type }}
-          @if (transaction().ticker) { · {{ transaction().ticker }} }
+          {{ ('transaction.type.' + transaction().type) | translate }}@if (transaction().ticker) { · {{ transaction().ticker }} }
         </span>
       </div>
       <button (click)="closed.emit()"
@@ -61,7 +60,7 @@
           <label class="block">
             <span class="block text-sm font-medium
                          text-slate-700 dark:text-slate-300 mb-1.5">
-              Amount (€)
+              {{ 'transaction.amount' | translate }} (€)
             </span>
             <input formControlName="totalAmount" type="number"
                    step="0.01" min="0.01"
@@ -74,7 +73,7 @@
           </label>
           @if (showError('totalAmount')) {
             <p class="text-rose-500 text-xs mt-1">
-              Amount must be greater than 0
+              {{ 'validation.amountMustBeGreaterThanZero' | translate }}
             </p>
           }
         </div>
@@ -86,7 +85,7 @@
           <label class="block">
             <span class="block text-sm font-medium
                          text-slate-700 dark:text-slate-300 mb-1.5">
-              Quantity
+              {{ 'transaction.quantity' | translate }}
             </span>
             <input formControlName="quantity" type="number"
                    step="0.0001" min="0.0001"
@@ -100,7 +99,7 @@
           <label class="block">
             <span class="block text-sm font-medium
                          text-slate-700 dark:text-slate-300 mb-1.5">
-              Price per unit (€)
+              {{ 'transaction.pricePerUnit' | translate }} (€)
             </span>
             <input formControlName="pricePerUnit" type="number"
                    step="0.01" min="0.01"
@@ -117,7 +116,7 @@
         <label class="block">
           <span class="block text-sm font-medium
                        text-slate-700 dark:text-slate-300 mb-1.5">
-            Brokerage fees (€)
+            {{ 'transaction.brokerageFees' | translate }} (€)
           </span>
           <input formControlName="fees" type="number"
                  step="0.01" min="0"
@@ -136,7 +135,7 @@
                       px-3 py-2.5">
             <div class="flex items-center justify-between">
               <span class="text-sm text-slate-500 dark:text-slate-400">
-                Total {{ transaction().type === 'BUY' ? 'cost' : 'proceeds' }}
+                {{ (transaction().type === 'BUY' ? 'transaction.totalCost' : 'transaction.totalProceeds') | translate }}
               </span>
               <span class="text-sm font-semibold font-mono
                            text-slate-900 dark:text-white">
@@ -145,10 +144,10 @@
             </div>
             @if (liveFees() > 0) {
               <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
-                {{ transaction().type === 'BUY'
-                  ? 'includes ' : 'after deducting ' }}
+                {{ (transaction().type === 'BUY'
+                  ? 'transaction.includesFees' : 'transaction.afterDeductingFees') | translate }}
                 {{ liveFees() | currency:'EUR':'symbol':'1.2-2' }}
-                fees
+                {{ 'transaction.fees' | translate }}
               </p>
             }
           </div>
@@ -157,7 +156,7 @@
 
       <!-- Date -->
       <app-date-picker
-        label="Date"
+        [label]="'transaction.date' | translate"
         controlName="date"
         [parentForm]="form()"
         [minDate]="account()?.openedAt ?? null"
@@ -168,12 +167,12 @@
       <label class="block">
         <span class="block text-sm font-medium
                      text-slate-700 dark:text-slate-300 mb-1.5">
-          Description
-          <span class="text-slate-400 font-normal">(optional)</span>
+          {{ 'transaction.description' | translate }}
+          <span class="text-slate-400 font-normal">{{ 'common.optional' | translate }}</span>
         </span>
         <input formControlName="description" type="text"
                maxlength="255"
-               placeholder="e.g. Monthly savings"
+               [placeholder]="'transaction.descriptionPlaceholderSimple' | translate"
                class="w-full px-3 py-2 rounded-lg text-sm
                       bg-slate-50 dark:bg-slate-900
                       border border-slate-200 dark:border-slate-600
@@ -191,14 +190,14 @@
                        text-slate-700 dark:text-slate-300
                        hover:bg-slate-50 dark:hover:bg-slate-700
                        transition-colors">
-          Cancel
+          {{ 'common.cancel' | translate }}
         </button>
         <button type="submit"
                 [disabled]="loading()"
                 class="flex-1 px-4 py-2 rounded-lg text-sm font-medium
                        bg-primary-500 hover:bg-primary-600
                        disabled:opacity-50 text-white transition-colors">
-          @if (loading()) { Saving... } @else { Save changes }
+          @if (loading()) { {{ 'common.saving' | translate }} } @else { {{ 'common.saveChanges' | translate }} }
         </button>
       </div>
 

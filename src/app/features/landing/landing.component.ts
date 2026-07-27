@@ -1,10 +1,11 @@
 import { Component, HostListener, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-landing',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, TranslatePipe],
   templateUrl: './landing.component.html',
 })
 export class LandingComponent {
@@ -24,70 +25,29 @@ export class LandingComponent {
   }
 
   protected readonly stats = [
-    { value: '9+',   label: 'Account types supported' },
-    { value: '100%', label: 'Data privacy' },
-    { value: 'Free', label: 'Forever for personal use' },
+    { value: '9+',   labelKey: 'landing.stat1Label' },
+    { value: '100%', labelKey: 'landing.stat2Label' },
+    { value: 'Free', labelKey: 'landing.stat3Label' },
   ];
 
   protected readonly features = [
-    {
-      icon: '📊',
-      title: 'Portfolio tracking',
-      description: 'Track holdings, P&L, average cost price, and fees across all your investment accounts in real time.',
-    },
-    {
-      icon: '🏦',
-      title: 'Regulatory compliance',
-      description: 'Built-in deposit limit enforcement and account-specific rules — stay compliant automatically.',
-    },
-    {
-      icon: '📥',
-      title: 'Broker CSV import',
-      description: 'Import your full transaction history from your broker in one click — no manual entry needed.',
-    },
-    {
-      icon: '⚖️',
-      title: 'Rebalancing engine',
-      description: 'Coming soon — calculate exactly what to buy with available cash to reach your target allocation.',
-    },
-    {
-      icon: '🌍',
-      title: 'Geographic exposure',
-      description: "Coming soon — visualise your portfolio's exposure by country, region, and asset class.",
-    },
-    {
-      icon: '🔒',
-      title: 'Secure by design',
-      description: 'JWT RS256 authentication, encrypted tokens, and strict per-user data isolation.',
-    },
+    { icon: '📊', titleKey: 'landing.feature1Title', descriptionKey: 'landing.feature1Description' },
+    { icon: '🏦', titleKey: 'landing.feature2Title', descriptionKey: 'landing.feature2Description' },
+    { icon: '📥', titleKey: 'landing.feature3Title', descriptionKey: 'landing.feature3Description' },
+    { icon: '⚖️', titleKey: 'landing.feature4Title', descriptionKey: 'landing.feature4Description' },
+    { icon: '🌍', titleKey: 'landing.feature5Title', descriptionKey: 'landing.feature5Description' },
+    { icon: '🔒', titleKey: 'landing.feature6Title', descriptionKey: 'landing.feature6Description' },
   ];
 
   protected readonly accountTypes = [
-    'Stocks', 'ETFs', 'Bonds', 'Crypto',
-    'Savings accounts', 'Retirement accounts',
-    'Real estate', 'Cash accounts',
+    'landing.accountType1', 'landing.accountType2', 'landing.accountType3', 'landing.accountType4',
+    'landing.accountType5', 'landing.accountType6', 'landing.accountType7', 'landing.accountType8',
   ];
 
   protected readonly security = [
-    {
-      icon: '🔐',
-      title: 'JWT RS256 authentication',
-      description: 'Industry-standard asymmetric key signing. Access tokens expire after 15 minutes.',
-    },
-    {
-      icon: '🗄️',
-      title: 'Strict data isolation',
-      description: "Each user's data is completely isolated. No cross-user data access is possible at any layer.",
-    },
-    {
-      icon: '#️⃣',
-      title: 'Hashed sensitive tokens',
-      description: 'Refresh, verification, and reset tokens are stored as SHA-256 hashes — never in plain text.',
-    },
-    {
-      icon: '📁',
-      title: 'Files never stored',
-      description: 'Imported files are parsed in memory and immediately discarded — never persisted to disk or database.',
-    },
+    { icon: '🔐', titleKey: 'landing.security1Title', descriptionKey: 'landing.security1Description' },
+    { icon: '🗄️', titleKey: 'landing.security2Title', descriptionKey: 'landing.security2Description' },
+    { icon: '#️⃣', titleKey: 'landing.security3Title', descriptionKey: 'landing.security3Description' },
+    { icon: '📁', titleKey: 'landing.security4Title', descriptionKey: 'landing.security4Description' },
   ];
 }

@@ -9,7 +9,7 @@
   <!-- Mobile close button -->
   <div class="flex items-center justify-between p-4 lg:hidden
               border-b border-slate-200 dark:border-slate-700">
-    <span class="font-semibold text-slate-900 dark:text-white">Menu</span>
+    <span class="font-semibold text-slate-900 dark:text-white">{{ 'nav.menu' | translate }}</span>
     <button type="button" (click)="closed.emit()"
             class="p-1.5 rounded-lg text-slate-500
                    hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
@@ -35,7 +35,7 @@
         <path stroke-linecap="round" stroke-linejoin="round"
               d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
       </svg>
-      <span class="text-sm font-medium">Overview</span>
+      <span class="text-sm font-medium">{{ 'nav.overview' | translate }}</span>
     </a>
 
     <!-- Wealth accordion -->
@@ -54,7 +54,7 @@
             <path stroke-linecap="round" stroke-linejoin="round"
                   d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75"/>
           </svg>
-          <span class="text-sm font-medium">Wealth</span>
+          <span class="text-sm font-medium">{{ 'nav.wealth' | translate }}</span>
         </div>
         <svg class="w-4 h-4 transition-transform duration-200"
              [class.rotate-180]="wealthExpanded()"
@@ -75,7 +75,7 @@
                       hover:text-slate-900 dark:hover:text-slate-100
                       hover:bg-slate-100 dark:hover:bg-slate-800
                       transition-colors">
-              {{ item.label }}
+              {{ item.labelKey | translate }}
             </a>
           }
 
@@ -96,7 +96,7 @@
         <path stroke-linecap="round" stroke-linejoin="round"
               d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/>
       </svg>
-      <span class="text-sm font-medium">Analytics</span>
+      <span class="text-sm font-medium">{{ 'nav.analytics' | translate }}</span>
     </a>
 
     <!-- Rebalance -->
@@ -112,7 +112,7 @@
         <path stroke-linecap="round" stroke-linejoin="round"
               d="M12 3v17.25m0 0c-1.472 0-2.882.265-4.185.75M12 20.25c1.472 0 2.882.265 4.185.75M18.75 4.97A48.416 48.416 0 0012 4.5c-2.291 0-4.545.16-6.75.47m13.5 0c1.01.143 2.01.317 3 .52m-3-.52l2.62 7.854c.168.444-.651 1.176-1.263.92a4.62 4.62 0 00-1.857-.387 4.62 4.62 0 00-1.857.387c-.612.256-1.43-.476-1.263-.92L18.75 4.97z"/>
       </svg>
-      <span class="text-sm font-medium">Rebalance</span>
+      <span class="text-sm font-medium">{{ 'nav.rebalance' | translate }}</span>
     </a>
 
   </nav>

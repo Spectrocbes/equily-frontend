@@ -1,10 +1,12 @@
-import { Component, OnInit, input, computed, signal, effect } from '@angular/core';
+import { Component, OnInit, inject, input, computed, signal, effect } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-date-picker',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, TranslatePipe],
   templateUrl: './date-picker.component.html',
 })
 export class DatePickerComponent implements OnInit {
@@ -15,7 +17,13 @@ export class DatePickerComponent implements OnInit {
   parentForm   = input.required<FormGroup>();
   value        = input<string | null>(null);
 
+  private readonly translate = inject(TranslateService);
+
   protected readonly today = new Date();
+
+  protected readonly MONTHS = signal<string[]>(this.translate.instant('datePicker.months'));
+  protected readonly MONTHS_SHORT = signal<string[]>(this.translate.instant('datePicker.monthsShort'));
+  protected readonly DAYS = signal<string[]>(this.translate.instant('datePicker.days'));
 
   protected readonly isOpen       = signal(false);
   protected readonly headerMode   = signal<'calendar' | 'month' | 'year'>('calendar');
@@ -40,14 +48,13 @@ export class DatePickerComponent implements OnInit {
         }
       }
     }, { allowSignalWrites: true });
+
+    this.translate.onLangChange.pipe(takeUntilDestroyed()).subscribe(() => {
+      this.MONTHS.set(this.translate.instant('datePicker.months'));
+      this.MONTHS_SHORT.set(this.translate.instant('datePicker.monthsShort'));
+      this.DAYS.set(this.translate.instant('datePicker.days'));
+    });
   }
-
-  protected readonly MONTHS = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-  ];
-
-  protected readonly DAYS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 
   protected readonly yearRange = computed(() => {
     const years: number[] = [];

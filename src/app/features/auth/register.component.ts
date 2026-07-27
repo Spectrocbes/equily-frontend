@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { switchMap } from 'rxjs';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../core/services/auth.service';
 import { PreferencesService } from '../../core/services/preferences.service';
 import { ToastService } from '../../shared/toast/toast.service';
@@ -11,7 +12,7 @@ import { normalizeEmail, normalizeTextOrUndefined } from '../../core/utils/sanit
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, AuthHeaderComponent],
+  imports: [ReactiveFormsModule, RouterLink, AuthHeaderComponent, TranslatePipe],
   templateUrl: './register.component.html',
 })
 export class RegisterComponent {
@@ -20,6 +21,7 @@ export class RegisterComponent {
   private readonly preferencesService = inject(PreferencesService);
   private readonly toastService       = inject(ToastService);
   private readonly router             = inject(Router);
+  private readonly translate          = inject(TranslateService);
 
   protected readonly step      = signal<1 | 2>(1);
   protected readonly loading   = signal(false);
@@ -29,14 +31,6 @@ export class RegisterComponent {
   protected showError(field: string): boolean {
     return this.submitted() && !!this.form.get(field)?.invalid;
   }
-
-  protected readonly rightPanelItems = [
-    'All account types — stocks, ETFs, crypto, savings',
-    'Broker CSV import — no manual entry',
-    'Holdings, P&L, and fee tracking',
-    'Multi-user with strict data isolation',
-    'Dark mode included',
-  ];
 
   protected readonly currencies = [
     { code: 'EUR', label: 'Euro',           symbol: '€'   },
@@ -93,13 +87,11 @@ export class RegisterComponent {
       error: (err) => {
         this.loading.set(false);
         if (err.status === 409) {
-          this.toastService.error(
-            'An account with this email already exists.'
-          );
+          this.toastService.error(this.translate.instant('auth.accountExists'));
         } else {
           const msg = typeof err.error === 'string'
             ? err.error
-            : 'Registration failed. Please try again.';
+            : this.translate.instant('auth.registrationFailed');
           this.toastService.error(msg);
         }
       },

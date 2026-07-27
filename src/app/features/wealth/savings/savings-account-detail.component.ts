@@ -1,13 +1,13 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CurrencyPipe, DatePipe } from '@angular/common';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AccountService } from '../../../core/services/account.service';
 import { AnalyticsService } from '../../../core/services/analytics.service';
 import { PreferencesService } from '../../../core/services/preferences.service';
 import { ToastService } from '../../../shared/toast/toast.service';
 import {
   FinancialAccount, Transaction, TransactionType,
-  ACCOUNT_TYPE_LABELS, ACCOUNT_SUB_TYPE_LABELS,
   ChartPeriod, PortfolioHistoryPoint,
 } from '../../../core/models/account.model';
 import { AddTransactionModalComponent } from '../shared/add-transaction-modal.component';
@@ -23,6 +23,7 @@ import { EvolutionChartComponent } from '../../../shared/components/evolution-ch
   imports: [
     CurrencyPipe, DatePipe, RouterLink, AddTransactionModalComponent, EditTransactionModalComponent,
     DeleteTransactionModalComponent, DeleteAccountModalComponent, UserCurrencyPipe, EvolutionChartComponent,
+    TranslatePipe,
   ],
   templateUrl: './savings-account-detail.component.html',
 })
@@ -32,14 +33,13 @@ export class SavingsAccountDetailComponent implements OnInit {
   private readonly accountService   = inject(AccountService);
   private readonly analyticsService = inject(AnalyticsService);
   private readonly toastService     = inject(ToastService);
+  private readonly translate        = inject(TranslateService);
   protected readonly preferencesService = inject(PreferencesService);
 
   protected readonly account      = signal<FinancialAccount | null>(null);
   protected readonly transactions = signal<Transaction[]>([]);
   protected readonly loading      = signal(true);
   protected readonly error        = signal<string | null>(null);
-  protected readonly ACCOUNT_TYPE_LABELS     = ACCOUNT_TYPE_LABELS;
-  protected readonly ACCOUNT_SUB_TYPE_LABELS = ACCOUNT_SUB_TYPE_LABELS;
   protected readonly showTransactionModal    = signal(false);
   protected readonly editingTransaction      = signal<Transaction | null>(null);
   protected readonly savingsDelta            = signal<number | null>(null);
@@ -79,7 +79,7 @@ export class SavingsAccountDetailComponent implements OnInit {
     this.accountService.getAccount(id, currency).subscribe({
       next: (acc) => { this.account.set(acc); this.loading.set(false); },
       error: (err) => {
-        this.error.set(err.message ?? 'Failed to load account');
+        this.error.set(err.message ?? this.translate.instant('validation.failedToLoadAccount'));
         this.loading.set(false);
       },
     });
@@ -155,13 +155,15 @@ export class SavingsAccountDetailComponent implements OnInit {
     this.deleteLoading.set(true);
     this.accountService.deleteTransaction(accountId, tx.id).subscribe({
       next: () => {
-        this.toastService.success('Transaction deleted');
+        this.toastService.success(this.translate.instant('validation.transactionDeleted'));
         this.deletingTransaction.set(null);
         this.deleteLoading.set(false);
         this.loadAll(accountId);
       },
       error: (err) => {
-        const msg = typeof err.error === 'string' ? err.error : 'Failed to delete transaction';
+        const msg = typeof err.error === 'string'
+          ? err.error
+          : this.translate.instant('validation.failedToDeleteTransaction');
         this.toastService.error(msg);
         this.deleteLoading.set(false);
       },
@@ -175,7 +177,7 @@ export class SavingsAccountDetailComponent implements OnInit {
     this.accountDeleteLoading.set(true);
     this.accountService.deleteAccount(account.id).subscribe({
       next: () => {
-        this.toastService.success('Account deleted');
+        this.toastService.success(this.translate.instant('validation.accountDeleted'));
         this.accountDeleteLoading.set(false);
         this.showDeleteAccountModal.set(false);
         this.accountService.loadAccounts();
@@ -183,7 +185,9 @@ export class SavingsAccountDetailComponent implements OnInit {
         this.router.navigate(['/wealth/savings']);
       },
       error: (err) => {
-        const msg = typeof err.error === 'string' ? err.error : 'Failed to delete account';
+        const msg = typeof err.error === 'string'
+          ? err.error
+          : this.translate.instant('validation.failedToDeleteAccount');
         this.toastService.error(msg);
         this.accountDeleteLoading.set(false);
         this.showDeleteAccountModal.set(false);
@@ -208,10 +212,7 @@ export class SavingsAccountDetailComponent implements OnInit {
   }
 
   protected badgeLabel(type: string): string {
-    const labels: Record<string, string> = {
-      'WITHDRAWAL': 'WITHDRAW',
-    };
-    return labels[type] ?? type;
+    return this.translate.instant('transaction.badgeLabel.' + type);
   }
 
   protected getLinkedAccountName(linkedAccountId: string | null): string | null {

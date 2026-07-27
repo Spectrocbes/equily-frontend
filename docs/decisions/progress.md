@@ -387,3 +387,25 @@
 - Transition-colors audit on all buttons
 - Dark mode consistency audit (no gaps found)
 - 576/576 tests, lint clean, build 0 errors
+
+## 2026-07-26 — feat/i18n: EN/FR internationalization complete
+- Phase A: fixed 6 spec suites broken by missing `TranslateService` (added `provideTestTranslations()`/`useTestTranslations()` from `src/testing/translate-testing.ts`); fixed `label-has-associated-control` lint error in settings language section (`<label>` → `<h2>`)
+- Phase B: migrated all remaining components to `| translate` — 3 detail pages (cash/savings/crypto, matching investment's pattern), all 8 shared modals (add/edit/delete account & transaction, csv-import, pea-closure, pea-withdrawal-breakdown), shared components (date-picker incl. localized month/day names via signals + `onLangChange` subscription, ticker-autocomplete, evolution-chart, donut-chart), settings page, landing page (full marketing copy + data-driven sections), analytics stub, app-layout aria-label
+- Toast/validation messages across all touched `.ts` files switched from string literals to `translate.instant()`
+- `en.json`/`fr.json` grown from 323 → 498 keys each, verified in sync after every batch; stale/mismatched pre-drafted PEA tax-rate copy (17.2%/30%) corrected to match actual current UI values (18.6%/31.4%)
+- `formatSubType()` French product-name maps (Livret A, PEA, Compte Titres, etc.) deliberately left untranslated per CLAUDE.md; language-picker labels ("English"/"Français") also left untranslated (shown in their own language)
+- `analytics`/`rebalance` left as Phase 6 stubs, `holdings` left as dead/orphaned code — untouched per CLAUDE.md
+- 582/582 tests, lint clean, build 0 errors
+
+## 2026-07-27 — feat/i18n: HttpBackend loader fix + badge translation cleanup (complete)
+- ngx-translate v18 with `provideTranslateService` + `HttpBackend` loader (`useHttpBackend: true`) — breaks the `TranslateHttpLoader` → `authInterceptor` → `AuthService` → `PreferencesService` → `TranslateService` circular dependency (NG0200) by bypassing all HTTP interceptors for translation file loads
+- 498 translation keys in `en.json` + `fr.json`, fully in sync
+- All components migrated: auth, layout, pages, detail pages, modals, shared
+- `formatSubType()` (add/edit transaction modals) and `badgeLabel()` (all 4 detail pages) use `translate.instant()`
+- Account type/subType badges translated everywhere (`'accountType.' + type` / `'subType.' + type` via the `translate` pipe); `ACCOUNT_TYPE_LABELS`/`ACCOUNT_SUB_TYPE_LABELS` removed from `account.model.ts` as dead code once templates no longer referenced them
+- Date picker: localized month/day names
+- Evolution chart: localized period labels (1J/1S/1M/YTD/1A/MAX)
+- Settings: language selector (English / Français)
+- `PreferencesService`: `translate.use()` on locale change
+- Fixed double-space rendering bug in account header badges (cash/savings/crypto/investment detail pages) — separate multi-line `<span>` elements each contributed their own whitespace text node; collapsed to single-line spans/merged text
+- 582/582 tests, lint clean, build 0 errors

@@ -1,12 +1,13 @@
 import { Component, OnInit, inject, computed, signal } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
+import { TranslatePipe } from '@ngx-translate/core';
 import { UserCurrencyPipe } from '../../../shared/pipes/user-currency.pipe';
 import { RouterLink } from '@angular/router';
 import { AccountService } from '../../../core/services/account.service';
 import { AnalyticsService } from '../../../core/services/analytics.service';
 import { PreferencesService } from '../../../core/services/preferences.service';
 import {
-  AccountType, ACCOUNT_CATEGORY, ACCOUNT_TYPE_LABELS,
+  AccountType, ACCOUNT_CATEGORY,
   ChartPeriod, PortfolioHistoryPoint,
 } from '../../../core/models/account.model';
 import { AddAccountModalComponent } from '../shared/add-account-modal.component';
@@ -15,7 +16,7 @@ import { EvolutionChartComponent } from '../../../shared/components/evolution-ch
 @Component({
   selector: 'app-crypto',
   standalone: true,
-  imports: [CurrencyPipe, RouterLink, AddAccountModalComponent, UserCurrencyPipe, EvolutionChartComponent],
+  imports: [CurrencyPipe, RouterLink, AddAccountModalComponent, UserCurrencyPipe, EvolutionChartComponent, TranslatePipe],
   templateUrl: './crypto.component.html',
 })
 export class CryptoComponent implements OnInit {
@@ -28,7 +29,6 @@ export class CryptoComponent implements OnInit {
   protected readonly currentPeriod      = signal<ChartPeriod>('ONE_MONTH');
 
   protected readonly allowedTypes: AccountType[] = ['CRYPTO_WALLET'];
-  protected readonly ACCOUNT_TYPE_LABELS = ACCOUNT_TYPE_LABELS;
 
   protected readonly accounts = computed(() =>
     this.accountService.accounts().filter(

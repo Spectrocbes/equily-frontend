@@ -1,4 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import { PreferencesService } from '../../core/services/preferences.service';
 import { ToastService } from '../../shared/toast/toast.service';
 import { CURRENCY_SYMBOLS } from '../../core/models/account.model';
@@ -6,23 +7,28 @@ import { CURRENCY_SYMBOLS } from '../../core/models/account.model';
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [],
+  imports: [TranslatePipe],
   templateUrl: './settings.component.html',
 })
 export class SettingsComponent {
   private readonly preferencesService = inject(PreferencesService);
   private readonly toastService = inject(ToastService);
+  private readonly translate = inject(TranslateService);
 
   protected readonly preferences = this.preferencesService.preferences;
   protected readonly loading = signal(false);
+  protected readonly localeLoading = signal(false);
   protected readonly CURRENCY_SYMBOLS = CURRENCY_SYMBOLS;
   protected readonly selectedCurrency = signal(this.preferencesService.currency());
-  protected readonly activeSection = signal<'currency' | 'appearance' | 'notifications'>('currency');
+  protected readonly currentLocale = this.preferencesService.locale;
+  protected readonly activeSection =
+    signal<'currency' | 'language' | 'appearance' | 'notifications'>('currency');
 
   protected readonly sections = [
-    { id: 'currency'      as const, label: 'Currency'      },
-    { id: 'appearance'    as const, label: 'Appearance'    },
-    { id: 'notifications' as const, label: 'Notifications' },
+    { id: 'currency'      as const, labelKey: 'settings.navCurrency'      },
+    { id: 'language'      as const, labelKey: 'settings.locale'           },
+    { id: 'appearance'    as const, labelKey: 'settings.navAppearance'    },
+    { id: 'notifications' as const, labelKey: 'settings.navNotifications' },
   ];
 
   protected selectCurrency(currency: string): void {
@@ -35,12 +41,28 @@ export class SettingsComponent {
       .update(this.selectedCurrency(), this.preferences().locale)
       .subscribe({
         next: () => {
-          this.toastService.success('Preferences saved');
+          this.toastService.success(this.translate.instant('settings.saved'));
           this.loading.set(false);
         },
         error: () => {
-          this.toastService.error('Failed to save preferences');
+          this.toastService.error(this.translate.instant('settings.saveFailed'));
           this.loading.set(false);
+        },
+      });
+  }
+
+  protected setLocale(locale: string): void {
+    this.localeLoading.set(true);
+    this.preferencesService
+      .update(this.preferencesService.currency(), locale)
+      .subscribe({
+        next: () => {
+          this.toastService.success(this.translate.instant('settings.saved'));
+          this.localeLoading.set(false);
+        },
+        error: () => {
+          this.toastService.error(this.translate.instant('common.error'));
+          this.localeLoading.set(false);
         },
       });
   }

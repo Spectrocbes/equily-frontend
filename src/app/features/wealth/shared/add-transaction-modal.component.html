@@ -18,7 +18,7 @@
     <!-- Header -->
     <div class="flex items-center justify-between">
       <h2 class="text-lg font-semibold text-slate-900 dark:text-white">
-        Add Transaction
+        {{ 'transaction.addTransaction' | translate }}
       </h2>
       <button type="button" (click)="onClose()"
               class="w-8 h-8 rounded-lg flex items-center justify-center
@@ -38,7 +38,7 @@
         <div class="text-center py-3">
           <p class="text-xs font-medium text-slate-400 uppercase
                      tracking-wider mb-1.5">
-            {{ selectedType() }}
+            {{ ('transaction.type.' + selectedType()) | translate }}
           </p>
           <p class="text-2xl font-bold text-slate-900 dark:text-white
                      tabular-nums">
@@ -58,7 +58,7 @@
 
           <div class="flex items-center justify-between px-4 py-2.5
                       border-b border-slate-100 dark:border-slate-700/50">
-            <span class="text-slate-500 dark:text-slate-400">From</span>
+            <span class="text-slate-500 dark:text-slate-400">{{ 'transaction.from' | translate }}</span>
             <div class="text-right">
               <p class="font-medium text-slate-900 dark:text-white">
                 {{ account()?.name }}
@@ -72,7 +72,7 @@
           @if (toAccountName()) {
             <div class="flex items-center justify-between px-4 py-2.5
                         border-b border-slate-100 dark:border-slate-700/50">
-              <span class="text-slate-500 dark:text-slate-400">To</span>
+              <span class="text-slate-500 dark:text-slate-400">{{ 'transaction.to' | translate }}</span>
               <p class="font-medium text-slate-900 dark:text-white">
                 {{ toAccountName() }}
               </p>
@@ -81,7 +81,7 @@
 
           <div class="flex items-center justify-between px-4 py-2.5
                       border-b border-slate-100 dark:border-slate-700/50">
-            <span class="text-slate-500 dark:text-slate-400">Date</span>
+            <span class="text-slate-500 dark:text-slate-400">{{ 'transaction.date' | translate }}</span>
             <p class="font-medium text-slate-900 dark:text-white">
               {{ form.value.date | date:'dd MMM yyyy' }}
             </p>
@@ -90,7 +90,7 @@
           @if (form.value.fees && form.value.fees > 0) {
             <div class="flex items-center justify-between px-4 py-2.5
                         border-b border-slate-100 dark:border-slate-700/50">
-              <span class="text-slate-500 dark:text-slate-400">Fees</span>
+              <span class="text-slate-500 dark:text-slate-400">{{ 'transaction.fees' | translate }}</span>
               <p class="font-medium text-slate-900 dark:text-white">
                 {{ form.value.fees | currency:transactionCurrency():'symbol':'1.2-2' }}
               </p>
@@ -99,7 +99,7 @@
 
           @if (form.value.description) {
             <div class="flex items-center justify-between px-4 py-2.5">
-              <span class="text-slate-500 dark:text-slate-400">Note</span>
+              <span class="text-slate-500 dark:text-slate-400">{{ 'transaction.note' | translate }}</span>
               <p class="font-medium text-slate-900 dark:text-white
                          text-right max-w-[60%] truncate">
                 {{ form.value.description }}
@@ -118,7 +118,7 @@
                          text-slate-700 dark:text-slate-300
                          hover:bg-slate-50 dark:hover:bg-slate-700
                          transition-colors">
-            ← Edit
+            ← {{ 'common.edit' | translate }}
           </button>
           <button type="button"
                   (click)="onConfirm()"
@@ -132,10 +132,10 @@
                 <span class="w-4 h-4 rounded-full border-2
                              border-white/30 border-t-white
                              animate-spin"></span>
-                Processing...
+                {{ 'common.processing' | translate }}
               </span>
             } @else {
-              Confirm
+              {{ 'common.confirm' | translate }}
             }
           </button>
         </div>
@@ -150,7 +150,7 @@
             @if (!typeConfirmed()) {
               <p class="block text-sm font-medium
                          text-slate-700 dark:text-slate-300 mb-1.5">
-                Transaction type
+                {{ 'transaction.transactionType' | translate }}
               </p>
               <div class="relative">
                 <!-- Trigger button -->
@@ -164,7 +164,7 @@
                                hover:border-primary-400 dark:hover:border-primary-500
                                focus:outline-none focus:ring-2
                                focus:ring-primary-500 transition-colors">
-                  <span>{{ selectedTypeLabel() || 'Select transaction type' }}</span>
+                  <span>{{ (selectedTypeLabel() | translate) || ('transaction.selectType' | translate) }}</span>
                   <svg class="w-4 h-4 text-slate-400 transition-transform"
                        [class.rotate-180]="typeDropdownOpen()"
                        fill="none" viewBox="0 0 24 24"
@@ -197,32 +197,32 @@
                               [class]="selectedType() === t.value
                                 ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 font-medium'
                                 : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700'">
-                        {{ t.label }}
+                        {{ t.labelKey | translate }}
                       </button>
                     }
                   </div>
                 }
               </div>
               @if (!selectedType()) {
-                <p class="text-slate-400 dark:text-slate-500 text-xs mt-1">Please select a transaction type</p>
+                <p class="text-slate-400 dark:text-slate-500 text-xs mt-1">{{ 'transaction.selectTypeRequired' | translate }}</p>
               }
             } @else {
               <p class="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                Transaction type
+                {{ 'transaction.transactionType' | translate }}
               </p>
               <div class="flex items-center gap-2">
                 <span class="inline-flex items-center px-3 py-1.5
                              rounded-full text-xs font-semibold
                              bg-primary-100 dark:bg-primary-900/30
                              text-primary-700 dark:text-primary-300">
-                  {{ selectedTypeLabel() }}
+                  {{ selectedTypeLabel() | translate }}
                 </span>
                 <button type="button"
                         (click)="changeType()"
                         class="text-xs text-slate-400 hover:text-slate-600
                                dark:hover:text-slate-300 transition-colors
                                underline underline-offset-2">
-                  Change
+                  {{ 'common.change' | translate }}
                 </button>
               </div>
             }
@@ -230,7 +230,7 @@
         } @else {
           <div>
             <span class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-              Transaction type
+              {{ 'transaction.transactionType' | translate }}
             </span>
             <div class="flex flex-wrap gap-2">
               @for (txType of availableTransactionTypes(); track txType.value) {
@@ -243,7 +243,7 @@
                             : 'px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors'"
                           [class.opacity-40]="txType.value === 'WITHDRAWAL' && withdrawalBlocked()"
                           [class.cursor-not-allowed]="txType.value === 'WITHDRAWAL' && withdrawalBlocked()">
-                    {{ txType.label }}
+                    {{ txType.labelKey | translate }}
                   </button>
 
                   @if (txType.value === 'WITHDRAWAL' && withdrawalBlocked()) {
@@ -254,11 +254,10 @@
                                 opacity-0 group-hover:opacity-100
                                 transition-opacity pointer-events-none">
                       <p class="font-medium text-amber-400 mb-1">
-                        ⚠️ Holdings must be sold first
+                        ⚠️ {{ 'transaction.withdrawalBlockedTitle' | translate }}
                       </p>
                       <p>
-                        Withdrawing from a PEA under 5 years triggers mandatory closure.
-                        Sell all your positions before proceeding.
+                        {{ 'transaction.withdrawalBlockedHint' | translate }}
                       </p>
                     </div>
                   }
@@ -266,7 +265,7 @@
               }
             </div>
             @if (!selectedType()) {
-              <p class="text-slate-400 dark:text-slate-500 text-xs mt-1">Please select a transaction type</p>
+              <p class="text-slate-400 dark:text-slate-500 text-xs mt-1">{{ 'transaction.selectTypeRequired' | translate }}</p>
             }
           </div>
         }
@@ -303,7 +302,7 @@
           @if (selectedType() === 'SELL') {
             <div>
               <label for="ticker" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                Ticker
+                {{ 'transaction.ticker' | translate }}
               </label>
               <div class="relative">
                 <select id="ticker" formControlName="ticker"
@@ -315,7 +314,7 @@
                                focus:outline-none focus:ring-2
                                focus:ring-primary-500 transition-colors
                                appearance-none">
-                  <option value="" disabled>Select a holding</option>
+                  <option value="" disabled>{{ 'transaction.selectHolding' | translate }}</option>
                   @for (h of heldTickers(); track h.symbol) {
                     <option [value]="h.symbol">{{ h.symbol }}</option>
                   }
@@ -330,24 +329,24 @@
               </div>
               @if (heldTickers().length === 0) {
                 <p class="text-xs text-amber-500 mt-1">
-                  No holdings available to sell.
+                  {{ 'transaction.noHoldingsToSell' | translate }}
                 </p>
               }
             </div>
           } @else if (selectedType() === 'BUY') {
             <app-ticker-autocomplete
-              label="Ticker"
-              placeholder="Search (e.g. AAPL, Bitcoin...)"
+              [label]="'transaction.ticker' | translate"
+              [placeholder]="'transaction.tickerSearch' | translate"
               controlName="ticker"
               [parentForm]="form" />
           } @else {
             <div>
               <label for="ticker" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                Ticker symbol
+                {{ 'transaction.tickerSymbol' | translate }}
               </label>
               <input id="ticker" formControlName="ticker" type="text"
                      maxlength="20"
-                     placeholder="e.g. AAPL, MC.PA, BTC"
+                     [placeholder]="'transaction.tickerPlaceholder' | translate"
                      class="w-full px-3 py-2 rounded-lg text-sm font-mono
                             bg-slate-50 dark:bg-slate-900
                             border border-slate-200 dark:border-slate-600
@@ -366,12 +365,10 @@
                         border border-amber-300 dark:border-amber-700
                         px-4 py-3 text-sm">
               <p class="font-semibold text-amber-700 dark:text-amber-300 mb-1">
-                ⚠️ This transfer will trigger mandatory PEA closure
+                ⚠️ {{ 'pea.closureWarning' | translate }}
               </p>
               <p class="text-amber-600 dark:text-amber-400 text-xs">
-                Your PEA is less than 5 years old. Any outgoing transfer
-                requires closing the account. A flat tax of 31.4% will be
-                applied on your gains.
+                {{ 'pea.closureExplanation' | translate }}
               </p>
             </div>
           }
@@ -381,7 +378,7 @@
                         border border-amber-300 dark:border-amber-700
                         px-4 py-3 text-sm">
               <p class="font-semibold text-amber-700 dark:text-amber-300">
-                ⚠️ Sell all holdings before transferring from a PEA under 5 years.
+                ⚠️ {{ 'pea.sellHoldingsFirst' | translate }}
               </p>
             </div>
           }
@@ -391,7 +388,7 @@
             <div>
               <p class="block text-sm font-medium
                          text-slate-700 dark:text-slate-300 mb-1.5">
-                Destination
+                {{ 'transaction.destination' | translate }}
               </p>
               @if (linkedCheckingAccount(); as linked) {
                 <div class="flex items-center gap-3 px-3 py-2.5 rounded-lg
@@ -413,21 +410,20 @@
                       {{ linked.name }}
                     </p>
                     <p class="text-xs text-slate-500 dark:text-slate-400">
-                      Available: {{ linked.balance | userCurrency }}
+                      {{ 'common.available' | translate }}: {{ linked.balance | userCurrency }}
                     </p>
                   </div>
                   <span class="ml-auto text-xs text-slate-400
                                 bg-slate-200 dark:bg-slate-600
                                 px-2 py-0.5 rounded-full">
-                    Linked
+                    {{ 'common.linked' | translate }}
                   </span>
                 </div>
               } @else {
                 <div class="rounded-xl bg-amber-50 dark:bg-amber-900/20
                             border border-amber-200 dark:border-amber-700
                             px-4 py-3 text-sm text-amber-600 dark:text-amber-400">
-                  ⚠️ No linked checking account.
-                  Please link a checking account to this investment account when creating it.
+                  ⚠️ {{ 'transaction.noLinkedCheckingAccount' | translate }}
                 </div>
               }
             </div>
@@ -435,7 +431,7 @@
             <!-- Non-investment — dropdown with optional external toggle -->
             <div>
               <p class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                Destination
+                {{ 'transaction.destination' | translate }}
               </p>
 
               <!-- Toggle only for CASH_ACCOUNT and CRYPTO_WALLET -->
@@ -447,7 +443,7 @@
                           [class]="transferMode() === 'internal'
                             ? 'bg-primary-500 border-primary-500 text-white'
                             : 'border-slate-200 dark:border-slate-600 text-slate-500 hover:border-primary-400'">
-                    My accounts
+                    {{ 'transaction.myAccounts' | translate }}
                   </button>
                   <button type="button"
                           (click)="transferMode.set('external')"
@@ -455,7 +451,7 @@
                           [class]="transferMode() === 'external'
                             ? 'bg-primary-500 border-primary-500 text-white'
                             : 'border-slate-200 dark:border-slate-600 text-slate-500 hover:border-primary-400'">
-                    External
+                    {{ 'transaction.external' | translate }}
                   </button>
                 </div>
               }
@@ -486,7 +482,7 @@
                       </div>
                     } @else {
                       <span class="text-slate-400">
-                        Select destination account
+                        {{ 'transaction.selectDestination' | translate }}
                       </span>
                     }
                     <svg class="w-4 h-4 text-slate-400 flex-shrink-0 ml-2
@@ -538,7 +534,7 @@
                       }
                       @if (destinationAccounts().length === 0) {
                         <p class="px-4 py-3 text-sm text-slate-400 text-center">
-                          No available accounts
+                          {{ 'transaction.noAvailableAccounts' | translate }}
                         </p>
                       }
                     </div>
@@ -550,13 +546,13 @@
                               rounded-lg px-3 py-2 text-xs
                               bg-slate-50 dark:bg-slate-800/50
                               border border-slate-200 dark:border-slate-700">
-                    <span class="text-slate-400">{{ cap.label }}</span>
+                    <span class="text-slate-400">{{ cap.labelKey | translate }}</span>
                     <span class="font-mono text-slate-600 dark:text-slate-300">
                       {{ cap.current | currency:'EUR':'symbol':'1.0-0' }}
                       / {{ cap.limit | currency:'EUR':'symbol':'1.0-0' }}
                     </span>
                     <span class="text-slate-300 dark:text-slate-600">·</span>
-                    <span class="text-slate-400">Remaining</span>
+                    <span class="text-slate-400">{{ 'depositWarning.remainingCapacity' | translate }}</span>
                     <span class="font-mono text-emerald-500 font-medium">
                       {{ cap.remaining | currency:'EUR':'symbol':'1.0-0' }}
                     </span>
@@ -569,7 +565,7 @@
                 <input formControlName="externalAddress"
                        type="text"
                        maxlength="255"
-                       placeholder="Recipient name or address (optional)"
+                       [placeholder]="'transaction.recipientPlaceholder' | translate"
                        class="w-full px-3 py-2 rounded-lg text-sm
                               bg-slate-50 dark:bg-slate-900
                               border border-slate-200 dark:border-slate-600
@@ -577,7 +573,7 @@
                               focus:outline-none focus:ring-2
                               focus:ring-primary-500"/>
                 <p class="text-xs text-slate-400 mt-1">
-                  Leave empty if you don't want to specify a recipient.
+                  {{ 'transaction.recipientHint' | translate }}
                 </p>
               }
             </div>
@@ -588,13 +584,13 @@
         @if (selectedType() === 'PAYMENT') {
           <div>
             <label for="paymentBeneficiary" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-              Recipient
-              <span class="text-xs text-slate-400 ml-1">(optional)</span>
+              {{ 'transaction.recipientLabel' | translate }}
+              <span class="text-xs text-slate-400 ml-1">{{ 'common.optional' | translate }}</span>
             </label>
             <input id="paymentBeneficiary" formControlName="externalAddress"
                    type="text"
                    maxlength="255"
-                   placeholder="e.g. Supermarket, Rent, Electricity..."
+                   [placeholder]="'transaction.paymentPlaceholder' | translate"
                    class="w-full px-3 py-2 rounded-lg text-sm
                           bg-slate-50 dark:bg-slate-900
                           border border-slate-200 dark:border-slate-600
@@ -610,7 +606,7 @@
             <div>
               <div class="flex items-center justify-between mb-1.5">
                 <label for="quantity" class="text-sm font-medium text-slate-700 dark:text-slate-300">
-                  Quantity
+                  {{ 'transaction.quantity' | translate }}
                 </label>
                 @if (selectedType() === 'SELL' && maxSellQuantity() !== null) {
                   <button type="button"
@@ -619,7 +615,7 @@
                                  dark:text-primary-400 dark:hover:text-primary-300
                                  font-medium transition-colors cursor-pointer
                                  underline underline-offset-2">
-                    Max: {{ maxSellQuantity() }}
+                    {{ 'transaction.max' | translate }}: {{ maxSellQuantity() }}
                   </button>
                 }
               </div>
@@ -633,13 +629,13 @@
                             focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors"/>
               @if (form.get('quantity')?.hasError('max') && selectedType() === 'SELL') {
                 <p class="text-xs text-rose-500 mt-1">
-                  Cannot sell more than {{ maxSellQuantity() }} units.
+                  {{ 'transaction.cannotSellMore' | translate:{ max: maxSellQuantity() } }}
                 </p>
               }
             </div>
             <div>
               <label for="pricePerUnit" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                Price per unit
+                {{ 'transaction.pricePerUnit' | translate }}
                 <span class="text-slate-400 font-normal text-xs ml-1">({{ transactionCurrency() }})</span>
               </label>
               <div class="relative">
@@ -663,7 +659,7 @@
             <div class="rounded-lg bg-slate-50 dark:bg-slate-900
                         border border-slate-200 dark:border-slate-700 px-3 py-2
                         flex items-center justify-between">
-              <span class="text-xs text-slate-500 dark:text-slate-400">Total (incl. fees)</span>
+              <span class="text-xs text-slate-500 dark:text-slate-400">{{ 'transaction.totalInclFees' | translate }}</span>
               <span class="text-sm font-medium font-mono text-slate-900 dark:text-white">
                 {{ computedTotal() | number:'1.2-2' }} {{ CURRENCY_SYMBOLS[transactionCurrency()] ?? transactionCurrency() }}
               </span>
@@ -677,12 +673,10 @@
                       border border-amber-300 dark:border-amber-700
                       px-4 py-3 text-sm">
             <p class="font-semibold text-amber-700 dark:text-amber-300 mb-1">
-              ⚠️ This withdrawal will trigger mandatory PEA closure
+              ⚠️ {{ 'pea.withdrawalClosureWarning' | translate }}
             </p>
             <p class="text-amber-600 dark:text-amber-400 text-xs">
-              Your PEA is less than 5 years old. Any withdrawal requires
-              closing the account and a flat tax of 31.4% will be applied
-              on your gains.
+              {{ 'pea.withdrawalClosureExplanation' | translate }}
             </p>
           </div>
         }
@@ -691,13 +685,13 @@
         @if (!requiresAsset()) {
           <div>
             <label for="totalAmount" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-              Amount
+              {{ 'transaction.amount' | translate }}
               <span class="text-slate-400 font-normal text-xs ml-1">
                 ({{ transactionCurrency() }})
                 @if (isEurForced() && preferencesService.currency() !== 'EUR') {
                   <span class="text-amber-400 ml-1"
-                        title="This account only accepts EUR transactions">
-                    ⚠️ EUR only
+                        [title]="'transaction.eurOnlyTitle' | translate">
+                    ⚠️ {{ 'transaction.eurOnly' | translate }}
                   </span>
                 }
               </span>
@@ -738,32 +732,32 @@
                      : 'text-slate-600 dark:text-slate-400'">
                 @if (wouldExceedLimit()) {
                   <span>⛔</span>
-                  <span>Combined deposit limit exceeded</span>
+                  <span>{{ 'depositWarning.combinedLimitExceeded' | translate }}</span>
                 } @else if (isApproachingLimit()) {
                   <span>⚠️</span>
-                  <span>Approaching combined deposit limit</span>
+                  <span>{{ 'depositWarning.approachingCombinedLimit' | translate }}</span>
                 } @else {
                   <span>ℹ️</span>
-                  <span>Combined PEA + PEA-PME deposit limit</span>
+                  <span>{{ 'depositWarning.combinedLimitInfo' | translate }}</span>
                 }
               </div>
 
               <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
-                <span>PEA deposits</span>
+                <span>{{ 'depositWarning.peaDeposits' | translate }}</span>
                 <span class="text-right font-mono">
                   {{ peaSummary()!.peaDeposits | currency:'EUR':'symbol':'1.0-0' }}
                   / {{ peaSummary()!.peaLimit | currency:'EUR':'symbol':'1.0-0' }}
                 </span>
-                <span>PEA-PME deposits</span>
+                <span>{{ 'depositWarning.peaPmeDeposits' | translate }}</span>
                 <span class="text-right font-mono">
                   {{ peaSummary()!.peaPmeDeposits | currency:'EUR':'symbol':'1.0-0' }}
                 </span>
-                <span class="font-medium">Combined total</span>
+                <span class="font-medium">{{ 'depositWarning.combinedTotal' | translate }}</span>
                 <span class="text-right font-mono font-medium">
                   {{ peaSummary()!.combinedDeposits | currency:'EUR':'symbol':'1.0-0' }}
                   / {{ peaSummary()!.combinedLimit | currency:'EUR':'symbol':'1.0-0' }}
                 </span>
-                <span class="font-medium">Remaining capacity</span>
+                <span class="font-medium">{{ 'depositWarning.remainingCapacity' | translate }}</span>
                 <span class="text-right font-mono font-medium">
                   {{ peaSummary()!.combinedRemaining | currency:'EUR':'symbol':'1.0-0' }}
                 </span>
@@ -786,13 +780,13 @@
                      : 'text-slate-600 dark:text-slate-400'">
                 @if (wouldExceedLimit()) {
                   <span>⛔</span>
-                  <span>Deposit would exceed regulatory limit</span>
+                  <span>{{ 'depositWarning.limitExceeded' | translate }}</span>
                 } @else if (isApproachingLimit()) {
                   <span>⚠️</span>
-                  <span>Approaching regulatory limit</span>
+                  <span>{{ 'depositWarning.approachingLimit' | translate }}</span>
                 } @else {
                   <span>ℹ️</span>
-                  <span>Regulatory deposit limit</span>
+                  <span>{{ 'depositWarning.limitInfo' | translate }}</span>
                 }
               </div>
 
@@ -802,15 +796,15 @@
                      : isApproachingLimit()
                      ? 'text-amber-600 dark:text-amber-400'
                      : 'text-slate-500 dark:text-slate-400'">
-                <span>Legal limit</span>
+                <span>{{ 'depositWarning.legalLimit' | translate }}</span>
                 <span class="text-right font-mono font-medium">
                   {{ depositLimit() | currency:'EUR':'symbol':'1.2-2' }}
                 </span>
-                <span>{{ isSavingsSubType() ? 'Current balance' : 'Deposits so far' }}</span>
+                <span>{{ (isSavingsSubType() ? 'depositWarning.currentBalance' : 'depositWarning.depositsSoFar') | translate }}</span>
                 <span class="text-right font-mono">
                   {{ usedAmount() | currency:'EUR':'symbol':'1.2-2' }}
                 </span>
-                <span class="font-medium">Remaining capacity</span>
+                <span class="font-medium">{{ 'depositWarning.remainingCapacity' | translate }}</span>
                 <span class="text-right font-mono font-medium">
                   {{ (remainingCapacity() ?? 0) | currency:'EUR':'symbol':'1.2-2' }}
                 </span>
@@ -822,7 +816,7 @@
         <!-- Date -->
         <div>
           <app-date-picker
-            label="Date"
+            [label]="'transaction.date' | translate"
             controlName="date"
             [parentForm]="form"
             [minDate]="effectiveMinDate()"
@@ -834,7 +828,7 @@
         @if (requiresAsset()) {
           <div>
             <label for="fees" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-              Brokerage fees <span class="text-slate-400 font-normal">(optional)</span>
+              {{ 'transaction.brokerageFees' | translate }} <span class="text-slate-400 font-normal">{{ 'common.optional' | translate }}</span>
             </label>
             <div class="relative">
               <input id="fees" formControlName="fees"
@@ -858,12 +852,12 @@
         <!-- Description (optional) -->
         <div>
           <label for="description" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-            Description <span class="text-slate-400 font-normal">(optional)</span>
+            {{ 'transaction.description' | translate }} <span class="text-slate-400 font-normal">{{ 'common.optional' | translate }}</span>
           </label>
           <input id="description" formControlName="description"
                  type="text"
                  maxlength="255"
-                 placeholder="e.g. DCA janvier, Renforcement mensuel"
+                 [placeholder]="'transaction.descriptionPlaceholder' | translate"
                  class="w-full px-3 py-2 rounded-lg text-sm
                         bg-slate-50 dark:bg-slate-900
                         border border-slate-200 dark:border-slate-600
@@ -878,7 +872,7 @@
                          border border-slate-200 dark:border-slate-600
                          text-slate-700 dark:text-slate-300
                          hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-            Cancel
+            {{ 'common.cancel' | translate }}
           </button>
           <button type="submit" [disabled]="!isFormValid() || loading()"
                   class="flex-1 px-4 py-2 rounded-lg text-sm font-medium
@@ -886,19 +880,20 @@
                          disabled:opacity-50 text-white transition-colors">
             @if (loading()) {
               @if (selectedType() === 'TRANSFER') {
-                Sending...
+                {{ 'transaction.sending' | translate }}
               } @else {
-                Adding...
+                {{ 'transaction.adding' | translate }}
               }
             } @else if (peaWithdrawalForcedClosure() || peaTransferForcedClosure() || peaOver5yWithdrawal()) {
-              Continue →
+              {{ 'auth.continue' | translate }}
             } @else {
-              Review →
+              {{ 'common.review' | translate }}
             }
           </button>
         </div>
 
       </form>
     }
+
   </div>
 </div>
