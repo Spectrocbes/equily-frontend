@@ -562,5 +562,32 @@
     "failedToDeleteAccount": "Échec de la suppression du compte",
     "failedToImportCsv": "Échec de l'import CSV",
     "failedToCreateAccount": "Échec de la création du compte"
+  },
+  "rebalancing": {
+    "title": "Rééquilibrage",
+    "subtitle": "Optimisez la répartition de votre portefeuille avec des suggestions DCA",
+    "selectAccount": "Sélectionner un compte",
+    "noAccounts": "Aucun compte d'investissement ou crypto disponible",
+    "targetAllocation": "Allocation cible",
+    "setTargets": "Définir les cibles",
+    "noTargets": "Aucune allocation cible définie. Définissez vos cibles pour obtenir des suggestions DCA.",
+    "addCategory": "Ajouter une catégorie",
+    "total": "Total",
+    "totalMustBe100": "Les allocations cibles doivent totaliser 100%",
+    "allocationsSaved": "Allocation cible enregistrée",
+    "dcaSuggestions": "Suggestions DCA",
+    "dcaAmount": "Montant DCA",
+    "compute": "Calculer",
+    "current": "Actuel",
+    "target": "Cible",
+    "buy": "Acheter",
+    "sell": "Vendre",
+    "onTarget": "Conforme",
+    "saveDcaDefault": "Enregistrer comme montant DCA par défaut",
+    "dcaSaved": "Montant DCA par défaut enregistré",
+    "suggestedTickers": "Tickers suggérés",
+    "afterDca": "Après DCA",
+    "overweighted": "Surpondéré",
+    "reduceOverTime": "Se réduira avec les prochains DCA"
   }
 }

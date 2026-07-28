@@ -562,5 +562,32 @@
     "failedToDeleteAccount": "Failed to delete account",
     "failedToImportCsv": "Failed to import CSV",
     "failedToCreateAccount": "Failed to create account"
+  },
+  "rebalancing": {
+    "title": "Rebalancing",
+    "subtitle": "Optimize your portfolio allocation with DCA suggestions",
+    "selectAccount": "Select an account",
+    "noAccounts": "No investment or crypto accounts available",
+    "targetAllocation": "Target Allocation",
+    "setTargets": "Set targets",
+    "noTargets": "No target allocation defined yet. Set your targets to get DCA suggestions.",
+    "addCategory": "Add category",
+    "total": "Total",
+    "totalMustBe100": "Target allocations must sum to 100%",
+    "allocationsSaved": "Target allocation saved",
+    "dcaSuggestions": "DCA Suggestions",
+    "dcaAmount": "DCA amount",
+    "compute": "Compute",
+    "current": "Current",
+    "target": "Target",
+    "buy": "Buy",
+    "sell": "Sell",
+    "onTarget": "On target",
+    "saveDcaDefault": "Save as default DCA amount",
+    "dcaSaved": "Default DCA amount saved",
+    "suggestedTickers": "Suggested tickers",
+    "afterDca": "After DCA",
+    "overweighted": "Over-weighted",
+    "reduceOverTime": "Will reduce with future DCAs"
   }
 }
