@@ -43,6 +43,7 @@ export interface FinancialAccount {
   linkedCheckingAccountId: string | null;
   ownDeposits?: number | null;   // Fix 5: deposits for this account only (PEA-PME)
   depositNote?: string | null;   // Fix 5: human-readable note about shared limits
+  defaultDcaAmount: number | null;
 }
 
 export interface PeaWithdrawalSimulation {
@@ -307,4 +308,21 @@ export function isEurOnlyAccount(
 ): boolean {
   return EUR_ONLY_ACCOUNT_TYPES.includes(accountType)
     || (subType !== null && EUR_ONLY_SUB_TYPES.includes(subType));
+}
+
+export interface TargetAllocation {
+  category: string;
+  targetPercent: number;
+}
+
+export interface RebalancingSuggestion {
+  category: string;
+  targetPercent: number;
+  currentPercent: number;
+  currentValue: number;
+  deviationPercent: number;
+  suggestedAmount: number;
+  suggestedTickers: string[];
+  afterDcaPercent: number;
+  afterDcaValue: number;
 }

@@ -409,3 +409,14 @@
 - `PreferencesService`: `translate.use()` on locale change
 - Fixed double-space rendering bug in account header badges (cash/savings/crypto/investment detail pages) — separate multi-line `<span>` elements each contributed their own whitespace text node; collapsed to single-line spans/merged text
 - 582/582 tests, lint clean, build 0 errors
+
+## 2026-07-28 — feat/rebalancing-engine (complete)
+- `RebalancingService`: `getAllocations`/`saveAllocations` (`/api/v1/rebalancing/accounts/:id/allocations`), `getSuggestions` (`/api/v1/rebalancing/accounts/:id/suggestions`), `saveDcaAmount` (`/api/v1/accounts/:id/dca-amount` — lives on `FinancialAccountController`, not under `/rebalancing`)
+- `RebalanceComponent`: account picker (investment/crypto types only, excludes closed), target allocation editor (add/remove category rows, live total validation against 100%), DCA amount input, suggestions list
+- Category dropdown: region list for PEA/CTO/PER/AV, token list for Crypto accounts (`availableCategories` computed on `isCrypto`)
+- After-DCA predictions: suggestions show `currentPercent → afterDcaPercent (target X%)`, emerald when the DCA moves the category closer to target
+- Over-weighted categories (`suggestedAmount === 0` but `currentPercent > targetPercent + 2`) shown in amber with "Will reduce with future DCAs" instead of a false "On target"
+- Suggested tickers rendered as pills under each suggestion row
+- DCA amount input: focus clears a `0` value, blur restores it; default DCA amount persisted per account via `saveDcaAmount()` and reloaded via `accountService.loadAccounts()` so `selectAccount()` doesn't read a stale `defaultDcaAmount`
+- i18n: 22 `rebalancing.*` keys added to `en.json` + `fr.json` (title, subtitle, account/allocation/DCA copy, buy/sell/onTarget/overweighted states, afterDca, suggestedTickers)
+- 619/619 tests, lint clean, build 0 errors

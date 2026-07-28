@@ -1,10 +1,316 @@
-<div class="space-y-6">
+<div class="max-w-4xl mx-auto space-y-6">
+
+  <!-- Header -->
   <div>
-    <h1 class="text-2xl font-semibold text-slate-900 dark:text-white">Rebalance</h1>
-    <p class="text-slate-500 dark:text-slate-400 mt-1">Actionable rebalancing orders based on your target allocation</p>
+    <h1 class="text-2xl font-bold text-slate-900 dark:text-white">
+      {{ 'rebalancing.title' | translate }}
+    </h1>
+    <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+      {{ 'rebalancing.subtitle' | translate }}
+    </p>
   </div>
-  <div class="rounded-xl border border-slate-200 dark:border-slate-700
-              bg-white dark:bg-slate-800 p-8 text-center">
-    <p class="text-slate-400 dark:text-slate-500 text-sm">Rebalancing engine will appear here</p>
+
+  <!-- Account selector -->
+  <div class="rounded-2xl border border-slate-200 dark:border-slate-700
+              bg-white dark:bg-slate-800/50 p-6">
+    <h2 class="text-sm font-semibold text-slate-900 dark:text-white mb-4">
+      {{ 'rebalancing.selectAccount' | translate }}
+    </h2>
+
+    @if (rebalancableAccounts().length === 0) {
+      <p class="text-sm text-slate-400 text-center py-8">
+        {{ 'rebalancing.noAccounts' | translate }}
+      </p>
+    } @else {
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        @for (account of rebalancableAccounts(); track account.id) {
+          <button (click)="selectAccount(account.id)"
+                  class="flex items-center justify-between px-4 py-3
+                         rounded-xl border text-left transition-colors"
+                  [class]="selectedAccountId() === account.id
+                    ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
+                    : 'border-slate-200 dark:border-slate-700
+                       hover:border-primary-300 dark:hover:border-primary-600'">
+            <div>
+              <p class="text-sm font-semibold text-slate-900 dark:text-white">
+                {{ account.name }}
+              </p>
+              <p class="text-xs text-slate-400 mt-0.5">
+                {{ account.broker }}
+              </p>
+            </div>
+            <span class="text-sm font-mono font-semibold text-slate-900 dark:text-white">
+              {{ account.balance | userCurrency }}
+            </span>
+          </button>
+        }
+      </div>
+    }
   </div>
+
+  <!-- Target allocation -->
+  @if (selectedAccount()) {
+    <div class="rounded-2xl border border-slate-200 dark:border-slate-700
+                bg-white dark:bg-slate-800/50 p-6">
+
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-sm font-semibold text-slate-900 dark:text-white">
+          {{ 'rebalancing.targetAllocation' | translate }}
+        </h2>
+        @if (!editMode()) {
+          <button (click)="enterEditMode()"
+                  class="text-xs text-primary-500 hover:text-primary-600 font-medium
+                         transition-colors underline underline-offset-2">
+            {{ targetAllocations().length > 0
+              ? ('common.edit' | translate)
+              : ('rebalancing.setTargets' | translate) }}
+          </button>
+        }
+      </div>
+
+      @if (editMode()) {
+        <!-- Edit form -->
+        <div class="space-y-3">
+          @for (alloc of editAllocations; track alloc; let i = $index) {
+            <div class="flex items-center gap-3">
+              <select [(ngModel)]="alloc.category"
+                      [attr.aria-label]="'rebalancing.addCategory' | translate"
+                      class="flex-1 px-3 py-2 rounded-lg text-sm appearance-none
+                             bg-white dark:bg-slate-800
+                             border border-slate-300 dark:border-slate-500
+                             text-slate-700 dark:text-slate-200
+                             focus:outline-none focus:ring-2 focus:ring-primary-500">
+                @if (alloc.category) {
+                  <option [value]="alloc.category">{{ alloc.category }}</option>
+                }
+                @for (cat of unusedCategories(); track cat) {
+                  <option [value]="cat">{{ cat }}</option>
+                }
+              </select>
+              <div class="flex items-center gap-1">
+                <input type="number"
+                       [(ngModel)]="alloc.percent"
+                       [attr.aria-label]="'rebalancing.total' | translate"
+                       min="0" max="100" step="1"
+                       class="w-20 px-3 py-2 rounded-lg text-sm text-right font-mono
+                              bg-white dark:bg-slate-800
+                              border border-slate-300 dark:border-slate-500
+                              text-slate-700 dark:text-slate-200
+                              focus:outline-none focus:ring-2 focus:ring-primary-500"/>
+                <span class="text-sm text-slate-400">%</span>
+              </div>
+              <button (click)="removeCategory(i)"
+                      class="w-8 h-8 flex items-center justify-center rounded-lg
+                             text-slate-400 hover:text-rose-500
+                             hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+              </button>
+            </div>
+          }
+
+          <!-- Add category -->
+          <button (click)="addCategory()"
+                  class="text-xs text-primary-500 hover:text-primary-600
+                         font-medium transition-colors">
+            + {{ 'rebalancing.addCategory' | translate }}
+          </button>
+
+          <!-- Total indicator -->
+          <div class="flex items-center justify-between pt-3
+                      border-t border-slate-100 dark:border-slate-700">
+            <span class="text-sm text-slate-500">
+              {{ 'rebalancing.total' | translate }}
+            </span>
+            <span class="text-sm font-semibold font-mono"
+                  [class]="Math.abs(editTotal - 100) < 0.01
+                    ? 'text-emerald-500' : 'text-rose-500'">
+              {{ editTotal | number:'1.0-1' }}%
+            </span>
+          </div>
+
+          <!-- Save/Cancel -->
+          <div class="flex gap-3 pt-2">
+            <button (click)="cancelEdit()"
+                    class="flex-1 px-4 py-2 rounded-xl text-sm font-medium
+                           border border-slate-200 dark:border-slate-600
+                           text-slate-700 dark:text-slate-300
+                           hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+              {{ 'common.cancel' | translate }}
+            </button>
+            <button (click)="saveAllocations()"
+                    [disabled]="Math.abs(editTotal - 100) > 0.01"
+                    class="flex-1 px-4 py-2 rounded-xl text-sm font-semibold
+                           bg-primary-500 hover:bg-primary-600 text-white
+                           transition-colors disabled:opacity-50">
+              {{ 'common.save' | translate }}
+            </button>
+          </div>
+        </div>
+      } @else if (targetAllocations().length > 0) {
+        <!-- Display current targets -->
+        <div class="space-y-2">
+          @for (alloc of targetAllocations(); track alloc.category) {
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-slate-700 dark:text-slate-300">
+                {{ alloc.category }}
+              </span>
+              <span class="text-sm font-mono font-semibold text-slate-900 dark:text-white">
+                {{ alloc.targetPercent | number:'1.0-1' }}%
+              </span>
+            </div>
+            <div class="h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full">
+              <div class="h-full rounded-full bg-primary-500 transition-all duration-500"
+                   [style.width.%]="alloc.targetPercent">
+              </div>
+            </div>
+          }
+        </div>
+      } @else {
+        <p class="text-sm text-slate-400 text-center py-6">
+          {{ 'rebalancing.noTargets' | translate }}
+        </p>
+      }
+    </div>
+
+    <!-- DCA Suggestions -->
+    @if (targetAllocations().length > 0) {
+      <div class="rounded-2xl border border-slate-200 dark:border-slate-700
+                  bg-white dark:bg-slate-800/50 p-6">
+
+        <h2 class="text-sm font-semibold text-slate-900 dark:text-white mb-4">
+          {{ 'rebalancing.dcaSuggestions' | translate }}
+        </h2>
+
+        <!-- DCA amount input -->
+        <div class="flex items-center gap-3 mb-4">
+          <label for="dcaAmount" class="text-sm text-slate-500 dark:text-slate-400 flex-shrink-0">
+            {{ 'rebalancing.dcaAmount' | translate }}
+          </label>
+          <div class="relative flex-1 max-w-xs">
+            <input type="number" id="dcaAmount"
+                   [value]="dcaAmount()"
+                   (input)="dcaAmount.set(+$any($event.target).value)"
+                   (focus)="onDcaFocus($event)"
+                   (blur)="onDcaBlur($event)"
+                   min="0" step="50"
+                   class="w-full px-3 py-2 pr-8 rounded-lg text-sm font-mono text-right
+                          bg-white dark:bg-slate-800
+                          border border-slate-300 dark:border-slate-500
+                          text-slate-700 dark:text-slate-200
+                          focus:outline-none focus:ring-2 focus:ring-primary-500"/>
+            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">
+              {{ preferencesService.currencySymbol() }}
+            </span>
+          </div>
+          <button (click)="saveDcaAmount()"
+                  [disabled]="dcaAmount() <= 0"
+                  class="text-xs text-slate-400
+                         hover:text-primary-500 transition-colors
+                         underline underline-offset-2 flex-shrink-0">
+            {{ 'rebalancing.saveDcaDefault' | translate }}
+          </button>
+          <button (click)="computeSuggestions()"
+                  [disabled]="dcaAmount() <= 0 || suggestionsLoading()"
+                  class="px-4 py-2 rounded-xl text-sm font-semibold
+                         bg-primary-500 hover:bg-primary-600 text-white
+                         transition-colors disabled:opacity-50">
+            {{ 'rebalancing.compute' | translate }}
+          </button>
+        </div>
+
+        <!-- Suggestions list -->
+        @if (suggestionsLoading()) {
+          <div class="flex justify-center py-8">
+            <div class="w-6 h-6 rounded-full border-2
+                        border-primary-400 border-t-transparent animate-spin"></div>
+          </div>
+        } @else if (suggestions().length > 0) {
+          <div class="space-y-3">
+            @for (s of suggestions(); track s.category) {
+              <div class="flex items-start justify-between px-4 py-3
+                          rounded-xl border border-slate-100
+                          dark:border-slate-700">
+                <div class="flex-1">
+                  <p class="text-sm font-semibold
+                             text-slate-900 dark:text-white">
+                    {{ s.category }}
+                  </p>
+                  <!-- Progress: current → after DCA → target -->
+                  <div class="flex items-center gap-1.5 mt-1 text-xs">
+                    <span class="text-slate-400">
+                      {{ s.currentPercent | number:'1.1-1' }}%
+                    </span>
+                    <span class="text-slate-300 dark:text-slate-600">→</span>
+                    <span class="font-semibold"
+                          [class]="s.afterDcaPercent > s.currentPercent
+                            ? 'text-emerald-500' : 'text-slate-400'">
+                      {{ s.afterDcaPercent | number:'1.1-1' }}%
+                    </span>
+                    <span class="text-slate-300 dark:text-slate-600">
+                      ({{ 'rebalancing.target' | translate }}
+                       {{ s.targetPercent | number:'1.0-0' }}%)
+                    </span>
+                  </div>
+
+                  <!-- Suggested tickers -->
+                  @if (s.suggestedTickers.length > 0
+                       && s.suggestedAmount > 0) {
+                    <div class="flex flex-wrap gap-1 mt-1.5">
+                      @for (ticker of s.suggestedTickers; track ticker) {
+                        <span class="text-xs px-2 py-0.5 rounded-full
+                                     bg-slate-100 dark:bg-slate-700
+                                     text-slate-500 dark:text-slate-400">
+                          {{ ticker }}
+                        </span>
+                      }
+                    </div>
+                  }
+                </div>
+
+                <!-- Amount -->
+                <div class="text-right flex-shrink-0 ml-4">
+                  @if (s.suggestedAmount > 0) {
+                    <p class="text-sm font-semibold font-mono
+                               text-emerald-500">
+                      +{{ s.suggestedAmount
+                          | currency:preferencesService.currency()
+                            :'symbol':'1.2-2' }}
+                    </p>
+                    <p class="text-xs text-emerald-400 mt-0.5">
+                      {{ 'rebalancing.buy' | translate }}
+                    </p>
+                  } @else if (s.suggestedAmount < 0) {
+                    <p class="text-sm font-semibold font-mono
+                               text-rose-500">
+                      {{ s.suggestedAmount
+                         | currency:preferencesService.currency()
+                           :'symbol':'1.2-2' }}
+                    </p>
+                    <p class="text-xs text-rose-400 mt-0.5">
+                      {{ 'rebalancing.sell' | translate }}
+                    </p>
+                  } @else if (s.currentPercent > s.targetPercent + 2) {
+                    <p class="text-sm font-mono text-amber-500">
+                      {{ 'rebalancing.overweighted' | translate }}
+                    </p>
+                    <p class="text-xs text-amber-400 mt-0.5">
+                      {{ 'rebalancing.reduceOverTime' | translate }}
+                    </p>
+                  } @else {
+                    <p class="text-sm font-mono text-slate-400">
+                      {{ 'rebalancing.onTarget' | translate }}
+                    </p>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  }
 </div>
