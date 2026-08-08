@@ -129,8 +129,28 @@
     "invalidOrExpiredToken": "Invalid or expired token"
   },
   "analytics": {
-    "subtitle": "Portfolio performance and geographical exposure",
-    "placeholder": "Analytics will appear here"
+    "title": "Analytics",
+    "subtitle": "Deep insights into your portfolio performance",
+    "performance": "Performance",
+    "totalValue": "Total Value",
+    "totalInvested": "Total Invested",
+    "totalPnl": "Total P&L",
+    "pnlPercent": "P&L %",
+    "allocationByType": "Allocation by Account Type",
+    "geoAllocation": "Geographic Allocation",
+    "revenue": "Revenue",
+    "dividends": "Dividends",
+    "interest": "Interest",
+    "noRevenue": "No dividends or interest recorded yet",
+    "fees": "Fees",
+    "totalFees": "Total Fees",
+    "feesRatio": "Fees / Portfolio",
+    "noFees": "No fees recorded",
+    "indicators": "Key Indicators",
+    "largestPosition": "Largest Position",
+    "positions": "Positions",
+    "cashRatio": "Cash Ratio",
+    "investedRatio": "Invested Ratio"
   },
   "landing": {
     "featuresNav": "Features",
