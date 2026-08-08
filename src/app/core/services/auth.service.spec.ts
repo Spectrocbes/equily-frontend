@@ -1,29 +1,18 @@
+import { buildFirebaseAuthMock, mockFirebaseUser } from '../../../testing/firebase-mock';
+
+jest.mock('firebase/app', () => ({ initializeApp: jest.fn(() => ({})) }));
+jest.mock('firebase/auth', () => buildFirebaseAuthMock());
+
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { provideRouter } from '@angular/router';
-import { Router } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
+import * as firebaseAuth from 'firebase/auth';
 import { AuthService } from './auth.service';
 import { AccountService } from './account.service';
-import { AuthResponse } from '../models/auth.model';
-import { UserPreferences } from '../models/account.model';
+import { PreferencesService } from './preferences.service';
+import { auth } from '../firebase/firebase.config';
 import { provideTestTranslations } from '../../../testing/translate-testing';
-
-const mockPreferences: UserPreferences = {
-  currency: 'EUR',
-  locale: 'fr',
-  supportedCurrencies: ['EUR', 'USD', 'GBP', 'CHF'],
-};
-
-const ACCESS_TOKEN_KEY  = 'equily_access_token';
-const REFRESH_TOKEN_KEY = 'equily_refresh_token';
-
-const mockAuthResponse: AuthResponse = {
-  accessToken: 'header.eyJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20iLCJkaXNwbGF5TmFtZSI6IlRlc3QgVXNlciIsImV4cCI6OTk5OTk5OTk5OX0.sig',
-  refreshToken: 'refresh-token-value',
-  email: 'test@example.com',
-  displayName: 'Test User',
-};
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -31,7 +20,12 @@ describe('AuthService', () => {
   let router: Router;
 
   beforeEach(() => {
-    localStorage.clear();
+    jest.mocked(firebaseAuth.onAuthStateChanged).mockImplementation((_a, callback) => {
+      callback(null);
+      return jest.fn();
+    });
+    (auth as unknown as { currentUser: unknown }).currentUser = null;
+
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(),
@@ -47,117 +41,120 @@ describe('AuthService', () => {
 
   afterEach(() => {
     httpMock.verify();
-    localStorage.clear();
+    jest.clearAllMocks();
   });
 
-  it('login stores tokens and sets currentUser', () => {
-    service.login({ email: 'test@example.com', password: 'pass' }).subscribe();
-    const req = httpMock.expectOne('/auth/login');
-    req.flush(mockAuthResponse);
-    httpMock.expectOne('/api/v1/preferences').flush(mockPreferences);
+  describe('initialize', () => {
+    it('sets currentUser to null and stops loading when signed out', async () => {
+      await service.initialize();
+      expect(service.currentUser()).toBeNull();
+      expect(service.loading()).toBe(false);
+    });
 
-    expect(localStorage.getItem(ACCESS_TOKEN_KEY)).toBe(mockAuthResponse.accessToken);
-    expect(localStorage.getItem(REFRESH_TOKEN_KEY)).toBe(mockAuthResponse.refreshToken);
-    expect(service.currentUser()).toEqual({
-      email: 'test@example.com',
-      displayName: 'Test User',
+    it('sets currentUser and loads preferences when signed in', async () => {
+      const firebaseUser = mockFirebaseUser({ uid: 'u1', email: 'a@b.com', displayName: 'A B' });
+      jest.mocked(firebaseAuth.onAuthStateChanged).mockImplementation((_a, callback) => {
+        callback(firebaseUser);
+        return jest.fn();
+      });
+
+      const initPromise = service.initialize();
+      httpMock.expectOne('/api/v1/preferences').flush({
+        currency: 'EUR', locale: 'fr', supportedCurrencies: ['EUR'],
+      });
+      await initPromise;
+
+      expect(service.currentUser()).toEqual({ uid: 'u1', email: 'a@b.com', displayName: 'A B' });
+      expect(service.loading()).toBe(false);
+    });
+
+    it('is idempotent — second call resolves without re-subscribing', async () => {
+      await service.initialize();
+      const callCount = jest.mocked(firebaseAuth.onAuthStateChanged).mock.calls.length;
+      await service.initialize();
+      expect(jest.mocked(firebaseAuth.onAuthStateChanged).mock.calls.length).toBe(callCount);
     });
   });
 
-  it('logout clears tokens and navigates to /login', () => {
-    localStorage.setItem(ACCESS_TOKEN_KEY, mockAuthResponse.accessToken);
-    localStorage.setItem(REFRESH_TOKEN_KEY, mockAuthResponse.refreshToken);
-    service['_currentUser'].set({ email: 'test@example.com', displayName: 'Test User' });
+  describe('getIdToken', () => {
+    it('returns null when no firebase user is signed in', async () => {
+      expect(await service.getIdToken()).toBeNull();
+    });
 
-    const navigateSpy = jest.spyOn(router, 'navigate');
-    service.logout();
-
-    const req = httpMock.expectOne('/auth/logout');
-    req.flush({});
-
-    expect(localStorage.getItem(ACCESS_TOKEN_KEY)).toBeNull();
-    expect(localStorage.getItem(REFRESH_TOKEN_KEY)).toBeNull();
-    expect(service.currentUser()).toBeNull();
-    expect(navigateSpy).toHaveBeenCalledWith(['/login']);
-  });
-
-  it('logout calls accountService.reset', () => {
-    const accountService = TestBed.inject(AccountService);
-    const resetSpy = jest.spyOn(accountService, 'reset');
-    service.logout();
-    expect(resetSpy).toHaveBeenCalled();
-  });
-
-  it('isAuthenticated returns false when no token stored', () => {
-    expect(service.isAuthenticated()).toBe(false);
-  });
-
-  it('isAuthenticated returns true when valid token stored and user set', () => {
-    service['_currentUser'].set({ email: 'test@example.com', displayName: 'Test User' });
-    expect(service.isAuthenticated()).toBe(true);
-  });
-
-  it('register stores tokens and sets currentUser', () => {
-    service.register({
-      email: 'test@example.com',
-      password: 'password123',
-      displayName: 'Test User',
-    }).subscribe();
-    const req = httpMock.expectOne('/auth/register');
-    req.flush(mockAuthResponse);
-    httpMock.expectOne('/api/v1/preferences').flush(mockPreferences);
-
-    expect(localStorage.getItem(ACCESS_TOKEN_KEY)).toBe(mockAuthResponse.accessToken);
-    expect(service.currentUser()?.email).toBe('test@example.com');
-  });
-
-  it('loadCurrentUser fetches /auth/me and loads preferences when token exists', () => {
-    localStorage.setItem(ACCESS_TOKEN_KEY, mockAuthResponse.accessToken);
-    service.loadCurrentUser();
-    const meReq = httpMock.expectOne('/auth/me');
-    meReq.flush({ email: 'test@example.com', displayName: 'Test User' });
-    httpMock.expectOne('/api/v1/preferences').flush(mockPreferences);
-
-    expect(service.currentUser()).toEqual({
-      email: 'test@example.com',
-      displayName: 'Test User',
+    it('returns the token from the signed-in firebase user', async () => {
+      const firebaseUser = mockFirebaseUser();
+      (auth as unknown as { currentUser: unknown }).currentUser = firebaseUser;
+      expect(await service.getIdToken()).toBe('mock-id-token');
+      expect(firebaseUser.getIdToken).toHaveBeenCalled();
     });
   });
 
-  it('loadCurrentUser does nothing when no token', () => {
-    service.loadCurrentUser();
-    httpMock.expectNone('/auth/me');
+  it('loginWithEmail calls signInWithEmailAndPassword', async () => {
+    jest.mocked(firebaseAuth.signInWithEmailAndPassword).mockResolvedValue(
+      { user: mockFirebaseUser() } as never
+    );
+    await service.loginWithEmail('a@b.com', 'secret');
+    expect(firebaseAuth.signInWithEmailAndPassword).toHaveBeenCalledWith(auth, 'a@b.com', 'secret');
   });
 
-  it('verifyEmail calls POST /auth/verify-email with token', () => {
-    service.verifyEmail('abc123').subscribe();
-    const req = httpMock.expectOne('/auth/verify-email');
-    expect(req.request.method).toBe('POST');
-    expect(req.request.body).toEqual({ token: 'abc123' });
-    req.flush(null);
+  it('registerWithEmail calls createUserWithEmailAndPassword then updateProfile', async () => {
+    const firebaseUser = mockFirebaseUser();
+    jest.mocked(firebaseAuth.createUserWithEmailAndPassword).mockResolvedValue(
+      { user: firebaseUser } as never
+    );
+    await service.registerWithEmail('a@b.com', 'secret', 'Jane Doe');
+    expect(firebaseAuth.createUserWithEmailAndPassword).toHaveBeenCalledWith(auth, 'a@b.com', 'secret');
+    expect(firebaseAuth.updateProfile).toHaveBeenCalledWith(firebaseUser, { displayName: 'Jane Doe' });
   });
 
-  it('resendVerification calls POST /auth/resend-verification with email', () => {
-    service.resendVerification('test@example.com').subscribe();
-    const req = httpMock.expectOne('/auth/resend-verification');
-    expect(req.request.method).toBe('POST');
-    expect(req.request.body).toEqual({ email: 'test@example.com' });
-    req.flush(null);
+  it('loginWithGoogle calls signInWithPopup with a GoogleAuthProvider', async () => {
+    jest.mocked(firebaseAuth.signInWithPopup).mockResolvedValue({ user: mockFirebaseUser() } as never);
+    await service.loginWithGoogle();
+    expect(firebaseAuth.signInWithPopup).toHaveBeenCalledWith(auth, expect.any(firebaseAuth.GoogleAuthProvider));
   });
 
-  it('forgotPassword calls POST /auth/forgot-password with email', () => {
-    service.forgotPassword('test@example.com').subscribe();
-    const req = httpMock.expectOne('/auth/forgot-password');
-    expect(req.request.method).toBe('POST');
-    expect(req.request.body).toEqual({ email: 'test@example.com' });
-    req.flush(null);
+  it('resetPassword calls sendPasswordResetEmail', async () => {
+    jest.mocked(firebaseAuth.sendPasswordResetEmail).mockResolvedValue(undefined);
+    await service.resetPassword('a@b.com');
+    expect(firebaseAuth.sendPasswordResetEmail).toHaveBeenCalledWith(auth, 'a@b.com');
   });
 
-  it('resetPassword calls POST /auth/reset-password with token and newPassword', () => {
-    service.resetPassword('tok123', 'newPass!1').subscribe();
-    const req = httpMock.expectOne('/auth/reset-password');
-    expect(req.request.method).toBe('POST');
-    expect(req.request.body).toEqual({ token: 'tok123', newPassword: 'newPass!1' });
-    req.flush(null);
+  describe('logout', () => {
+    it('calls signOut, resets state and services, and navigates to /login', async () => {
+      jest.mocked(firebaseAuth.signOut).mockResolvedValue(undefined);
+      const accountService = TestBed.inject(AccountService);
+      const preferencesService = TestBed.inject(PreferencesService);
+      const accountResetSpy = jest.spyOn(accountService, 'reset');
+      const prefResetSpy = jest.spyOn(preferencesService, 'reset');
+      const navigateSpy = jest.spyOn(router, 'navigate');
+
+      await service.logout();
+
+      expect(firebaseAuth.signOut).toHaveBeenCalledWith(auth);
+      expect(service.currentUser()).toBeNull();
+      expect(accountResetSpy).toHaveBeenCalled();
+      expect(prefResetSpy).toHaveBeenCalled();
+      expect(navigateSpy).toHaveBeenCalledWith(['/login']);
+    });
+  });
+
+  describe('isAuthenticated', () => {
+    it('returns false when no user is set', () => {
+      expect(service.isAuthenticated()).toBe(false);
+    });
+
+    it('returns true once currentUser is set', async () => {
+      const firebaseUser = mockFirebaseUser();
+      jest.mocked(firebaseAuth.onAuthStateChanged).mockImplementation((_a, callback) => {
+        callback(firebaseUser);
+        return jest.fn();
+      });
+      const initPromise = service.initialize();
+      httpMock.expectOne('/api/v1/preferences').flush({
+        currency: 'EUR', locale: 'fr', supportedCurrencies: ['EUR'],
+      });
+      await initPromise;
+      expect(service.isAuthenticated()).toBe(true);
+    });
   });
 });

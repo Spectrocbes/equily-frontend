@@ -25,8 +25,7 @@ export const appConfig: ApplicationConfig = {
     }),
     {
       provide: APP_INITIALIZER,
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      useFactory: (auth: AuthService) => () => auth.loadCurrentUser().catch(() => {}),
+      useFactory: (authService: AuthService) => () => authService.initialize(),
       deps: [AuthService],
       multi: true,
     },
