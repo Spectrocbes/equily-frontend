@@ -1,10 +1,380 @@
-<div class="space-y-6">
+<div class="max-w-6xl mx-auto p-6 space-y-6">
+
+  <!-- Header -->
   <div>
-    <h1 class="text-2xl font-semibold text-slate-900 dark:text-white">{{ 'nav.analytics' | translate }}</h1>
-    <p class="text-slate-500 dark:text-slate-400 mt-1">{{ 'analytics.subtitle' | translate }}</p>
+    <h1 class="text-2xl font-bold text-slate-900 dark:text-white">
+      {{ 'analytics.title' | translate }}
+    </h1>
+    <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+      {{ 'analytics.subtitle' | translate }}
+    </p>
   </div>
-  <div class="rounded-xl border border-slate-200 dark:border-slate-700
-              bg-white dark:bg-slate-800 p-8 text-center">
-    <p class="text-slate-400 dark:text-slate-500 text-sm">{{ 'analytics.placeholder' | translate }}</p>
-  </div>
+
+  @if (loading()) {
+    <div class="flex justify-center py-20">
+      <div class="w-8 h-8 rounded-full border-2
+                  border-primary-400 border-t-transparent
+                  animate-spin"></div>
+    </div>
+  } @else {
+
+    <!-- Section 1: Performance -->
+    @if (performance(); as perf) {
+      <div class="rounded-2xl border border-slate-200
+                  dark:border-slate-700 bg-white
+                  dark:bg-slate-800/50 p-6">
+        <h2 class="text-sm font-semibold
+                    text-slate-900 dark:text-white mb-4">
+          {{ 'analytics.performance' | translate }}
+        </h2>
+
+        <!-- Hero stats -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+          <div>
+            <p class="text-xs text-slate-400 mb-1">
+              {{ 'analytics.totalValue' | translate }}
+            </p>
+            <p class="text-xl font-bold
+                       text-slate-900 dark:text-white tabular-nums">
+              {{ perf.totalValue | userCurrency }}
+            </p>
+          </div>
+          <div>
+            <p class="text-xs text-slate-400 mb-1">
+              {{ 'analytics.totalInvested' | translate }}
+            </p>
+            <p class="text-xl font-bold
+                       text-slate-900 dark:text-white tabular-nums">
+              {{ perf.totalInvested | userCurrency }}
+            </p>
+          </div>
+          <div>
+            <p class="text-xs text-slate-400 mb-1">
+              {{ 'analytics.totalPnl' | translate }}
+            </p>
+            <p class="text-xl font-bold tabular-nums"
+               [class]="perf.totalPnl >= 0
+                 ? 'text-emerald-500' : 'text-rose-500'">
+              {{ perf.totalPnl >= 0 ? '+' : '' }}
+              {{ perf.totalPnl | userCurrency }}
+            </p>
+          </div>
+          <div>
+            <p class="text-xs text-slate-400 mb-1">
+              {{ 'analytics.pnlPercent' | translate }}
+            </p>
+            <p class="text-xl font-bold tabular-nums"
+               [class]="perf.totalPnlPercent >= 0
+                 ? 'text-emerald-500' : 'text-rose-500'">
+              {{ perf.totalPnlPercent >= 0 ? '+' : '' }}
+              {{ perf.totalPnlPercent | number:'1.2-2' }}%
+            </p>
+          </div>
+        </div>
+
+        <!-- Returns by period -->
+        <div class="flex gap-3 flex-wrap">
+          @for (entry of perf.returnsByPeriod | keyvalue;
+                track entry.key) {
+            <div class="flex-1 min-w-[80px] px-3 py-2 rounded-xl
+                        bg-slate-50 dark:bg-slate-700/50
+                        text-center">
+              <p class="text-xs text-slate-400 mb-0.5">
+                {{ periodLabels[entry.key] ?? entry.key }}
+              </p>
+              <p class="text-sm font-semibold font-mono"
+                 [class]="entry.value >= 0
+                   ? 'text-emerald-500' : 'text-rose-500'">
+                {{ entry.value >= 0 ? '+' : '' }}
+                {{ entry.value | number:'1.2-2' }}%
+              </p>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Section 2: Allocation -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+      <!-- By account type -->
+      <div class="rounded-2xl border border-slate-200
+                  dark:border-slate-700 bg-white
+                  dark:bg-slate-800/50 p-6">
+        <h2 class="text-sm font-semibold
+                    text-slate-900 dark:text-white mb-4">
+          {{ 'analytics.allocationByType' | translate }}
+        </h2>
+        @if (allocationByType().length === 0) {
+          <p class="text-sm text-slate-400 text-center py-6">
+            {{ 'common.noData' | translate }}
+          </p>
+        } @else {
+          <div class="space-y-3">
+            @for (a of allocationByType(); track a.category) {
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-sm text-slate-700
+                                dark:text-slate-300">
+                    {{ a.category }}
+                  </span>
+                  <div class="flex items-center gap-3">
+                    <span class="text-sm font-mono text-slate-600
+                                  dark:text-slate-400 tabular-nums">
+                      {{ a.value | userCurrency }}
+                    </span>
+                    <span class="text-xs font-semibold w-12
+                                  text-right tabular-nums
+                                  text-slate-900 dark:text-white">
+                      {{ a.weight | number:'1.1-1' }}%
+                    </span>
+                  </div>
+                </div>
+                <div class="h-1.5 bg-slate-100 dark:bg-slate-700
+                            rounded-full">
+                  <div class="h-full rounded-full bg-primary-500
+                              transition-all duration-500"
+                       [style.width.%]="a.weight"></div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Geographic -->
+      <div class="rounded-2xl border border-slate-200
+                  dark:border-slate-700 bg-white
+                  dark:bg-slate-800/50 p-6">
+        <h2 class="text-sm font-semibold
+                    text-slate-900 dark:text-white mb-4">
+          {{ 'analytics.geoAllocation' | translate }}
+        </h2>
+        @if (geoAllocation().length === 0) {
+          <p class="text-sm text-slate-400 text-center py-6">
+            {{ 'common.noData' | translate }}
+          </p>
+        } @else {
+          <div class="space-y-3">
+            @for (g of geoAllocation(); track g.category) {
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-sm text-slate-700
+                                dark:text-slate-300">
+                    {{ g.category }}
+                  </span>
+                  <div class="flex items-center gap-3">
+                    <span class="text-sm font-mono text-slate-600
+                                  dark:text-slate-400 tabular-nums">
+                      {{ g.value | userCurrency }}
+                    </span>
+                    <span class="text-xs font-semibold w-12
+                                  text-right tabular-nums
+                                  text-slate-900 dark:text-white">
+                      {{ g.weight | number:'1.1-1' }}%
+                    </span>
+                  </div>
+                </div>
+                <div class="h-1.5 bg-slate-100 dark:bg-slate-700
+                            rounded-full">
+                  <div class="h-full rounded-full bg-emerald-500
+                              transition-all duration-500"
+                       [style.width.%]="g.weight"></div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Section 3+4: Revenue + Fees side by side -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+      <!-- Revenue -->
+      <div class="rounded-2xl border border-slate-200
+                  dark:border-slate-700 bg-white
+                  dark:bg-slate-800/50 p-6">
+        <h2 class="text-sm font-semibold
+                    text-slate-900 dark:text-white mb-4">
+          {{ 'analytics.revenue' | translate }}
+        </h2>
+        @if (revenue().length === 0) {
+          <p class="text-sm text-slate-400 text-center py-6">
+            {{ 'analytics.noRevenue' | translate }}
+          </p>
+        } @else {
+          <!-- Revenue bar chart -->
+          <div class="overflow-x-auto custom-scrollbar">
+            <div class="flex gap-2 items-end min-w-max"
+                 style="height: 200px">
+              @for (r of revenue(); track r.month) {
+                <div class="flex flex-col items-center gap-1
+                            flex-shrink-0" style="width: 48px">
+                  <!-- Bars -->
+                  <div class="w-full flex flex-col items-center
+                              justify-end flex-1">
+                    @if (r.dividends > 0) {
+                      <div class="w-6 bg-primary-500 rounded-t"
+                           [style.height.px]="barHeight(r.dividends)"
+                           [title]="'Dividends: ' +
+                             (r.dividends | currency:
+                               preferencesService.currency()
+                                 :'symbol':'1.2-2')">
+                      </div>
+                    }
+                    @if (r.interest > 0) {
+                      <div class="w-6 bg-emerald-500"
+                           [class.rounded-t]="r.dividends === 0"
+                           [style.height.px]="barHeight(r.interest)"
+                           [title]="'Interest: ' +
+                             (r.interest | currency:
+                               preferencesService.currency()
+                                 :'symbol':'1.2-2')">
+                      </div>
+                    }
+                  </div>
+                  <!-- Month label -->
+                  <span class="text-xs text-slate-400
+                                whitespace-nowrap">
+                    {{ formatMonth(r.month) }}
+                  </span>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Legend -->
+          <div class="flex items-center gap-4 mt-3">
+            <div class="flex items-center gap-1.5">
+              <div class="w-3 h-3 rounded bg-primary-500"></div>
+              <span class="text-xs text-slate-400">
+                {{ 'analytics.dividends' | translate }}
+              </span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <div class="w-3 h-3 rounded bg-emerald-500"></div>
+              <span class="text-xs text-slate-400">
+                {{ 'analytics.interest' | translate }}
+              </span>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Fees -->
+      @if (fees(); as f) {
+        <div class="rounded-2xl border border-slate-200
+                    dark:border-slate-700 bg-white
+                    dark:bg-slate-800/50 p-6">
+          <h2 class="text-sm font-semibold
+                      text-slate-900 dark:text-white mb-4">
+            {{ 'analytics.fees' | translate }}
+          </h2>
+
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <p class="text-xs text-slate-400 mb-1">
+                {{ 'analytics.totalFees' | translate }}
+              </p>
+              <p class="text-xl font-bold text-rose-500 tabular-nums">
+                {{ f.totalFees | userCurrency }}
+              </p>
+            </div>
+            <div>
+              <p class="text-xs text-slate-400 mb-1">
+                {{ 'analytics.feesRatio' | translate }}
+              </p>
+              <p class="text-xl font-bold text-slate-900
+                         dark:text-white tabular-nums">
+                {{ f.feesRatio | number:'1.4-4' }}%
+              </p>
+            </div>
+          </div>
+
+          @if (f.feesByAccount.length > 0) {
+            <div class="space-y-2">
+              @for (account of f.feesByAccount;
+                    track account.accountName) {
+                <div class="flex items-center justify-between
+                            text-sm">
+                  <span class="text-slate-600 dark:text-slate-400">
+                    {{ account.accountName }}
+                  </span>
+                  <span class="font-mono text-rose-500 tabular-nums">
+                    {{ account.fees | userCurrency }}
+                  </span>
+                </div>
+              }
+            </div>
+          } @else {
+            <p class="text-sm text-slate-400 text-center py-4">
+              {{ 'analytics.noFees' | translate }}
+            </p>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Section 5: Indicators -->
+    @if (indicators(); as ind) {
+      <div class="rounded-2xl border border-slate-200
+                  dark:border-slate-700 bg-white
+                  dark:bg-slate-800/50 p-6">
+        <h2 class="text-sm font-semibold
+                    text-slate-900 dark:text-white mb-4">
+          {{ 'analytics.indicators' | translate }}
+        </h2>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div class="px-4 py-3 rounded-xl bg-slate-50
+                      dark:bg-slate-700/50 text-center">
+            <p class="text-xs text-slate-400 mb-1">
+              {{ 'analytics.largestPosition' | translate }}
+            </p>
+            <p class="text-sm font-bold
+                       text-slate-900 dark:text-white">
+              {{ ind.largestPosition ?? '—' }}
+            </p>
+            <p class="text-xs text-slate-400 mt-0.5">
+              {{ ind.largestPositionWeight | number:'1.1-1' }}%
+            </p>
+          </div>
+
+          <div class="px-4 py-3 rounded-xl bg-slate-50
+                      dark:bg-slate-700/50 text-center">
+            <p class="text-xs text-slate-400 mb-1">
+              {{ 'analytics.positions' | translate }}
+            </p>
+            <p class="text-2xl font-bold
+                       text-slate-900 dark:text-white">
+              {{ ind.distinctPositions }}
+            </p>
+          </div>
+
+          <div class="px-4 py-3 rounded-xl bg-slate-50
+                      dark:bg-slate-700/50 text-center">
+            <p class="text-xs text-slate-400 mb-1">
+              {{ 'analytics.cashRatio' | translate }}
+            </p>
+            <p class="text-2xl font-bold
+                       text-slate-900 dark:text-white tabular-nums">
+              {{ ind.cashRatio | number:'1.1-1' }}%
+            </p>
+          </div>
+
+          <div class="px-4 py-3 rounded-xl bg-slate-50
+                      dark:bg-slate-700/50 text-center">
+            <p class="text-xs text-slate-400 mb-1">
+              {{ 'analytics.investedRatio' | translate }}
+            </p>
+            <p class="text-2xl font-bold
+                       text-slate-900 dark:text-white tabular-nums">
+              {{ ind.investedRatio | number:'1.1-1' }}%
+            </p>
+          </div>
+        </div>
+      </div>
+    }
+  }
 </div>

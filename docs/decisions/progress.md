@@ -420,3 +420,14 @@
 - DCA amount input: focus clears a `0` value, blur restores it; default DCA amount persisted per account via `saveDcaAmount()` and reloaded via `accountService.loadAccounts()` so `selectAccount()` doesn't read a stale `defaultDcaAmount`
 - i18n: 22 `rebalancing.*` keys added to `en.json` + `fr.json` (title, subtitle, account/allocation/DCA copy, buy/sell/onTarget/overweighted states, afterDca, suggestedTickers)
 - 619/619 tests, lint clean, build 0 errors
+
+## 2026-08-08 — feat/analytics-page (complete)
+- `AnalyticsDashboardService`: 6 API calls
+- `AnalyticsComponent`: full dashboard with 5 sections
+- Performance: hero stats + returns by period cards
+- Allocation: account type + geographic side by side
+- Revenue + Fees: side by side grid
+- Revenue bar chart (dividends blue, interest green)
+- Indicators: largest position, positions count, cash/invested ratio
+- i18n: 20 analytics keys in `en.json` + `fr.json`
+- 637/637 tests, lint clean, build 0 errors

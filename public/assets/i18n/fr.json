@@ -129,8 +129,28 @@
     "step2": "Vos préférences"
   },
   "analytics": {
-    "subtitle": "Performance du portefeuille et exposition géographique",
-    "placeholder": "Les analyses apparaîtront ici"
+    "title": "Analyses",
+    "subtitle": "Vision approfondie de la performance de votre portefeuille",
+    "performance": "Performance",
+    "totalValue": "Valeur totale",
+    "totalInvested": "Total investi",
+    "totalPnl": "P&L total",
+    "pnlPercent": "P&L %",
+    "allocationByType": "Répartition par type de compte",
+    "geoAllocation": "Répartition géographique",
+    "revenue": "Revenus",
+    "dividends": "Dividendes",
+    "interest": "Intérêts",
+    "noRevenue": "Aucun dividende ou intérêt enregistré",
+    "fees": "Frais",
+    "totalFees": "Total des frais",
+    "feesRatio": "Frais / Portefeuille",
+    "noFees": "Aucun frais enregistré",
+    "indicators": "Indicateurs clés",
+    "largestPosition": "Plus grosse position",
+    "positions": "Positions",
+    "cashRatio": "Ratio liquidités",
+    "investedRatio": "Ratio investi"
   },
   "landing": {
     "featuresNav": "Fonctionnalités",
