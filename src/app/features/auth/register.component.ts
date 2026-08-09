@@ -1,10 +1,8 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { switchMap } from 'rxjs';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../core/services/auth.service';
-import { PreferencesService } from '../../core/services/preferences.service';
 import { ToastService } from '../../shared/toast/toast.service';
 import { AuthHeaderComponent } from './auth-header.component';
 import { normalizeEmail, normalizeTextOrUndefined } from '../../core/utils/sanitize';
@@ -16,28 +14,19 @@ import { normalizeEmail, normalizeTextOrUndefined } from '../../core/utils/sanit
   templateUrl: './register.component.html',
 })
 export class RegisterComponent {
-  private readonly fb                 = inject(FormBuilder);
-  private readonly authService        = inject(AuthService);
-  private readonly preferencesService = inject(PreferencesService);
-  private readonly toastService       = inject(ToastService);
-  private readonly router             = inject(Router);
-  private readonly translate          = inject(TranslateService);
+  private readonly fb           = inject(FormBuilder);
+  private readonly authService  = inject(AuthService);
+  private readonly toastService = inject(ToastService);
+  private readonly router       = inject(Router);
+  private readonly translate    = inject(TranslateService);
 
-  protected readonly step      = signal<1 | 2>(1);
-  protected readonly loading   = signal(false);
-  protected readonly error     = signal<string | null>(null);
-  protected readonly submitted = signal(false);
+  protected readonly loading       = signal(false);
+  protected readonly googleLoading = signal(false);
+  protected readonly submitted     = signal(false);
 
   protected showError(field: string): boolean {
     return this.submitted() && !!this.form.get(field)?.invalid;
   }
-
-  protected readonly currencies = [
-    { code: 'EUR', label: 'Euro',           symbol: '€'   },
-    { code: 'USD', label: 'US Dollar',      symbol: '$'   },
-    { code: 'GBP', label: 'British Pound',  symbol: '£'   },
-    { code: 'CHF', label: 'Swiss Franc',    symbol: 'CHF' },
-  ];
 
   protected readonly form = this.fb.group({
     displayName: ['', [Validators.required, Validators.minLength(2)]],
@@ -45,56 +34,48 @@ export class RegisterComponent {
     password:    ['', [Validators.required, Validators.minLength(8)]],
   });
 
-  protected readonly preferencesForm = this.fb.group({
-    currency: ['EUR', Validators.required],
-    locale:   ['fr',  Validators.required],
-  });
-
   protected onEmailBlur(): void {
     const ctrl = this.form.get('email');
     ctrl?.setValue(normalizeEmail(ctrl.value), { emitEvent: false });
   }
 
-  protected nextStep(): void {
+  protected async onSubmit(): Promise<void> {
     this.onEmailBlur();
     this.submitted.set(true);
     if (this.form.invalid) return;
-    this.submitted.set(false);
-    this.step.set(2);
-  }
-
-  protected onSubmit(): void {
-    this.submitted.set(true);
-    if (this.preferencesForm.invalid) return;
     this.loading.set(true);
 
     const { displayName, email, password } = this.form.getRawValue();
-    const { currency, locale } = this.preferencesForm.getRawValue();
     const normalizedEmail = normalizeEmail(email);
     const trimmedDisplayName = normalizeTextOrUndefined(displayName) ?? '';
 
-    this.authService.register({
-      displayName: trimmedDisplayName,
-      email: normalizedEmail,
-      password: password!,
-    }).pipe(
-      switchMap(() => this.preferencesService.update(currency!, locale!))
-    ).subscribe({
-      next: () => this.router.navigate(
-        ['/verify-email'],
-        { queryParams: { email: normalizedEmail } }
-      ),
-      error: (err) => {
-        this.loading.set(false);
-        if (err.status === 409) {
-          this.toastService.error(this.translate.instant('auth.accountExists'));
-        } else {
-          const msg = typeof err.error === 'string'
-            ? err.error
-            : this.translate.instant('auth.registrationFailed');
-          this.toastService.error(msg);
-        }
-      },
-    });
+    try {
+      await this.authService.registerWithEmail(normalizedEmail, password!, trimmedDisplayName);
+      this.router.navigate(['/overview']);
+    } catch (err: unknown) {
+      this.toastService.error(this.firebaseErrorMessage(err));
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  protected async registerWithGoogle(): Promise<void> {
+    this.googleLoading.set(true);
+    try {
+      await this.authService.loginWithGoogle();
+      this.router.navigate(['/overview']);
+    } catch {
+      this.toastService.error(this.translate.instant('auth.googleError'));
+    } finally {
+      this.googleLoading.set(false);
+    }
+  }
+
+  private firebaseErrorMessage(err: unknown): string {
+    const code = err instanceof Object && 'code' in err ? String((err as { code: unknown }).code) : '';
+    if (code === 'auth/email-already-in-use') {
+      return this.translate.instant('auth.accountExists');
+    }
+    return this.translate.instant('auth.registrationFailed');
   }
 }

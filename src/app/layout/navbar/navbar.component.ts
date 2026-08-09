@@ -24,6 +24,6 @@ export class NavbarComponent {
   });
 
   protected logout(): void {
-    this.authService.logout();
+    void this.authService.logout();
   }
 }

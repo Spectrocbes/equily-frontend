@@ -33,21 +33,18 @@ export class ForgotPasswordComponent {
     ctrl?.setValue(normalizeEmail(ctrl.value), { emitEvent: false });
   }
 
-  protected onSubmit(): void {
+  protected async onSubmit(): Promise<void> {
     this.onEmailBlur();
     this.submitted.set(true);
     if (this.form.invalid) return;
     this.loading.set(true);
-    this.authService.forgotPassword(normalizeEmail(this.form.value.email)).subscribe({
-      next: () => {
-        this.sent.set(true);
-        this.loading.set(false);
-      },
-      error: () => {
-        // Always show success — don't reveal whether the email exists
-        this.sent.set(true);
-        this.loading.set(false);
-      },
-    });
+    try {
+      await this.authService.resetPassword(normalizeEmail(this.form.value.email));
+    } catch {
+      // Always show success — don't reveal whether the email exists
+    } finally {
+      this.sent.set(true);
+      this.loading.set(false);
+    }
   }
 }

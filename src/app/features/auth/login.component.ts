@@ -18,12 +18,10 @@ export class LoginComponent {
   private readonly router      = inject(Router);
   private readonly translate   = inject(TranslateService);
 
-  protected readonly loading         = signal(false);
-  protected readonly error           = signal<string | null>(null);
-  protected readonly unverifiedEmail = signal<string | null>(null);
-  protected readonly resendLoading   = signal(false);
-  protected readonly resendSent      = signal(false);
-  protected readonly submitted       = signal(false);
+  protected readonly loading       = signal(false);
+  protected readonly googleLoading = signal(false);
+  protected readonly error         = signal<string | null>(null);
+  protected readonly submitted     = signal(false);
 
   protected showError(field: string): boolean {
     return this.submitted() && !!this.form.get(field)?.invalid;
@@ -39,42 +37,47 @@ export class LoginComponent {
     ctrl?.setValue(normalizeEmail(ctrl.value), { emitEvent: false });
   }
 
-  protected onSubmit(): void {
+  protected async onSubmit(): Promise<void> {
     this.onEmailBlur();
     this.submitted.set(true);
     if (this.form.invalid) return;
     this.loading.set(true);
     this.error.set(null);
-    this.unverifiedEmail.set(null);
-    this.resendSent.set(false);
     const { email, password } = this.form.getRawValue();
-    const normalizedEmail = normalizeEmail(email);
-    this.authService.login({ email: normalizedEmail, password: password! }).subscribe({
-      next: () => this.router.navigate(['/overview']),
-      error: (err) => {
-        if (err.status === 403) {
-          this.unverifiedEmail.set(normalizedEmail);
-          this.error.set(this.translate.instant('auth.pleaseVerifyEmail'));
-        } else if (err.status === 401) {
-          this.error.set(this.translate.instant('auth.invalidCredentials'));
-        } else {
-          this.error.set(this.translate.instant('auth.loginFailed'));
-        }
-        this.loading.set(false);
-      },
-    });
+    try {
+      await this.authService.loginWithEmail(normalizeEmail(email), password!);
+      this.router.navigate(['/overview']);
+    } catch (err: unknown) {
+      this.error.set(this.firebaseErrorMessage(err));
+    } finally {
+      this.loading.set(false);
+    }
   }
 
-  protected resendVerification(): void {
-    const email = this.unverifiedEmail();
-    if (!email) return;
-    this.resendLoading.set(true);
-    this.authService.resendVerification(email).subscribe({
-      next: () => {
-        this.resendSent.set(true);
-        this.resendLoading.set(false);
-      },
-      error: () => this.resendLoading.set(false),
-    });
+  protected async loginWithGoogle(): Promise<void> {
+    this.googleLoading.set(true);
+    this.error.set(null);
+    try {
+      await this.authService.loginWithGoogle();
+      this.router.navigate(['/overview']);
+    } catch {
+      this.error.set(this.translate.instant('auth.googleError'));
+    } finally {
+      this.googleLoading.set(false);
+    }
+  }
+
+  private firebaseErrorMessage(err: unknown): string {
+    const code = err instanceof Object && 'code' in err ? String((err as { code: unknown }).code) : '';
+    switch (code) {
+      case 'auth/invalid-credential':
+      case 'auth/user-not-found':
+      case 'auth/wrong-password':
+        return this.translate.instant('auth.invalidCredentials');
+      case 'auth/too-many-requests':
+        return this.translate.instant('auth.tooManyRequests');
+      default:
+        return this.translate.instant('auth.loginFailed');
+    }
   }
 }

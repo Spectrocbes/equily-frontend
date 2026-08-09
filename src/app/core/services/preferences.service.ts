@@ -14,12 +14,14 @@ export class PreferencesService {
   private readonly translate = inject(TranslateService);
   private readonly apiUrl = '/api/v1/preferences';
 
-  private readonly _preferences = signal<UserPreferences>({
+  private readonly defaultPreferences: UserPreferences = {
     currency: 'EUR',
     locale: 'fr',
     supportedCurrencies: ['EUR', 'USD', 'GBP', 'CHF'],
     eurToTargetRate: 1.0,
-  });
+  };
+
+  private readonly _preferences = signal<UserPreferences>(this.defaultPreferences);
 
   readonly preferences = this._preferences.asReadonly();
   readonly currency = computed(() => this._preferences().currency);
@@ -47,5 +49,9 @@ export class PreferencesService {
         this.translate.use(langFromLocale(p.locale));
       })
     );
+  }
+
+  reset(): void {
+    this._preferences.set(this.defaultPreferences);
   }
 }

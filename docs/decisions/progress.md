@@ -431,3 +431,16 @@
 - Indicators: largest position, positions count, cash/invested ratio
 - i18n: 20 analytics keys in `en.json` + `fr.json`
 - 637/637 tests, lint clean, build 0 errors
+
+## 2026-08-08 — feat/firebase-auth-migration (complete)
+- Replaced custom JWT auth with Firebase JS SDK
+- `AuthService`: `loginWithEmail`, `registerWithEmail`, `loginWithGoogle`, `resetPassword`
+- Firebase `onAuthStateChanged` for session persistence
+- `auth.interceptor`: gets fresh Firebase token via `getIdToken()`
+- Login page: Google Sign-In button + email/password form
+- Register page: simplified (no 2-step flow)
+- Forgot password: Firebase `sendPasswordResetEmail`
+- Removed: reset-password page, verify-email page, localStorage tokens
+- Auth guard: waits for Firebase initialization
+- Firebase mock for tests (`jest.mock` `firebase/auth`)
+- 634/634 tests, lint clean, build 0 errors

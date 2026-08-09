@@ -1,130 +1,99 @@
 import { Injectable, signal, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { tap } from 'rxjs';
 import {
-  AuthResponse, RegisterRequest,
-  LoginRequest, CurrentUser
-} from '../models/auth.model';
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
+  signOut,
+  onAuthStateChanged,
+  sendPasswordResetEmail,
+  updateProfile,
+  User as FirebaseUser,
+} from 'firebase/auth';
+import { auth } from '../firebase/firebase.config';
 import { AccountService } from './account.service';
 import { PreferencesService } from './preferences.service';
 
-const ACCESS_TOKEN_KEY  = 'equily_access_token';
-const REFRESH_TOKEN_KEY = 'equily_refresh_token';
+export interface User {
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+}
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly http                = inject(HttpClient);
-  private readonly router              = inject(Router);
-  private readonly accountService      = inject(AccountService);
-  private readonly preferencesService  = inject(PreferencesService);
+  private readonly router = inject(Router);
+  private readonly accountService = inject(AccountService);
+  private readonly preferencesService = inject(PreferencesService);
 
-  private readonly _currentUser = signal<CurrentUser | null>(
-    this.loadStoredUser()
-  );
+  private readonly _currentUser = signal<User | null>(null);
+  private readonly _loading = signal(true);
+  private _initialized = false;
+
   readonly currentUser = this._currentUser.asReadonly();
+  readonly loading = this._loading.asReadonly();
   readonly isAuthenticated = () => this._currentUser() !== null;
 
-  register(request: RegisterRequest) {
-    return this.http.post<AuthResponse>('/auth/register', request).pipe(
-      tap(res => this.handleAuthResponse(res))
-    );
-  }
+  /**
+   * Initialize the Firebase auth state listener. Called once from APP_INITIALIZER;
+   * must always resolve (never reject) so bootstrap doesn't white-screen.
+   */
+  initialize(): Promise<void> {
+    if (this._initialized) return Promise.resolve();
+    this._initialized = true;
 
-  login(request: LoginRequest) {
-    return this.http.post<AuthResponse>('/auth/login', request).pipe(
-      tap(res => this.handleAuthResponse(res))
-    );
-  }
-
-  logout(): void {
-    const token = this.getAccessToken();
-    if (token) {
-      this.http.post('/auth/logout', {}).subscribe();
-    }
-    this.accountService.reset();
-    this.clearSession();
-    this.router.navigate(['/login']);
-  }
-
-  refreshToken() {
-    const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
-    if (!refreshToken) return null;
-    return this.http.post<AuthResponse>('/auth/refresh', { refreshToken }).pipe(
-      tap(res => {
-        localStorage.setItem(ACCESS_TOKEN_KEY, res.accessToken);
-        localStorage.setItem(REFRESH_TOKEN_KEY, res.refreshToken);
-      })
-    );
-  }
-
-  verifyEmail(token: string) {
-    return this.http.post<void>('/auth/verify-email', { token });
-  }
-
-  resendVerification(email: string) {
-    return this.http.post<void>('/auth/resend-verification', { email });
-  }
-
-  forgotPassword(email: string) {
-    return this.http.post<void>('/auth/forgot-password', { email });
-  }
-
-  validateResetToken(token: string) {
-    return this.http.post<void>('/auth/validate-reset-token', { token });
-  }
-
-  resetPassword(token: string, newPassword: string) {
-    return this.http.post<void>('/auth/reset-password', { token, newPassword });
-  }
-
-  getAccessToken(): string | null {
-    return localStorage.getItem(ACCESS_TOKEN_KEY);
-  }
-
-  loadCurrentUser(): Promise<void> {
     return new Promise(resolve => {
-      const token = this.getAccessToken();
-      if (!token) { resolve(); return; }
-      this.http.get<CurrentUser>('/auth/me').subscribe({
-        next: (user) => {
-          this._currentUser.set(user);
+      onAuthStateChanged(auth, (firebaseUser: FirebaseUser | null) => {
+        if (firebaseUser) {
+          this._currentUser.set(this.toUser(firebaseUser));
           this.preferencesService.load();
-          resolve();
-        },
-        error: () => {
+        } else {
           this._currentUser.set(null);
-          resolve();
-        },
+        }
+        this._loading.set(false);
+        resolve();
       });
     });
   }
 
-  private handleAuthResponse(res: AuthResponse): void {
-    localStorage.setItem(ACCESS_TOKEN_KEY, res.accessToken);
-    localStorage.setItem(REFRESH_TOKEN_KEY, res.refreshToken);
-    this._currentUser.set({ email: res.email, displayName: res.displayName });
-    this.preferencesService.load();
+  async getIdToken(): Promise<string | null> {
+    const user = auth.currentUser;
+    if (!user) return null;
+    return user.getIdToken();
   }
 
-  private clearSession(): void {
-    localStorage.removeItem(ACCESS_TOKEN_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_KEY);
+  async loginWithEmail(email: string, password: string): Promise<void> {
+    await signInWithEmailAndPassword(auth, email, password);
+  }
+
+  async registerWithEmail(email: string, password: string, displayName: string): Promise<void> {
+    const credential = await createUserWithEmailAndPassword(auth, email, password);
+    await updateProfile(credential.user, { displayName });
+  }
+
+  async loginWithGoogle(): Promise<void> {
+    const provider = new GoogleAuthProvider();
+    await signInWithPopup(auth, provider);
+  }
+
+  async resetPassword(email: string): Promise<void> {
+    await sendPasswordResetEmail(auth, email);
+  }
+
+  async logout(): Promise<void> {
+    await signOut(auth);
     this._currentUser.set(null);
+    this.accountService.reset();
+    this.preferencesService.reset();
+    this.router.navigate(['/login']);
   }
 
-  private loadStoredUser(): CurrentUser | null {
-    const token = localStorage.getItem(ACCESS_TOKEN_KEY);
-    if (!token) return null;
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      if (payload.exp * 1000 < Date.now()) {
-        localStorage.removeItem(ACCESS_TOKEN_KEY);
-        return null;
-      }
-      return { email: payload.email, displayName: payload.displayName };
-    } catch {
-      return null;
-    }
+  private toUser(firebaseUser: FirebaseUser): User {
+    return {
+      uid: firebaseUser.uid,
+      email: firebaseUser.email,
+      displayName: firebaseUser.displayName,
+    };
   }
 }

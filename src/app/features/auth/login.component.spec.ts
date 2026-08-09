@@ -1,14 +1,19 @@
+import { buildFirebaseAuthMock } from '../../../testing/firebase-mock';
+
+jest.mock('firebase/app', () => ({ initializeApp: jest.fn(() => ({})) }));
+jest.mock('firebase/auth', () => buildFirebaseAuthMock());
+
 import { TestBed, ComponentFixture } from '@angular/core/testing';
-import { LoginComponent } from './login.component';
 import { provideRouter, Router } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { LoginComponent } from './login.component';
 import { AuthService } from '../../core/services/auth.service';
-import { of, throwError } from 'rxjs';
 import { provideTestTranslations, useTestTranslations } from '../../../testing/translate-testing';
 
 describe('LoginComponent', () => {
   let fixture: ComponentFixture<LoginComponent>;
+  let authService: AuthService;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -22,75 +27,84 @@ describe('LoginComponent', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(LoginComponent);
+    authService = TestBed.inject(AuthService);
     useTestTranslations();
     fixture.detectChanges();
   });
 
-  it('renders the login form', () => {
+  function fillForm(email: string, password: string): void {
+    const emailInput    = fixture.nativeElement.querySelector('input[type="email"]') as HTMLInputElement;
+    const passwordInput = fixture.nativeElement.querySelector('input[type="password"]') as HTMLInputElement;
+    emailInput.value = email;
+    emailInput.dispatchEvent(new Event('input'));
+    passwordInput.value = password;
+    passwordInput.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+  }
+
+  it('renders the login form and a Google button', () => {
     const el: HTMLElement = fixture.nativeElement;
     expect(el.querySelector('input[type="email"]')).toBeTruthy();
     expect(el.querySelector('input[type="password"]')).toBeTruthy();
     expect(el.querySelector('button[type="submit"]')).toBeTruthy();
+    expect(el.querySelector('button[type="button"]')).toBeTruthy();
   });
 
-  it('submit button is enabled when form is invalid (errors shown on submit)', () => {
-    const btn = fixture.nativeElement.querySelector('button[type="submit"]') as HTMLButtonElement;
-    expect(btn.disabled).toBe(false);
-  });
-
-  it('calls authService.login on valid submit', () => {
-    const authService = TestBed.inject(AuthService);
-    const loginSpy = jest.spyOn(authService, 'login').mockReturnValue(of({
-      accessToken: 'tok', refreshToken: 'ref',
-      email: 'test@example.com', displayName: 'Test',
-    }));
-
-    const emailInput    = fixture.nativeElement.querySelector('input[type="email"]') as HTMLInputElement;
-    const passwordInput = fixture.nativeElement.querySelector('input[type="password"]') as HTMLInputElement;
-    emailInput.value    = 'test@example.com';
-    emailInput.dispatchEvent(new Event('input'));
-    passwordInput.value = 'password';
-    passwordInput.dispatchEvent(new Event('input'));
-    fixture.detectChanges();
+  it('calls authService.loginWithEmail on valid submit', async () => {
+    const loginSpy = jest.spyOn(authService, 'loginWithEmail').mockResolvedValue(undefined);
+    fillForm('test@example.com', 'password');
 
     fixture.nativeElement.querySelector('button[type="submit"]').click();
-    expect(loginSpy).toHaveBeenCalledWith({ email: 'test@example.com', password: 'password' });
+    await fixture.whenStable();
+
+    expect(loginSpy).toHaveBeenCalledWith('test@example.com', 'password');
   });
 
-  it('shows error message on 401', () => {
-    const authService = TestBed.inject(AuthService);
-    jest.spyOn(authService, 'login').mockReturnValue(
-      throwError(() => ({ status: 401 }))
-    );
-
-    const emailInput    = fixture.nativeElement.querySelector('input[type="email"]') as HTMLInputElement;
-    const passwordInput = fixture.nativeElement.querySelector('input[type="password"]') as HTMLInputElement;
-    emailInput.value    = 'test@example.com';
-    emailInput.dispatchEvent(new Event('input'));
-    passwordInput.value = 'password';
-    passwordInput.dispatchEvent(new Event('input'));
-    fixture.detectChanges();
+  it('navigates to /overview on successful login', async () => {
+    jest.spyOn(authService, 'loginWithEmail').mockResolvedValue(undefined);
+    const router = TestBed.inject(Router);
+    const navigateSpy = jest.spyOn(router, 'navigate');
+    fillForm('test@example.com', 'password');
 
     fixture.nativeElement.querySelector('button[type="submit"]').click();
+    await fixture.whenStable();
+
+    expect(navigateSpy).toHaveBeenCalledWith(['/overview']);
+  });
+
+  it('shows a translated error message on invalid credentials', async () => {
+    jest.spyOn(authService, 'loginWithEmail').mockRejectedValue({ code: 'auth/invalid-credential' });
+    fillForm('test@example.com', 'wrong');
+
+    fixture.nativeElement.querySelector('button[type="submit"]').click();
+    await fixture.whenStable();
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain('Invalid email or password');
   });
 
-  it('sends a normalized (lowercased, trimmed) email on submit', () => {
-    const authService = TestBed.inject(AuthService);
-    const loginSpy = jest.spyOn(authService, 'login').mockReturnValue(of({
-      accessToken: 'tok', refreshToken: 'ref',
-      email: 'test@example.com', displayName: 'Test',
-    }));
+  it('shows a rate-limit message on auth/too-many-requests', async () => {
+    jest.spyOn(authService, 'loginWithEmail').mockRejectedValue({ code: 'auth/too-many-requests' });
+    fillForm('test@example.com', 'wrong');
 
+    fixture.nativeElement.querySelector('button[type="submit"]').click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Too many login attempts');
+  });
+
+  it('sends a normalized (lowercased, trimmed) email on submit', async () => {
+    const loginSpy = jest.spyOn(authService, 'loginWithEmail').mockResolvedValue(undefined);
     fixture.componentInstance['form'].setValue({
       email: '  Test@EXAMPLE.com  ',
       password: 'password',
     });
-    fixture.nativeElement.querySelector('button[type="submit"]').click();
 
-    expect(loginSpy).toHaveBeenCalledWith({ email: 'test@example.com', password: 'password' });
+    fixture.nativeElement.querySelector('button[type="submit"]').click();
+    await fixture.whenStable();
+
+    expect(loginSpy).toHaveBeenCalledWith('test@example.com', 'password');
   });
 
   it('onEmailBlur normalizes the visible input value', () => {
@@ -104,24 +118,25 @@ describe('LoginComponent', () => {
     expect(emailInput.value).toBe('test@example.com');
   });
 
-  it('navigates to /overview on successful login', () => {
-    const authService = TestBed.inject(AuthService);
-    const router      = TestBed.inject(Router);
-    jest.spyOn(authService, 'login').mockReturnValue(of({
-      accessToken: 'tok', refreshToken: 'ref',
-      email: 'test@example.com', displayName: 'Test',
-    }));
+  it('calls authService.loginWithGoogle and navigates on click', async () => {
+    const googleSpy = jest.spyOn(authService, 'loginWithGoogle').mockResolvedValue(undefined);
+    const router = TestBed.inject(Router);
     const navigateSpy = jest.spyOn(router, 'navigate');
 
-    const emailInput    = fixture.nativeElement.querySelector('input[type="email"]') as HTMLInputElement;
-    const passwordInput = fixture.nativeElement.querySelector('input[type="password"]') as HTMLInputElement;
-    emailInput.value    = 'test@example.com';
-    emailInput.dispatchEvent(new Event('input'));
-    passwordInput.value = 'password';
-    passwordInput.dispatchEvent(new Event('input'));
+    const googleBtn = fixture.nativeElement.querySelector('button[type="button"]') as HTMLButtonElement;
+    googleBtn.click();
+    await fixture.whenStable();
+
+    expect(googleSpy).toHaveBeenCalled();
+    expect(navigateSpy).toHaveBeenCalledWith(['/overview']);
+  });
+
+  it('shows a Google error toast-style message when the popup fails', async () => {
+    jest.spyOn(authService, 'loginWithGoogle').mockRejectedValue(new Error('popup closed'));
+
+    await fixture.componentInstance['loginWithGoogle']();
     fixture.detectChanges();
 
-    fixture.nativeElement.querySelector('button[type="submit"]').click();
-    expect(navigateSpy).toHaveBeenCalledWith(['/overview']);
+    expect(fixture.nativeElement.textContent).toContain('Google sign-in failed');
   });
 });
