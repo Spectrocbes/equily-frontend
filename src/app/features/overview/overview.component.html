@@ -27,7 +27,7 @@
   }
 
   <!-- Total wealth — signature figure -->
-  <div class="rounded-lg border border-border bg-surface-card p-6 sm:p-8">
+  <div class="rounded-lg bg-surface-card p-6 sm:p-8 shadow-sm">
     <p class="text-ink-muted text-sm font-medium">{{ 'overview.totalWealth' | translate }}</p>
     @if (accountService.summariesLoading()) {
       <div class="h-12 w-64 bg-surface-raised rounded animate-pulse mt-2"></div>
@@ -56,8 +56,7 @@
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
     <!-- Donut chart -->
-    <div class="rounded-lg border border-border
-                bg-surface-card p-6">
+    <div class="rounded-lg bg-surface-card p-6 shadow-sm">
       <h2 class="font-medium text-ink-primary mb-4">{{ 'overview.allocation' | translate }}</h2>
 
       @if (donutData().length === 0) {
@@ -103,8 +102,7 @@
     </div>
 
     <!-- Top Performance -->
-    <div class="rounded-lg border border-border
-                bg-surface-card p-6">
+    <div class="rounded-lg bg-surface-card p-6 shadow-sm">
       <h3 class="text-sm font-semibold text-ink-primary mb-4">
         {{ 'overview.topPerformance' | translate }}
       </h3>

@@ -1,5 +1,4 @@
-<div class="rounded-lg border border-border
-            bg-surface-card p-6 relative">
+<div class="rounded-lg bg-surface-card p-6 relative shadow-sm">
 
   <!-- Header -->
   <div class="flex items-start justify-between mb-4">
@@ -60,14 +59,13 @@
     <!-- Hover tooltip -->
     @if (hoveredPoint()) {
       <div class="absolute pointer-events-none
-                  bg-surface-raised border border-border
-                  text-ink-primary text-xs rounded-md px-3 py-2 shadow-sm z-10"
+                  bg-slate-900 text-white text-xs rounded-md px-3 py-2 shadow-lg z-10"
            [style.left.px]="tooltipX()"
            [style.top.px]="tooltipY()">
         <p class="font-semibold font-mono tabular-nums">
           {{ hoveredPoint()!.value | currency:currency():'symbol':'1.2-2' }}
         </p>
-        <p class="text-ink-muted mt-0.5">
+        <p class="text-slate-300 mt-0.5">
           {{ hoveredPoint()!.date | date:'dd MMM yyyy' }}
         </p>
       </div>
