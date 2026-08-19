@@ -9,12 +9,11 @@ import { RouterLink } from '@angular/router';
     <a routerLink="/home"
        class="flex items-center gap-2 hover:opacity-80
               transition-opacity w-fit mb-12">
-      <div class="w-8 h-8 rounded-lg bg-primary-500
+      <div class="w-8 h-8 rounded-md bg-accent
                   flex items-center justify-center">
-        <span class="text-white font-bold text-sm">E</span>
+        <span class="text-accent-contrast font-semibold text-sm">E</span>
       </div>
-      <span class="font-semibold text-lg tracking-tight
-                   text-slate-900 dark:text-white">
+      <span class="font-semibold text-lg tracking-tight text-ink-primary">
         Equily
       </span>
     </a>
