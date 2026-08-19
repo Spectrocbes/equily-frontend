@@ -24,6 +24,8 @@ import { PeaClosureModalComponent } from '../shared/pea-closure-modal.component'
 import { PeaWithdrawalBreakdownModalComponent } from '../shared/pea-withdrawal-breakdown-modal.component';
 import { DeleteAccountModalComponent } from '../shared/delete-account-modal.component';
 import { DonutChartComponent, DonutSlice } from '../../../shared/components/donut-chart/donut-chart.component';
+import { getDonutPalette } from '../../../shared/utils/chart-tokens.util';
+import { ThemeService } from '../../../core/services/theme.service';
 
 @Component({
   selector: 'app-investment-account-detail',
@@ -46,6 +48,7 @@ export class InvestmentAccountDetailComponent implements OnInit {
   protected readonly preferencesService = inject(PreferencesService);
   private readonly toastService = inject(ToastService);
   private readonly translate    = inject(TranslateService);
+  private readonly themeService = inject(ThemeService);
 
   protected readonly account      = signal<FinancialAccount | null>(null);
   protected readonly transactions = signal<Transaction[]>([]);
@@ -161,12 +164,10 @@ export class InvestmentAccountDetailComponent implements OnInit {
   protected readonly accountDeleteLoading         = signal(false);
 
   protected readonly donutData = computed((): DonutSlice[] => {
+    this.themeService.isDark(); // establish reactivity so palette updates on theme toggle
     const total = this.totalInvested();
     if (total === 0) return [];
-    const colors = [
-      '#6366f1','#10b981','#f59e0b','#f43f5e',
-      '#3b82f6','#8b5cf6','#ec4899','#14b8a6',
-    ];
+    const colors = getDonutPalette();
     return this.enrichedHoldings().map((h, i) => ({
       label: h.ticker,
       value: h.totalInvested,

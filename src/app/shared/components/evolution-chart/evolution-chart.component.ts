@@ -1,11 +1,13 @@
 import {
   Component, OnChanges, AfterViewInit, OnDestroy,
-  ViewChild, ElementRef, input, output, signal, computed,
+  ViewChild, ElementRef, input, output, signal, computed, effect, inject,
 } from '@angular/core';
 import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { TranslatePipe } from '@ngx-translate/core';
 import * as d3 from 'd3';
 import { ChartPeriod, PortfolioHistoryPoint } from '../../../core/models/account.model';
+import { ThemeService } from '../../../core/services/theme.service';
+import { getChartTokens } from '../../utils/chart-tokens.util';
 
 interface DataPoint {
   date:  Date;
@@ -36,6 +38,15 @@ export class EvolutionChartComponent implements OnChanges, AfterViewInit, OnDest
   private chartContainer!: ElementRef<HTMLDivElement>;
 
   private resizeObserver?: ResizeObserver;
+  private readonly themeService = inject(ThemeService);
+
+  constructor() {
+    // Re-render on theme toggle so D3's inlined colors stay in sync with the CSS tokens.
+    effect(() => {
+      this.themeService.isDark();
+      if (this.chartContainer?.nativeElement) this.renderChart();
+    });
+  }
 
   protected readonly PERIODS: { value: ChartPeriod; labelKey: string }[] = [
     { value: 'ONE_DAY',   labelKey: 'chart.period.1D' },
@@ -154,7 +165,8 @@ export class EvolutionChartComponent implements OnChanges, AfterViewInit, OnDest
       .range([H, 0])
       .nice();
 
-    const color = this.isPositive() ? '#10b981' : '#ef4444';
+    const tokens = getChartTokens();
+    const color  = this.isPositive() ? tokens.gain : tokens.loss;
 
     const gradId = 'chartGrad-' + Math.random().toString(36).slice(2);
     const defs   = svg.append('defs');
@@ -212,7 +224,7 @@ export class EvolutionChartComponent implements OnChanges, AfterViewInit, OnDest
       .call(gx => {
         gx.select('.domain').remove();
         gx.selectAll('line').remove();
-        gx.selectAll('text').style('fill', '#94a3b8').style('font-size', '11px');
+        gx.selectAll('text').style('fill', tokens.axisText).style('font-size', '11px');
       });
 
     g.append('g')
@@ -220,7 +232,7 @@ export class EvolutionChartComponent implements OnChanges, AfterViewInit, OnDest
       .call(gy => {
         gy.select('.domain').remove();
         gy.selectAll('line')
-          .style('stroke', '#1e293b')
+          .style('stroke', tokens.gridline)
           .style('stroke-dasharray', '1,4')
           .style('stroke-width', '1');
         gy.selectAll('text').remove();
@@ -229,14 +241,14 @@ export class EvolutionChartComponent implements OnChanges, AfterViewInit, OnDest
     const bisect = d3.bisector((d: DataPoint) => d.date).left;
 
     const focusLine = g.append('line')
-      .attr('stroke', '#94a3b8').attr('stroke-width', 1)
+      .attr('stroke', tokens.axisText).attr('stroke-width', 1)
       .attr('stroke-dasharray', '4,4')
       .attr('y1', 0).attr('y2', H)
       .style('opacity', 0);
 
     const focusDot = g.append('circle')
       .attr('r', 4).attr('fill', color)
-      .attr('stroke', 'white').attr('stroke-width', 2)
+      .attr('stroke', tokens.surface).attr('stroke-width', 2)
       .style('opacity', 0);
 
     g.append('rect')

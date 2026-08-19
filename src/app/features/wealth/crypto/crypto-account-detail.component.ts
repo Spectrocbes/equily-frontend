@@ -21,6 +21,8 @@ import { DeleteTransactionModalComponent } from '../shared/delete-transaction-mo
 import { CsvImportModalComponent } from '../shared/csv-import-modal.component';
 import { DeleteAccountModalComponent } from '../shared/delete-account-modal.component';
 import { DonutChartComponent, DonutSlice } from '../../../shared/components/donut-chart/donut-chart.component';
+import { getDonutPalette } from '../../../shared/utils/chart-tokens.util';
+import { ThemeService } from '../../../core/services/theme.service';
 import { EvolutionChartComponent } from '../../../shared/components/evolution-chart/evolution-chart.component';
 
 @Component({
@@ -43,6 +45,7 @@ export class CryptoAccountDetailComponent implements OnInit, OnDestroy {
   private readonly toastService     = inject(ToastService);
   private readonly translate        = inject(TranslateService);
   protected readonly preferencesService = inject(PreferencesService);
+  private readonly themeService     = inject(ThemeService);
 
   protected readonly CURRENCY_SYMBOLS    = CURRENCY_SYMBOLS;
 
@@ -125,12 +128,10 @@ export class CryptoAccountDetailComponent implements OnInit, OnDestroy {
   });
 
   protected readonly donutData = computed((): DonutSlice[] => {
+    this.themeService.isDark(); // establish reactivity so palette updates on theme toggle
     const total = this.totalInvested();
     if (total === 0) return [];
-    const colors = [
-      '#f59e0b','#6366f1','#10b981','#f43f5e',
-      '#3b82f6','#8b5cf6','#ec4899','#14b8a6',
-    ];
+    const colors = getDonutPalette();
     return this.enrichedHoldings().map((h, i) => ({
       label: h.ticker,
       value: h.totalInvested,

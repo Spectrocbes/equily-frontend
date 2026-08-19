@@ -5,6 +5,8 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // Deprecated: kept only until every template is migrated to the tokens
+        // below, then deleted (see redesign plan, cleanup commit).
         primary: {
           50:  '#eef2ff',
           100: '#e0e7ff',
@@ -14,8 +16,32 @@ module.exports = {
           700: '#4338ca',
           900: '#312e81',
         },
-        gain:  '#10b981',
-        loss:  '#f43f5e',
+        surface: {
+          page:   'rgb(var(--surface-page) / <alpha-value>)',
+          card:   'rgb(var(--surface-card) / <alpha-value>)',
+          raised: 'rgb(var(--surface-raised) / <alpha-value>)',
+        },
+        border: {
+          DEFAULT: 'rgb(var(--border) / <alpha-value>)',
+          subtle:  'rgb(var(--border-subtle) / <alpha-value>)',
+        },
+        ink: {
+          primary:   'rgb(var(--ink-primary) / <alpha-value>)',
+          secondary: 'rgb(var(--ink-secondary) / <alpha-value>)',
+          muted:     'rgb(var(--ink-muted) / <alpha-value>)',
+        },
+        accent: {
+          DEFAULT:  'rgb(var(--accent) / <alpha-value>)',
+          hover:    'rgb(var(--accent-hover) / <alpha-value>)',
+          contrast: 'rgb(var(--accent-contrast) / <alpha-value>)',
+        },
+        gain: 'rgb(var(--gain) / <alpha-value>)',
+        loss: 'rgb(var(--loss) / <alpha-value>)',
+      },
+      borderRadius: {
+        sm: '4px',
+        md: '8px',
+        lg: '12px',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
