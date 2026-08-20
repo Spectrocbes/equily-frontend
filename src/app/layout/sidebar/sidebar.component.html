@@ -25,6 +25,7 @@
 
     <!-- Overview -->
     <a routerLink="/overview"
+       (click)="closed.emit()"
        routerLinkActive="bg-ink-primary text-surface-page hover:bg-ink-primary hover:text-surface-page"
        class="flex items-center gap-3 px-3 py-2.5 rounded-md
               text-ink-secondary
@@ -68,6 +69,7 @@
 
           @for (item of wealthItems; track item.route) {
             <a [routerLink]="item.route"
+               (click)="closed.emit()"
                routerLinkActive="text-accent bg-accent/10"
                class="flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm
                       text-ink-muted
@@ -84,6 +86,7 @@
 
     <!-- Analytics -->
     <a routerLink="/analytics"
+       (click)="closed.emit()"
        routerLinkActive="bg-ink-primary text-surface-page hover:bg-ink-primary hover:text-surface-page"
        class="flex items-center gap-3 px-3 py-2.5 rounded-md
               text-ink-secondary
@@ -99,6 +102,7 @@
 
     <!-- Rebalance -->
     <a routerLink="/rebalance"
+       (click)="closed.emit()"
        routerLinkActive="bg-ink-primary text-surface-page hover:bg-ink-primary hover:text-surface-page"
        class="flex items-center gap-3 px-3 py-2.5 rounded-md
               text-ink-secondary
