@@ -99,6 +99,7 @@
                 <span class="text-sm text-ink-muted">%</span>
               </div>
               <button (click)="removeCategory(i)"
+                      [attr.aria-label]="'common.remove' | translate"
                       class="w-8 h-8 flex items-center justify-center rounded-md
                              text-ink-muted hover:text-rose-500
                              hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors">

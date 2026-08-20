@@ -39,6 +39,7 @@
 
       <button type="button"
               (click)="toastService.dismiss(toast.id)"
+              [attr.aria-label]="'common.close' | translate"
               class="flex-shrink-0 text-ink-muted opacity-70 hover:opacity-100
                      transition-opacity mt-0.5">
         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"

@@ -24,6 +24,7 @@
         </span>
       </div>
       <button (click)="closed.emit()"
+              [attr.aria-label]="'common.close' | translate"
               class="w-8 h-8 rounded-md flex items-center justify-center
                      text-ink-muted hover:text-ink-secondary
                      hover:bg-surface-raised transition-colors">

@@ -24,7 +24,9 @@
     "optional": "(optional)",
     "saving": "Saving...",
     "saveChanges": "Save changes",
-    "unsavedChanges": "Unsaved changes"
+    "unsavedChanges": "Unsaved changes",
+    "remove": "Remove",
+    "moreOptions": "More options"
   },
   "nav": {
     "overview": "Overview",
@@ -41,7 +43,8 @@
     "switchToDarkMode": "Switch to dark mode",
     "closeMenu": "Close menu",
     "menu": "Menu",
-    "closeSidebar": "Close sidebar"
+    "closeSidebar": "Close sidebar",
+    "openMenu": "Open menu"
   },
   "auth": {
     "login": "Log in",
@@ -158,6 +161,7 @@
     "investedRatio": "Invested Ratio"
   },
   "landing": {
+    "scrollToTop": "Scroll to top",
     "featuresNav": "Features",
     "accountTypesNav": "Account types",
     "securityNav": "Security",
@@ -509,6 +513,8 @@
     "selectDate": "Select a date",
     "selectYear": "Select year",
     "selectMonth": "Select month",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
     "months": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
     "monthsShort": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
     "days": ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]

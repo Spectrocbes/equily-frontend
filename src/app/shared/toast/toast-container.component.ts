@@ -1,10 +1,11 @@
 import { Component, inject } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { ToastService, ToastType } from './toast.service';
 
 @Component({
   selector: 'app-toast-container',
   standalone: true,
-  imports: [],
+  imports: [TranslatePipe],
   templateUrl: './toast-container.component.html',
 })
 export class ToastContainerComponent {

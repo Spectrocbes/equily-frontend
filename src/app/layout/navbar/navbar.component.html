@@ -5,6 +5,7 @@
   <!-- Left: hamburger + logo -->
   <div class="flex items-center gap-2">
     <button type="button" (click)="menuToggled.emit()"
+            [attr.aria-label]="'nav.openMenu' | translate"
             class="lg:hidden p-2 rounded-md text-ink-muted
                    hover:bg-surface-raised hover:text-ink-primary transition-colors">
       <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24"

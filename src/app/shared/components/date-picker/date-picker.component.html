@@ -56,6 +56,7 @@
 
         @if (headerMode() === 'calendar') {
           <button type="button" (click)="prevMonth()"
+                  [attr.aria-label]="'datePicker.previousMonth' | translate"
                   class="w-8 h-8 flex items-center justify-center
                          rounded-md text-ink-muted
                          hover:bg-surface-raised
@@ -82,6 +83,7 @@
           </button>
 
           <button type="button" (click)="nextMonth()"
+                  [attr.aria-label]="'datePicker.nextMonth' | translate"
                   class="w-8 h-8 flex items-center justify-center
                          rounded-md text-ink-muted
                          hover:bg-surface-raised
@@ -97,6 +99,7 @@
         @if (headerMode() === 'year') {
           <button type="button"
                   (click)="headerMode.set('calendar')"
+                  [attr.aria-label]="'common.back' | translate"
                   class="w-8 h-8 flex items-center justify-center
                          rounded-md text-ink-muted
                          hover:bg-surface-raised
@@ -116,6 +119,7 @@
         @if (headerMode() === 'month') {
           <button type="button"
                   (click)="goBackToYearMode()"
+                  [attr.aria-label]="'common.back' | translate"
                   class="w-8 h-8 flex items-center justify-center
                          rounded-md text-ink-muted
                          hover:bg-surface-raised

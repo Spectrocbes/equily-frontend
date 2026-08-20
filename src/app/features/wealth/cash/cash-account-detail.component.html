@@ -66,6 +66,7 @@
         <div class="relative flex-shrink-0">
           <button type="button"
                   (click)="accountMenuOpen.set(!accountMenuOpen())"
+                  [attr.aria-label]="'common.moreOptions' | translate"
                   class="w-8 h-8 rounded-md flex items-center justify-center
                          text-ink-muted hover:text-ink-primary
                          hover:bg-surface-raised transition-colors">
@@ -209,6 +210,7 @@
                   @if (!isClosed()) {
                     <button type="button"
                             (click)="openTxMenu(tx.id, $event)"
+                            [attr.aria-label]="'common.moreOptions' | translate"
                             class="w-6 h-6 rounded-md flex items-center justify-center
                                    text-ink-muted hover:text-ink-primary
                                    hover:bg-surface-raised

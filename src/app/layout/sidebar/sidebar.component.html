@@ -11,6 +11,7 @@
               border-b border-border">
     <span class="font-semibold text-ink-primary">{{ 'nav.menu' | translate }}</span>
     <button type="button" (click)="closed.emit()"
+            [attr.aria-label]="'nav.closeSidebar' | translate"
             class="p-1.5 rounded-md text-ink-muted
                    hover:bg-surface-raised hover:text-ink-primary transition-colors">
       <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24"
