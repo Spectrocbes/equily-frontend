@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { CurrencyPipe, DecimalPipe, KeyValuePipe, PercentPipe } from '@angular/common';
+import { CurrencyPipe, DecimalPipe, KeyValue, KeyValuePipe, PercentPipe } from '@angular/common';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { forkJoin } from 'rxjs';
 import { UserCurrencyPipe } from '../../shared/pipes/user-currency.pipe';
@@ -43,6 +43,12 @@ export class AnalyticsComponent implements OnInit {
     YTD: 'YTD',
     ONE_YEAR: '1Y',
   };
+
+  // KeyValuePipe sorts keys alphabetically by default (ONE_MONTH, ONE_YEAR,
+  // SIX_MONTHS, THREE_MONTHS, YTD) — this restores chronological order.
+  private readonly PERIOD_ORDER = ['ONE_MONTH', 'THREE_MONTHS', 'SIX_MONTHS', 'ONE_YEAR', 'YTD'];
+  protected readonly periodOrder = (a: KeyValue<string, number>, b: KeyValue<string, number>): number =>
+    this.PERIOD_ORDER.indexOf(a.key) - this.PERIOD_ORDER.indexOf(b.key);
 
   ngOnInit(): void {
     this.loadAll();
