@@ -515,3 +515,11 @@
 - Storage access guarded: `resolveInitialLang()` runs while providers are being built, where a throw (private mode, storage disabled by policy) would white-screen the app — same class of risk as the `APP_INITIALIZER` warning in CLAUDE.md
 - Verified: instant re-render, survives reload against a French browser default, and carries to `/login` and `/register` — covers the whole logged-out flow, not just `/home`
 - 657/657 tests, coverage 84.1% stmt / 85.6% lines, lint clean, build 0 errors, en/fr parity 594/594
+
+## 2026-08-20 — feature/ui-redesign: landing width + auth panel palette (complete)
+- **Landing width:** content was capped at `max-w-6xl` (1152px), leaving 376px of empty ground each side at 1920. Widened to `max-w-[84rem]` (1344px) → 288px margins, ceiling sheet 532→628px. Safe because every prose block was already bounded; the one that wasn't (security `<dd>`, which would have run ~745px in the wider grid) got `max-w-2xl`
+- **Auth palette:** login/register painted their right panel `bg-slate-950` = `#020617` — a near-black with a strong *blue* cast, which read violet next to the petrol accent. A survivor of the indigo era. Both now use the `marketing` palette from /home (`#0A0E10`, neutral) + a hairline border instead of a hard colour seam, and headings pick up the same `font-display`, so sign-in no longer looks like a different product from the page that linked to it. Last hardcoded `#4FB0A5` literals removed with it
+- **Proportions:** form column was `flex-1 max-w-lg` against an uncapped panel → a 512/1393 split at 1920. Now an even half each, with the logo moved *inside* the form's column so both share one left edge instead of drifting apart on wide screens
+- `forgot-password` checked and deliberately left alone — centred single-column on theme tokens, never had the slate panel
+- **Recorded so it isn't chased again:** the browser pane's screenshots cap the rendered width around ~960px, which repeatedly looked like "the page doesn't fill the screen". DOM measurement disproved it (auth panels measure exactly 960 + 960 = 1920). Measure the DOM, don't trust the capture. The landing `max-w` constraint, by contrast, *was* real — same symptom, different cause
+- 657/657 tests, lint clean, build 0 errors, light + dark both checked
