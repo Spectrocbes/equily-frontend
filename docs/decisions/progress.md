@@ -480,3 +480,10 @@
 - Donut hover: tightened the gap between the label and percentage lines (y=52%→65% was ~11px; now 52%→61%, ~4px)
 - Transaction 3-dot: the earlier `-mt-0.5` fix matched button-box-center to price-line-box-center exactly (0px measured via `getBoundingClientRect`), but font-mono digits have no descenders so their visible ink sits above the line-height box's geometric center — the icon (truly symmetric) looked lower than the price text once boxes were matched, most visible on crypto's transaction rows. Deepened to `-mt-1`, tuned by eye at 3x zoom against the actual digit ink rather than box metrics. A reminder that box-model math and optical alignment aren't the same thing — worth re-checking visually even after a numerically "exact" fix
 - 641/641 tests, lint clean, build 0 errors
+
+## 2026-08-20 — feature/ui-redesign: transaction row column alignment (root cause) (complete)
+- The real bug behind the recurring "3-dot/date column looks off" reports: the row was `items-center` with `min-h-[52px]`, which centers each column's own box independently within the row — columns only lined up by coincidence when every column happened to have the same line count. A ticker+description column, a transfer's "⇄ linked account" line, or a BUY/SELL's "qty × price" line growing a sibling column pushed a still-short column (date, 3-dot) toward the row's vertical center instead of leaving it at the top
+- Fixed by switching to `items-start` with `py-4` replacing `min-h-[52px]` (16px pad + 20px price line + 16px pad reproduces the original 52px for simple rows, so those are unaffected) — every column now starts flush at the row's top regardless of neighbors
+- Surfaced a second-order issue: the date column's bare `<span>` (vs. siblings' `<p>`) sat 6px lower even under `items-start` — plain inline text carries "half-leading" space above the glyph that padded/block elements don't. Added `block` to the span, confirmed 0px offset
+- Verified across all 4 detail pages on 1/2/3-line rows
+- 641/641 tests, lint clean, build 0 errors
