@@ -68,7 +68,7 @@
             <p class="text-ink-muted text-sm">{{ 'overview.noAccounts' | translate }}</p>
           </div>
         } @else {
-          <div class="lg:flex-1 lg:min-h-0 lg:overflow-y-auto custom-scrollbar
+          <div class="lg:flex-1 lg:min-h-0 lg:overflow-y-auto custom-scrollbar lg:pr-2
                       flex items-center gap-6">
             <app-donut-chart
               [data]="donutData()"
@@ -117,7 +117,7 @@
             <p class="text-sm text-ink-muted">{{ 'overview.noHoldings' | translate }}</p>
           </div>
         } @else {
-          <div class="space-y-3 lg:flex-1 lg:min-h-0 overflow-y-auto custom-scrollbar">
+          <div class="space-y-3 lg:flex-1 lg:min-h-0 overflow-y-auto custom-scrollbar pr-2">
             @for (p of topPerformers(); track p.ticker + '_' + p.accountName) {
               <div class="flex items-center justify-between">
                 <div>

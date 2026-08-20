@@ -207,7 +207,7 @@
         } @else {
           <div class="flex items-center gap-4">
             <app-donut-chart [data]="donutData()" [total]="totalInvested()" [size]="140"/>
-            <div class="space-y-1.5 flex-1 min-w-0 max-h-64 overflow-y-auto custom-scrollbar">
+            <div class="space-y-1.5 flex-1 min-w-0 max-h-64 overflow-y-auto custom-scrollbar pr-2">
               @for (slice of donutData(); track slice.label) {
                 <div class="flex items-center justify-between gap-2">
                   <div class="flex items-center gap-1.5 min-w-0">
@@ -248,7 +248,7 @@
             {{ 'geo.noData' | translate }}
           </p>
         } @else {
-          <div class="space-y-3 max-h-48 overflow-y-auto custom-scrollbar">
+          <div class="space-y-3 max-h-48 overflow-y-auto custom-scrollbar pr-2">
             @for (geo of geoExposure(); track geo.region) {
               <div>
                 <div class="flex items-center justify-between mb-1">
