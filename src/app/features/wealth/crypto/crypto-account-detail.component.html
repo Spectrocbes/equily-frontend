@@ -422,13 +422,13 @@
           <div class="divide-y divide-border-subtle
                       max-h-[32rem] overflow-y-auto custom-scrollbar">
             @for (tx of transactions(); track tx.id) {
-              <div class="flex items-start gap-0 px-6 py-4
+              <div class="flex items-center gap-0 min-h-[52px] px-6
                           hover:bg-surface-raised
                           transition-colors group relative">
 
                 <!-- Date -->
                 <div class="w-16 flex-shrink-0 mr-3">
-                  <span class="text-xs text-ink-muted tabular-nums block">
+                  <span class="text-xs text-ink-muted tabular-nums">
                     {{ tx.date | date:'dd/MM/yy' }}
                   </span>
                 </div>
