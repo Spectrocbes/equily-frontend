@@ -469,3 +469,9 @@
 - `toast-container.component.ts` was missing `TranslatePipe` from its `imports` entirely — added
 - New i18n keys: `common.moreOptions`, `common.remove`, `nav.openMenu`, `datePicker.previousMonth`/`nextMonth`, `landing.scrollToTop`; reused existing `common.close`/`common.back`/`nav.closeSidebar` elsewhere. en/fr key-count parity verified (582/582)
 - 641/641 tests, lint clean, build 0 errors
+
+## 2026-08-20 — feature/ui-redesign: donut i18n/sizing, sidebar auto-close, 3-dot true-centering (complete)
+- Donut chart hover tooltip was rendering the raw untranslated `DonutSlice.label` even though `overview.component.ts` already computed a `labelKey`; added `DonutSlice.labelKey` (optional) and the template now prefers it. Also split the hover text from one "label · pct%" line into three shorter lines — the concatenated line was wider than the donut's hole and touched the ring for longer translated labels (e.g. "Investissements")
+- Sidebar nav links (`<a routerLink>`) never emitted `(closed)`, so the mobile sidebar stayed open after navigating; added `(click)="closed.emit()"` to all 7 nav links (harmless on desktop, where the sidebar ignores open/closed state)
+- Transaction row 3-dot: the prior `items-start` fix matched top edges but the button (24px) is 4px taller than the price line (20px line-height), leaving the button's center ~2px below the price's — fixed with `-mt-0.5` on the button wrapper, verified 0px offset via `getBoundingClientRect` on all 4 detail pages, single- and multi-line rows alike. Also widened the price-to-button gap (`gap-3`→`gap-6`) since it sat much closer to the price (12px) than to the scrollbar (~24px, the row's own edge padding), reading as off-center in that slot
+- 641/641 tests, lint clean, build 0 errors
