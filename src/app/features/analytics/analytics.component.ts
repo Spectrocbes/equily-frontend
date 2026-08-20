@@ -78,6 +78,12 @@ export class AnalyticsComponent implements OnInit {
     return Math.max((value / maxRevenue) * 160, 4);
   }
 
+  protected feeBarWidth(fees: number): number {
+    const maxFees = Math.max(
+      ...this.fees()!.feesByAccount.map(a => a.fees), 1);
+    return Math.max((fees / maxFees) * 100, 4);
+  }
+
   protected formatMonth(month: string): string {
     // "2024-01" → "Jan 24"
     const [year, m] = month.split('-');

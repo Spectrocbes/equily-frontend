@@ -64,7 +64,7 @@
         <h2 class="shrink-0 font-medium text-ink-primary mb-3">{{ 'overview.allocation' | translate }}</h2>
 
         @if (donutData().length === 0) {
-          <div class="h-32 flex items-center justify-center">
+          <div class="flex-1 min-h-[8rem] flex items-center justify-center">
             <p class="text-ink-muted text-sm">{{ 'overview.noAccounts' | translate }}</p>
           </div>
         } @else {
@@ -113,9 +113,9 @@
         </h3>
 
         @if (topPerformers().length === 0) {
-          <p class="text-sm text-ink-muted text-center py-6">
-            {{ 'overview.noHoldings' | translate }}
-          </p>
+          <div class="flex-1 min-h-[8rem] flex items-center justify-center">
+            <p class="text-sm text-ink-muted">{{ 'overview.noHoldings' | translate }}</p>
+          </div>
         } @else {
           <div class="space-y-3 lg:flex-1 lg:min-h-0 overflow-y-auto custom-scrollbar">
             @for (p of topPerformers(); track p.ticker + '_' + p.accountName) {
