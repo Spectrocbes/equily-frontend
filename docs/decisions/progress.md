@@ -444,3 +444,21 @@
 - Auth guard: waits for Firebase initialization
 - Firebase mock for tests (`jest.mock` `firebase/auth`)
 - 634/634 tests, lint clean, build 0 errors
+
+## 2026-08-20 — feature/ui-redesign: full visual redesign (complete)
+- Per `docs/EQUILY_DESIGN_BRIEF.md`: presentation-only pass, no signal/service/logic changes, no i18n keys touched
+- Design tokens: CSS custom properties (`R G B` triplets) in `src/styles.scss` for surfaces/borders/ink/accent/gain/loss, light + dark, wired into `tailwind.config.js` via `rgb(var(--x) / <alpha-value>)`; deprecated `primary-*` indigo scale deleted once migration was complete
+- Accent: deep petrol teal (`#0F7869` light / `#4FB0A5` dark) replaces the generic indigo — retuned brighter mid-session after live feedback that the original `#0E5C56` read too dark in light mode
+- Gain/loss retuned and tokenized (`--gain`/`--loss`); genuine P&L figures (holdings day-change badges, PEA tax-simulation amounts) route through the tokens, while UI-status rose/emerald (form errors, destructive-action icons, CSV success) stay literal Tailwind colors — brief's rule that gain/loss colors are reserved for financial meaning only
+- Radius scale (`sm`/`md`/`lg` = 4/8/12px) replaces the old ad-hoc `rounded-lg`/`xl`/`2xl` mix
+- Cards use `shadow-sm` with no visible border (not the originally-planned hairline border) — direct feedback that borders-everywhere read heavier than intended; structural dividers (navbar, sidebar) kept `border-border`
+- Sidebar top-level active state: solid `bg-ink-primary text-surface-page` pill (auto-inverts per theme) instead of a translucent accent tint, matching the Xenith inspiration reference instead of a generic SaaS highlight
+- Chart tooltips (`EvolutionChartComponent`, `AddTransactionModal`'s withdrawal-blocked tooltip) fixed-dark (`bg-slate-900`) regardless of theme, matching the same reference
+- New `chart-tokens.util.ts`: D3 evolution chart and donut allocation charts read the CSS tokens (`getChartTokens()`, `getDonutPalette()`) instead of hardcoded hex; evolution chart now re-renders on theme toggle via an `effect()` watching `ThemeService.isDark()` (previously didn't re-color at all)
+- Auth pages (login/register): dropped the `bg-gradient-to-br` + blurred glow-orb visual panel (direct feedback: read as "AI-generated template") for a flat, deliberately-always-dark panel independent of the theme toggle
+- Toast icons: emoji (⛔✅⚠️ℹ️) → SVG, left accent bar instead of filled-background card
+- Overview total-wealth figure is the one signature element: large tabular-nums (`text-5xl md:text-6xl font-mono tabular-nums`), used nowhere else
+- Landing page keeps its own fixed-dark marketing treatment (`bg-slate-900`, independent of the toggle) — only accent/radius tokens changed there
+- Mechanical token substitution scripted (Node codemod) across ~20 remaining templates (wealth list/detail pages, 8 shared modals, date-picker, ticker-autocomplete, analytics, rebalance, settings), then hand-reviewed via repeated grep sweeps for stray/redundant classes
+- 3 spec assertions updated for renamed classes (`bg-primary-50` → `bg-accent/10`, `bg-primary-500` → `bg-accent`)
+- 637/637 tests, lint clean, build 0 errors, coverage 83.6%/64.9%/78.1%/85.2% (stmt/branch/func/line)

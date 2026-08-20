@@ -5,17 +5,6 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Deprecated: kept only until every template is migrated to the tokens
-        // below, then deleted (see redesign plan, cleanup commit).
-        primary: {
-          50:  '#eef2ff',
-          100: '#e0e7ff',
-          400: '#818cf8',
-          500: '#6366f1',
-          600: '#4f46e5',
-          700: '#4338ca',
-          900: '#312e81',
-        },
         surface: {
           page:   'rgb(var(--surface-page) / <alpha-value>)',
           card:   'rgb(var(--surface-card) / <alpha-value>)',
