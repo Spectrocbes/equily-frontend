@@ -475,3 +475,8 @@
 - Sidebar nav links (`<a routerLink>`) never emitted `(closed)`, so the mobile sidebar stayed open after navigating; added `(click)="closed.emit()"` to all 7 nav links (harmless on desktop, where the sidebar ignores open/closed state)
 - Transaction row 3-dot: the prior `items-start` fix matched top edges but the button (24px) is 4px taller than the price line (20px line-height), leaving the button's center ~2px below the price's — fixed with `-mt-0.5` on the button wrapper, verified 0px offset via `getBoundingClientRect` on all 4 detail pages, single- and multi-line rows alike. Also widened the price-to-button gap (`gap-3`→`gap-6`) since it sat much closer to the price (12px) than to the scrollbar (~24px, the row's own edge padding), reading as off-center in that slot
 - 641/641 tests, lint clean, build 0 errors
+
+## 2026-08-20 — feature/ui-redesign: donut hover spacing, transaction 3-dot optical alignment (complete)
+- Donut hover: tightened the gap between the label and percentage lines (y=52%→65% was ~11px; now 52%→61%, ~4px)
+- Transaction 3-dot: the earlier `-mt-0.5` fix matched button-box-center to price-line-box-center exactly (0px measured via `getBoundingClientRect`), but font-mono digits have no descenders so their visible ink sits above the line-height box's geometric center — the icon (truly symmetric) looked lower than the price text once boxes were matched, most visible on crypto's transaction rows. Deepened to `-mt-1`, tuned by eye at 3x zoom against the actual digit ink rather than box metrics. A reminder that box-model math and optical alignment aren't the same thing — worth re-checking visually even after a numerically "exact" fix
+- 641/641 tests, lint clean, build 0 errors
