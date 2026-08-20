@@ -31,7 +31,7 @@
   @if (account()) {
 
     <!-- Account header -->
-    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+    <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
       <div>
         <div class="flex items-center gap-2 mb-1">
           <span class="text-xs font-medium px-2 py-0.5 rounded-full
@@ -44,7 +44,7 @@
         </h1>
       </div>
 
-      <div class="flex items-start gap-4 self-start sm:self-auto">
+      <div class="flex items-start gap-4 self-start lg:self-auto">
         <div class="text-right">
           <p class="text-xs text-ink-secondary mb-0.5">{{ 'account.balanceLabel' | translate }}</p>
           <div class="relative">
@@ -192,7 +192,7 @@
               </div>
 
               <!-- Amount + 3-dot -->
-              <div class="flex items-center gap-3 flex-shrink-0">
+              <div class="flex items-start gap-3 flex-shrink-0">
                 <div class="text-right w-[120px]">
                   <p class="text-sm font-semibold font-mono tabular-nums"
                      [class]="isPositive(tx.type, tx.transferDirection) ? 'text-gain' : 'text-loss'">
