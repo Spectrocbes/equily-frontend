@@ -54,7 +54,7 @@
       </p>
     </div>
   } @else {
-    <div #chartContainer class="w-full relative" style="height: 200px"></div>
+    <div #chartContainer class="w-full relative" [style.height.px]="height()"></div>
 
     <!-- Hover tooltip -->
     @if (hoveredPoint()) {

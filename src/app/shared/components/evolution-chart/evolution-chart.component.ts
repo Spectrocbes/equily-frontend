@@ -26,6 +26,7 @@ export class EvolutionChartComponent implements OnChanges, AfterViewInit, OnDest
   loading      = input<boolean>(false);
   currency     = input<string>('EUR');
   currentValue = input<number | null>(null);
+  height       = input<number>(200);
 
   protected readonly selectedPeriod = signal<ChartPeriod>('ONE_MONTH');
   periodChanged = output<ChartPeriod>();
@@ -133,7 +134,7 @@ export class EvolutionChartComponent implements OnChanges, AfterViewInit, OnDest
     const container = this.chartContainer?.nativeElement;
     if (!container || pts.length < 2) return;
     const totalW    = container.clientWidth || 600;
-    const totalH    = 200;
+    const totalH    = this.height();
     const margin    = { top: 10, right: 16, bottom: 30, left: 16 };
     const W = totalW - margin.left - margin.right;
     const H = totalH - margin.top  - margin.bottom;
