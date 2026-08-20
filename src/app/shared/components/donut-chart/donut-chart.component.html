@@ -19,17 +19,23 @@
     </g>
     <!-- Center text -->
     @if (hoveredSlice(); as hovered) {
-      <text x="50%" y="46%"
+      <text x="50%" y="38%"
             text-anchor="middle" dominant-baseline="middle"
             class="fill-ink-primary"
-            style="font-size: 10px; font-weight: 600; font-family: ui-monospace, monospace;">
+            style="font-size: 9px; font-weight: 600; font-family: ui-monospace, monospace;">
         {{ hovered.value | currency:'EUR':'symbol':'1.0-0' }}
       </text>
-      <text x="50%" y="58%"
+      <text x="50%" y="52%"
+            text-anchor="middle" dominant-baseline="middle"
+            class="fill-ink-primary"
+            style="font-size: 8px; font-weight: 500;">
+        {{ hovered.labelKey ? (hovered.labelKey | translate) : hovered.label }}
+      </text>
+      <text x="50%" y="65%"
             text-anchor="middle" dominant-baseline="middle"
             class="fill-ink-muted"
-            style="font-size: 9px;">
-        {{ hovered.label }} · {{ hovered.pct * 100 | number:'1.1-1' }}%
+            style="font-size: 8px;">
+        {{ hovered.pct * 100 | number:'1.1-1' }}%
       </text>
     } @else {
       <text x="50%" y="46%"

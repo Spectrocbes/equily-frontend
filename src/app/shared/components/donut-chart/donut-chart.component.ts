@@ -4,6 +4,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 
 export interface DonutSlice {
   label: string;
+  labelKey?: string;
   value: number;
   color: string;
 }
