@@ -482,6 +482,11 @@ export class InvestmentAccountDetailComponent implements OnInit {
     return ['DEPOSIT', 'DIVIDEND', 'INTEREST', 'SELL'].includes(type);
   }
 
+  protected hasAmountBreakdown(tx: Transaction): boolean {
+    return (!!tx.quantity && !!tx.pricePerUnit)
+      || tx.nativeCurrency !== this.preferencesService.currency();
+  }
+
   protected getBadgeClass(type: string): string {
     const map: Record<string, string> = {
       BUY:        'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300',

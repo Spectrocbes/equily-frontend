@@ -194,7 +194,9 @@
               </div>
 
               <!-- Amount + 3-dot -->
-              <div class="flex items-start gap-6 flex-shrink-0">
+              <div class="flex gap-6 flex-shrink-0"
+                   [class.items-start]="!hasAmountBreakdown(tx)"
+                   [class.items-center]="hasAmountBreakdown(tx)">
                 <div class="text-right w-[120px]">
                   <p class="text-sm font-semibold font-mono tabular-nums"
                      [class]="isPositive(tx.type, tx.transferDirection) ? 'text-gain' : 'text-loss'">
@@ -206,7 +208,8 @@
                     </p>
                   }
                 </div>
-                <div class="relative w-6 flex-shrink-0 -mt-1">
+                <div class="relative w-6 flex-shrink-0"
+                     [class.-mt-1]="!hasAmountBreakdown(tx)">
                   @if (!isClosed()) {
                     <button type="button"
                             (click)="openTxMenu(tx.id, $event)"
