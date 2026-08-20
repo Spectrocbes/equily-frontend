@@ -4,9 +4,9 @@
      (keydown.escape)="closed.emit()">
   <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
 
-  <div class="relative w-full max-w-md rounded-2xl
-              bg-white dark:bg-slate-800 shadow-2xl
-              border border-slate-200 dark:border-slate-700 p-6 space-y-4"
+  <div class="relative w-full max-w-md rounded-md
+              bg-surface-card shadow-2xl
+              border border-border p-6 space-y-4"
        tabindex="-1"
        (click)="$event.stopPropagation()"
        (keydown.escape)="closed.emit()">
@@ -14,19 +14,19 @@
     <!-- Header -->
     <div class="flex items-center justify-between">
       <div>
-        <h2 class="text-lg font-semibold text-slate-900 dark:text-white">
+        <h2 class="text-lg font-semibold text-ink-primary">
           {{ 'transaction.editTransaction' | translate }}
         </h2>
         <span class="inline-flex mt-1 px-2 py-0.5 rounded-md text-xs font-medium
-                     bg-slate-100 dark:bg-slate-700
-                     text-slate-600 dark:text-slate-300">
+                     bg-surface-raised
+                     text-ink-secondary">
           {{ ('transaction.type.' + transaction().type) | translate }}@if (transaction().ticker) { · {{ transaction().ticker }} }
         </span>
       </div>
       <button (click)="closed.emit()"
-              class="w-8 h-8 rounded-lg flex items-center justify-center
-                     text-slate-400 hover:text-slate-600
-                     hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+              class="w-8 h-8 rounded-md flex items-center justify-center
+                     text-ink-muted hover:text-ink-secondary
+                     hover:bg-surface-raised transition-colors">
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24"
              stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round"
@@ -38,14 +38,14 @@
     <!-- From account — read-only source account -->
     @if (account(); as acc) {
       <div class="flex items-center justify-between px-3 py-2.5
-                  rounded-lg bg-slate-50 dark:bg-slate-800/50
-                  border border-slate-200 dark:border-slate-600">
+                  rounded-md bg-surface-raised/50
+                  border border-border">
         <div class="flex-1 min-w-0">
           <p class="text-sm font-medium
-                     text-slate-900 dark:text-white truncate">
+                     text-ink-primary truncate">
             {{ acc.name }}
           </p>
-          <p class="text-xs text-slate-400 truncate">
+          <p class="text-xs text-ink-muted truncate">
             {{ acc.broker }} · {{ formatSubType(acc.subType) }}
           </p>
         </div>
@@ -59,17 +59,17 @@
         <div>
           <label class="block">
             <span class="block text-sm font-medium
-                         text-slate-700 dark:text-slate-300 mb-1.5">
+                         text-ink-secondary mb-1.5">
               {{ 'transaction.amount' | translate }} (€)
             </span>
             <input formControlName="totalAmount" type="number"
                    step="0.01" min="0.01"
-                   class="w-full px-3 py-2 rounded-lg text-sm
-                          bg-slate-50 dark:bg-slate-900
-                          border border-slate-200 dark:border-slate-600
-                          text-slate-900 dark:text-white
+                   class="w-full px-3 py-2 rounded-md text-sm
+                          bg-surface-page
+                          border border-border
+                          text-ink-primary
                           focus:outline-none focus:ring-2
-                          focus:ring-primary-500 transition-colors"/>
+                          focus:ring-accent transition-colors"/>
           </label>
           @if (showError('totalAmount')) {
             <p class="text-rose-500 text-xs mt-1">
@@ -84,66 +84,66 @@
         <div class="grid grid-cols-2 gap-3">
           <label class="block">
             <span class="block text-sm font-medium
-                         text-slate-700 dark:text-slate-300 mb-1.5">
+                         text-ink-secondary mb-1.5">
               {{ 'transaction.quantity' | translate }}
             </span>
             <input formControlName="quantity" type="number"
                    step="0.0001" min="0.0001"
-                   class="w-full px-3 py-2 rounded-lg text-sm
-                          bg-slate-50 dark:bg-slate-900
-                          border border-slate-200 dark:border-slate-600
-                          text-slate-900 dark:text-white
+                   class="w-full px-3 py-2 rounded-md text-sm
+                          bg-surface-page
+                          border border-border
+                          text-ink-primary
                           focus:outline-none focus:ring-2
-                          focus:ring-primary-500 transition-colors"/>
+                          focus:ring-accent transition-colors"/>
           </label>
           <label class="block">
             <span class="block text-sm font-medium
-                         text-slate-700 dark:text-slate-300 mb-1.5">
+                         text-ink-secondary mb-1.5">
               {{ 'transaction.pricePerUnit' | translate }} (€)
             </span>
             <input formControlName="pricePerUnit" type="number"
                    step="0.01" min="0.01"
-                   class="w-full px-3 py-2 rounded-lg text-sm
-                          bg-slate-50 dark:bg-slate-900
-                          border border-slate-200 dark:border-slate-600
-                          text-slate-900 dark:text-white
+                   class="w-full px-3 py-2 rounded-md text-sm
+                          bg-surface-page
+                          border border-border
+                          text-ink-primary
                           focus:outline-none focus:ring-2
-                          focus:ring-primary-500 transition-colors"/>
+                          focus:ring-accent transition-colors"/>
           </label>
         </div>
 
         <!-- Brokerage fees — only for BUY/SELL -->
         <label class="block">
           <span class="block text-sm font-medium
-                       text-slate-700 dark:text-slate-300 mb-1.5">
+                       text-ink-secondary mb-1.5">
             {{ 'transaction.brokerageFees' | translate }} (€)
           </span>
           <input formControlName="fees" type="number"
                  step="0.01" min="0"
-                 class="w-full px-3 py-2 rounded-lg text-sm
-                        bg-slate-50 dark:bg-slate-900
-                        border border-slate-200 dark:border-slate-600
-                        text-slate-900 dark:text-white
+                 class="w-full px-3 py-2 rounded-md text-sm
+                        bg-surface-page
+                        border border-border
+                        text-ink-primary
                         focus:outline-none focus:ring-2
-                        focus:ring-primary-500 transition-colors"/>
+                        focus:ring-accent transition-colors"/>
         </label>
 
         <!-- Computed total — shown once qty × price is non-zero -->
         @if (computedTotal() > 0) {
-          <div class="rounded-lg bg-slate-50 dark:bg-slate-900
-                      border border-slate-200 dark:border-slate-600
+          <div class="rounded-md bg-surface-page
+                      border border-border
                       px-3 py-2.5">
             <div class="flex items-center justify-between">
-              <span class="text-sm text-slate-500 dark:text-slate-400">
+              <span class="text-sm text-ink-secondary">
                 {{ (transaction().type === 'BUY' ? 'transaction.totalCost' : 'transaction.totalProceeds') | translate }}
               </span>
               <span class="text-sm font-semibold font-mono
-                           text-slate-900 dark:text-white">
+                           text-ink-primary">
                 {{ computedTotal() | currency:'EUR':'symbol':'1.2-2' }}
               </span>
             </div>
             @if (liveFees() > 0) {
-              <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+              <p class="text-xs text-ink-muted mt-0.5">
                 {{ (transaction().type === 'BUY'
                   ? 'transaction.includesFees' : 'transaction.afterDeductingFees') | translate }}
                 {{ liveFees() | currency:'EUR':'symbol':'1.2-2' }}
@@ -166,37 +166,37 @@
       <!-- Description -->
       <label class="block">
         <span class="block text-sm font-medium
-                     text-slate-700 dark:text-slate-300 mb-1.5">
+                     text-ink-secondary mb-1.5">
           {{ 'transaction.description' | translate }}
-          <span class="text-slate-400 font-normal">{{ 'common.optional' | translate }}</span>
+          <span class="text-ink-muted font-normal">{{ 'common.optional' | translate }}</span>
         </span>
         <input formControlName="description" type="text"
                maxlength="255"
                [placeholder]="'transaction.descriptionPlaceholderSimple' | translate"
-               class="w-full px-3 py-2 rounded-lg text-sm
-                      bg-slate-50 dark:bg-slate-900
-                      border border-slate-200 dark:border-slate-600
-                      text-slate-900 dark:text-white
-                      placeholder:text-slate-400
+               class="w-full px-3 py-2 rounded-md text-sm
+                      bg-surface-page
+                      border border-border
+                      text-ink-primary
+                      placeholder:text-ink-muted
                       focus:outline-none focus:ring-2
-                      focus:ring-primary-500 transition-colors"/>
+                      focus:ring-accent transition-colors"/>
       </label>
 
       <!-- Actions -->
       <div class="flex gap-3 pt-1">
         <button type="button" (click)="closed.emit()"
-                class="flex-1 px-4 py-2 rounded-lg text-sm font-medium
-                       border border-slate-200 dark:border-slate-600
-                       text-slate-700 dark:text-slate-300
-                       hover:bg-slate-50 dark:hover:bg-slate-700
+                class="flex-1 px-4 py-2 rounded-md text-sm font-medium
+                       border border-border
+                       text-ink-secondary
+                       hover:bg-surface-raised
                        transition-colors">
           {{ 'common.cancel' | translate }}
         </button>
         <button type="submit"
                 [disabled]="loading()"
-                class="flex-1 px-4 py-2 rounded-lg text-sm font-medium
-                       bg-primary-500 hover:bg-primary-600
-                       disabled:opacity-50 text-white transition-colors">
+                class="flex-1 px-4 py-2 rounded-md text-sm font-medium
+                       bg-accent hover:bg-accent-hover
+                       disabled:opacity-50 text-accent-contrast transition-colors">
           @if (loading()) { {{ 'common.saving' | translate }} } @else { {{ 'common.saveChanges' | translate }} }
         </button>
       </div>

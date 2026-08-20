@@ -581,6 +581,6 @@ describe('AddAccountModalComponent', () => {
 
     const el: HTMLElement | null = fixture.nativeElement.querySelector('#broker-option-1');
     expect(el).toBeTruthy();
-    expect(el!.className).toContain('bg-primary-50');
+    expect(el!.className).toContain('bg-accent/10');
   });
 });

@@ -7,9 +7,9 @@
   <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
 
   <!-- Modal -->
-  <div class="relative w-full max-w-md rounded-2xl
-              bg-white dark:bg-slate-800
-              shadow-2xl border border-slate-200 dark:border-slate-700
+  <div class="relative w-full max-w-md rounded-md
+              bg-surface-card
+              shadow-2xl border border-border
               p-6 space-y-5 max-h-[90vh] overflow-y-auto custom-scrollbar"
        tabindex="-1"
        (click)="$event.stopPropagation()"
@@ -17,13 +17,13 @@
 
     <!-- Header -->
     <div class="flex items-center justify-between">
-      <h2 class="text-lg font-semibold text-slate-900 dark:text-white">
+      <h2 class="text-lg font-semibold text-ink-primary">
         {{ 'transaction.addTransaction' | translate }}
       </h2>
       <button type="button" (click)="onClose()"
-              class="w-8 h-8 rounded-lg flex items-center justify-center
-                     text-slate-400 hover:text-slate-600 dark:hover:text-slate-200
-                     hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+              class="w-8 h-8 rounded-md flex items-center justify-center
+                     text-ink-muted hover:text-ink-primary
+                     hover:bg-surface-raised transition-colors">
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
         </svg>
@@ -36,34 +36,33 @@
 
         <!-- Amount hero — match app style -->
         <div class="text-center py-3">
-          <p class="text-xs font-medium text-slate-400 uppercase
+          <p class="text-xs font-medium text-ink-muted uppercase
                      tracking-wider mb-1.5">
             {{ ('transaction.type.' + selectedType()) | translate }}
           </p>
-          <p class="text-2xl font-bold text-slate-900 dark:text-white
+          <p class="text-2xl font-bold text-ink-primary
                      tabular-nums">
             {{ (requiresAsset() ? computedTotal() : form.value.totalAmount)
                | currency:transactionCurrency():'symbol':'1.2-2' }}
           </p>
           @if (form.value.ticker) {
-            <p class="text-sm text-slate-400 mt-0.5">
+            <p class="text-sm text-ink-muted mt-0.5">
               {{ form.value.quantity }} × {{ form.value.ticker }}
             </p>
           }
         </div>
 
         <!-- Details card — same border/radius as other cards in app -->
-        <div class="rounded-xl border border-slate-200
-                    dark:border-slate-700 overflow-hidden text-sm">
+        <div class="rounded-md border border-border overflow-hidden text-sm">
 
           <div class="flex items-center justify-between px-4 py-2.5
-                      border-b border-slate-100 dark:border-slate-700/50">
-            <span class="text-slate-500 dark:text-slate-400">{{ 'transaction.from' | translate }}</span>
+                      border-b border-border-subtle/50">
+            <span class="text-ink-secondary">{{ 'transaction.from' | translate }}</span>
             <div class="text-right">
-              <p class="font-medium text-slate-900 dark:text-white">
+              <p class="font-medium text-ink-primary">
                 {{ account()?.name }}
               </p>
-              <p class="text-xs text-slate-400">
+              <p class="text-xs text-ink-muted">
                 {{ formatSubType(account()?.subType) }}
               </p>
             </div>
@@ -71,27 +70,27 @@
 
           @if (toAccountName()) {
             <div class="flex items-center justify-between px-4 py-2.5
-                        border-b border-slate-100 dark:border-slate-700/50">
-              <span class="text-slate-500 dark:text-slate-400">{{ 'transaction.to' | translate }}</span>
-              <p class="font-medium text-slate-900 dark:text-white">
+                        border-b border-border-subtle/50">
+              <span class="text-ink-secondary">{{ 'transaction.to' | translate }}</span>
+              <p class="font-medium text-ink-primary">
                 {{ toAccountName() }}
               </p>
             </div>
           }
 
           <div class="flex items-center justify-between px-4 py-2.5
-                      border-b border-slate-100 dark:border-slate-700/50">
-            <span class="text-slate-500 dark:text-slate-400">{{ 'transaction.date' | translate }}</span>
-            <p class="font-medium text-slate-900 dark:text-white">
+                      border-b border-border-subtle/50">
+            <span class="text-ink-secondary">{{ 'transaction.date' | translate }}</span>
+            <p class="font-medium text-ink-primary">
               {{ form.value.date | date:'dd MMM yyyy' }}
             </p>
           </div>
 
           @if (form.value.fees && form.value.fees > 0) {
             <div class="flex items-center justify-between px-4 py-2.5
-                        border-b border-slate-100 dark:border-slate-700/50">
-              <span class="text-slate-500 dark:text-slate-400">{{ 'transaction.fees' | translate }}</span>
-              <p class="font-medium text-slate-900 dark:text-white">
+                        border-b border-border-subtle/50">
+              <span class="text-ink-secondary">{{ 'transaction.fees' | translate }}</span>
+              <p class="font-medium text-ink-primary">
                 {{ form.value.fees | currency:transactionCurrency():'symbol':'1.2-2' }}
               </p>
             </div>
@@ -99,8 +98,8 @@
 
           @if (form.value.description) {
             <div class="flex items-center justify-between px-4 py-2.5">
-              <span class="text-slate-500 dark:text-slate-400">{{ 'transaction.note' | translate }}</span>
-              <p class="font-medium text-slate-900 dark:text-white
+              <span class="text-ink-secondary">{{ 'transaction.note' | translate }}</span>
+              <p class="font-medium text-ink-primary
                          text-right max-w-[60%] truncate">
                 {{ form.value.description }}
               </p>
@@ -112,20 +111,20 @@
         <div class="flex gap-3">
           <button type="button"
                   (click)="onEditBack()"
-                  class="flex-1 px-4 py-2.5 rounded-xl text-sm
+                  class="flex-1 px-4 py-2.5 rounded-md text-sm
                          font-medium border
-                         border-slate-200 dark:border-slate-600
-                         text-slate-700 dark:text-slate-300
-                         hover:bg-slate-50 dark:hover:bg-slate-700
+                         border-border
+                         text-ink-secondary
+                         hover:bg-surface-raised
                          transition-colors">
             ← {{ 'common.edit' | translate }}
           </button>
           <button type="button"
                   (click)="onConfirm()"
                   [disabled]="loading()"
-                  class="flex-1 px-4 py-2.5 rounded-xl text-sm
-                         font-semibold bg-primary-500
-                         hover:bg-primary-600 text-white
+                  class="flex-1 px-4 py-2.5 rounded-md text-sm
+                         font-semibold bg-accent
+                         hover:bg-accent-hover text-accent-contrast
                          transition-colors disabled:opacity-50">
             @if (loading()) {
               <span class="flex items-center justify-center gap-2">
@@ -149,7 +148,7 @@
           <div>
             @if (!typeConfirmed()) {
               <p class="block text-sm font-medium
-                         text-slate-700 dark:text-slate-300 mb-1.5">
+                         text-ink-secondary mb-1.5">
                 {{ 'transaction.transactionType' | translate }}
               </p>
               <div class="relative">
@@ -157,15 +156,15 @@
                 <button type="button"
                         (click)="typeDropdownOpen.set(!typeDropdownOpen())"
                         class="w-full flex items-center justify-between
-                               px-3 py-2.5 rounded-lg text-sm text-left
-                               bg-white dark:bg-slate-800
-                               border border-slate-300 dark:border-slate-500
-                               text-slate-700 dark:text-slate-200
-                               hover:border-primary-400 dark:hover:border-primary-500
+                               px-3 py-2.5 rounded-md text-sm text-left
+                               bg-surface-card
+                               border border-border
+                               text-ink-secondary
+                               hover:border-accent dark:hover:border-accent
                                focus:outline-none focus:ring-2
-                               focus:ring-primary-500 transition-colors">
+                               focus:ring-accent transition-colors">
                   <span>{{ (selectedTypeLabel() | translate) || ('transaction.selectType' | translate) }}</span>
-                  <svg class="w-4 h-4 text-slate-400 transition-transform"
+                  <svg class="w-4 h-4 text-ink-muted transition-transform"
                        [class.rotate-180]="typeDropdownOpen()"
                        fill="none" viewBox="0 0 24 24"
                        stroke="currentColor" stroke-width="2">
@@ -184,9 +183,9 @@
 
                   <!-- Options list -->
                   <div class="absolute left-0 top-full mt-1 w-full z-20
-                              rounded-xl
-                              border border-slate-200 dark:border-slate-600
-                              bg-white dark:bg-slate-800
+                              rounded-md
+                              border border-border
+                              bg-surface-card
                               shadow-lg shadow-black/20 overflow-hidden">
                     @for (t of availableTransactionTypes(); track t.value) {
                       <button type="button"
@@ -195,8 +194,8 @@
                                      px-4 py-2.5 text-sm text-left
                                      transition-colors"
                               [class]="selectedType() === t.value
-                                ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 font-medium'
-                                : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700'">
+                                ? 'bg-accent/10 text-accent font-medium'
+                                : 'text-ink-secondary hover:bg-surface-raised'">
                         {{ t.labelKey | translate }}
                       </button>
                     }
@@ -204,23 +203,23 @@
                 }
               </div>
               @if (!selectedType()) {
-                <p class="text-slate-400 dark:text-slate-500 text-xs mt-1">{{ 'transaction.selectTypeRequired' | translate }}</p>
+                <p class="text-ink-muted text-xs mt-1">{{ 'transaction.selectTypeRequired' | translate }}</p>
               }
             } @else {
-              <p class="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+              <p class="text-sm font-medium text-ink-secondary mb-1.5">
                 {{ 'transaction.transactionType' | translate }}
               </p>
               <div class="flex items-center gap-2">
                 <span class="inline-flex items-center px-3 py-1.5
                              rounded-full text-xs font-semibold
-                             bg-primary-100 dark:bg-primary-900/30
-                             text-primary-700 dark:text-primary-300">
+                             bg-accent/10
+                             text-accent">
                   {{ selectedTypeLabel() | translate }}
                 </span>
                 <button type="button"
                         (click)="changeType()"
-                        class="text-xs text-slate-400 hover:text-slate-600
-                               dark:hover:text-slate-300 transition-colors
+                        class="text-xs text-ink-muted hover:text-ink-secondary
+                               dark:hover:text-ink-muted transition-colors
                                underline underline-offset-2">
                   {{ 'common.change' | translate }}
                 </button>
@@ -229,7 +228,7 @@
           </div>
         } @else {
           <div>
-            <span class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+            <span class="block text-sm font-medium text-ink-secondary mb-2">
               {{ 'transaction.transactionType' | translate }}
             </span>
             <div class="flex flex-wrap gap-2">
@@ -239,8 +238,8 @@
                           [disabled]="txType.value === 'WITHDRAWAL' && withdrawalBlocked()"
                           (click)="onTypeChange(txType.value)"
                           [class]="selectedType() === txType.value
-                            ? 'px-3 py-1.5 rounded-lg text-xs font-medium bg-primary-500 text-white'
-                            : 'px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors'"
+                            ? 'px-3 py-1.5 rounded-md text-xs font-medium bg-accent text-accent-contrast'
+                            : 'px-3 py-1.5 rounded-md text-xs font-medium bg-surface-raised text-ink-secondary hover:bg-border transition-colors'"
                           [class.opacity-40]="txType.value === 'WITHDRAWAL' && withdrawalBlocked()"
                           [class.cursor-not-allowed]="txType.value === 'WITHDRAWAL' && withdrawalBlocked()">
                     {{ txType.labelKey | translate }}
@@ -248,13 +247,15 @@
 
                   @if (txType.value === 'WITHDRAWAL' && withdrawalBlocked()) {
                     <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2
-                                w-64 p-3 rounded-lg text-xs z-50
-                                bg-slate-800 dark:bg-slate-900
-                                text-slate-200 shadow-lg
+                                w-64 p-3 rounded-md text-xs z-50
+                                bg-slate-900 text-slate-200 shadow-lg
                                 opacity-0 group-hover:opacity-100
                                 transition-opacity pointer-events-none">
-                      <p class="font-medium text-amber-400 mb-1">
-                        ⚠️ {{ 'transaction.withdrawalBlockedTitle' | translate }}
+                      <p class="flex items-center gap-1.5 font-medium text-amber-400 mb-1">
+                        <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 3.5h.01M10.29 3.86L1.82 18a1.5 1.5 0 001.3 2.25h17.76a1.5 1.5 0 001.3-2.25L13.71 3.86a1.5 1.5 0 00-2.42 0z"/>
+                        </svg>
+                        {{ 'transaction.withdrawalBlockedTitle' | translate }}
                       </p>
                       <p>
                         {{ 'transaction.withdrawalBlockedHint' | translate }}
@@ -265,7 +266,7 @@
               }
             </div>
             @if (!selectedType()) {
-              <p class="text-slate-400 dark:text-slate-500 text-xs mt-1">{{ 'transaction.selectTypeRequired' | translate }}</p>
+              <p class="text-ink-muted text-xs mt-1">{{ 'transaction.selectTypeRequired' | translate }}</p>
             }
           </div>
         }
@@ -274,21 +275,21 @@
         <div>
           @if (account()) {
             <div class="flex items-center justify-between px-3 py-2.5
-                        rounded-lg bg-slate-50 dark:bg-slate-800/50
-                        border border-slate-200 dark:border-slate-600">
+                        rounded-md bg-surface-raised/50
+                        border border-border">
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium
-                           text-slate-900 dark:text-white truncate">
+                           text-ink-primary truncate">
                   {{ account()!.name }}
                 </p>
-                <p class="text-xs text-slate-400 truncate">
+                <p class="text-xs text-ink-muted truncate">
                   {{ account()!.broker }} · {{ formatSubType(account()!.subType) }}
                 </p>
               </div>
               @if (showAvailableBalance()) {
                 <div class="text-right ml-3 flex-shrink-0">
                   <p class="text-sm font-semibold
-                             text-slate-900 dark:text-white tabular-nums">
+                             text-ink-primary tabular-nums">
                     {{ availableBalance() | userCurrency }}
                   </p>
                 </div>
@@ -301,18 +302,18 @@
         @if (requiresTicker()) {
           @if (selectedType() === 'SELL') {
             <div>
-              <label for="ticker" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+              <label for="ticker" class="block text-sm font-medium text-ink-secondary mb-1.5">
                 {{ 'transaction.ticker' | translate }}
               </label>
               <div class="relative">
                 <select id="ticker" formControlName="ticker"
                         (change)="onSellTickerChange()"
-                        class="w-full px-3 py-2 pr-10 rounded-lg text-sm
-                               bg-slate-50 dark:bg-slate-900
-                               border border-slate-200 dark:border-slate-600
-                               text-slate-900 dark:text-white
+                        class="w-full px-3 py-2 pr-10 rounded-md text-sm
+                               bg-surface-page
+                               border border-border
+                               text-ink-primary
                                focus:outline-none focus:ring-2
-                               focus:ring-primary-500 transition-colors
+                               focus:ring-accent transition-colors
                                appearance-none">
                   <option value="" disabled>{{ 'transaction.selectHolding' | translate }}</option>
                   @for (h of heldTickers(); track h.symbol) {
@@ -320,7 +321,7 @@
                   }
                 </select>
                 <svg class="absolute right-3 top-1/2 -translate-y-1/2
-                            w-4 h-4 text-slate-400 pointer-events-none"
+                            w-4 h-4 text-ink-muted pointer-events-none"
                      fill="none" viewBox="0 0 24 24"
                      stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round"
@@ -341,17 +342,17 @@
               [parentForm]="form" />
           } @else {
             <div>
-              <label for="ticker" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+              <label for="ticker" class="block text-sm font-medium text-ink-secondary mb-1.5">
                 {{ 'transaction.tickerSymbol' | translate }}
               </label>
               <input id="ticker" formControlName="ticker" type="text"
                      maxlength="20"
                      [placeholder]="'transaction.tickerPlaceholder' | translate"
-                     class="w-full px-3 py-2 rounded-lg text-sm font-mono
-                            bg-slate-50 dark:bg-slate-900
-                            border border-slate-200 dark:border-slate-600
-                            text-slate-900 dark:text-white placeholder:text-slate-400 placeholder:font-sans
-                            focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors"/>
+                     class="w-full px-3 py-2 rounded-md text-sm font-mono
+                            bg-surface-page
+                            border border-border
+                            text-ink-primary placeholder:text-ink-muted placeholder:font-sans
+                            focus:outline-none focus:ring-2 focus:ring-accent transition-colors"/>
             </div>
           }
         }
@@ -361,7 +362,7 @@
 
           <!-- PEA <5y TRANSFER warnings -->
           @if (peaTransferForcedClosure()) {
-            <div class="rounded-xl bg-amber-50 dark:bg-amber-900/20
+            <div class="rounded-md bg-amber-50 dark:bg-amber-900/20
                         border border-amber-300 dark:border-amber-700
                         px-4 py-3 text-sm">
               <p class="font-semibold text-amber-700 dark:text-amber-300 mb-1">
@@ -374,7 +375,7 @@
           }
 
           @if (peaTransferBlockedByHoldings()) {
-            <div class="rounded-xl bg-amber-50 dark:bg-amber-900/20
+            <div class="rounded-md bg-amber-50 dark:bg-amber-900/20
                         border border-amber-300 dark:border-amber-700
                         px-4 py-3 text-sm">
               <p class="font-semibold text-amber-700 dark:text-amber-300">
@@ -387,14 +388,14 @@
             <!-- Investment — forced linked checking account, read-only (no peaCapacityInfo) -->
             <div>
               <p class="block text-sm font-medium
-                         text-slate-700 dark:text-slate-300 mb-1.5">
+                         text-ink-secondary mb-1.5">
                 {{ 'transaction.destination' | translate }}
               </p>
               @if (linkedCheckingAccount(); as linked) {
-                <div class="flex items-center gap-3 px-3 py-2.5 rounded-lg
-                            bg-slate-100 dark:bg-slate-700/50
-                            border border-slate-200 dark:border-slate-600">
-                  <svg class="w-4 h-4 text-slate-400 flex-shrink-0"
+                <div class="flex items-center gap-3 px-3 py-2.5 rounded-md
+                            bg-surface-raised/50
+                            border border-border">
+                  <svg class="w-4 h-4 text-ink-muted flex-shrink-0"
                        fill="none" viewBox="0 0 24 24"
                        stroke="currentColor" stroke-width="1.5">
                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -406,21 +407,21 @@
                              002.25 19.5z"/>
                   </svg>
                   <div>
-                    <p class="text-sm font-medium text-slate-900 dark:text-white">
+                    <p class="text-sm font-medium text-ink-primary">
                       {{ linked.name }}
                     </p>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">
+                    <p class="text-xs text-ink-secondary">
                       {{ 'common.available' | translate }}: {{ linked.balance | userCurrency }}
                     </p>
                   </div>
-                  <span class="ml-auto text-xs text-slate-400
-                                bg-slate-200 dark:bg-slate-600
+                  <span class="ml-auto text-xs text-ink-muted
+                                bg-surface-raised
                                 px-2 py-0.5 rounded-full">
                     {{ 'common.linked' | translate }}
                   </span>
                 </div>
               } @else {
-                <div class="rounded-xl bg-amber-50 dark:bg-amber-900/20
+                <div class="rounded-md bg-amber-50 dark:bg-amber-900/20
                             border border-amber-200 dark:border-amber-700
                             px-4 py-3 text-sm text-amber-600 dark:text-amber-400">
                   ⚠️ {{ 'transaction.noLinkedCheckingAccount' | translate }}
@@ -430,7 +431,7 @@
           } @else {
             <!-- Non-investment — dropdown with optional external toggle -->
             <div>
-              <p class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+              <p class="block text-sm font-medium text-ink-secondary mb-1.5">
                 {{ 'transaction.destination' | translate }}
               </p>
 
@@ -439,18 +440,18 @@
                 <div class="flex gap-2 mb-3">
                   <button type="button"
                           (click)="transferMode.set('internal')"
-                          class="flex-1 py-1.5 rounded-lg text-xs font-medium transition-colors border"
+                          class="flex-1 py-1.5 rounded-md text-xs font-medium transition-colors border"
                           [class]="transferMode() === 'internal'
-                            ? 'bg-primary-500 border-primary-500 text-white'
-                            : 'border-slate-200 dark:border-slate-600 text-slate-500 hover:border-primary-400'">
+                            ? 'bg-accent border-accent text-accent-contrast'
+                            : 'border-border text-ink-muted hover:border-accent'">
                     {{ 'transaction.myAccounts' | translate }}
                   </button>
                   <button type="button"
                           (click)="transferMode.set('external')"
-                          class="flex-1 py-1.5 rounded-lg text-xs font-medium transition-colors border"
+                          class="flex-1 py-1.5 rounded-md text-xs font-medium transition-colors border"
                           [class]="transferMode() === 'external'
-                            ? 'bg-primary-500 border-primary-500 text-white'
-                            : 'border-slate-200 dark:border-slate-600 text-slate-500 hover:border-primary-400'">
+                            ? 'bg-accent border-accent text-accent-contrast'
+                            : 'border-border text-ink-muted hover:border-accent'">
                     {{ 'transaction.external' | translate }}
                   </button>
                 </div>
@@ -463,29 +464,29 @@
                           (click)="destinationDropdownOpen.set(
                             !destinationDropdownOpen())"
                           class="w-full flex items-center justify-between
-                                 px-3 py-2.5 rounded-lg text-sm text-left
-                                 bg-white dark:bg-slate-800
-                                 border border-slate-300 dark:border-slate-500
-                                 text-slate-700 dark:text-slate-200
+                                 px-3 py-2.5 rounded-md text-sm text-left
+                                 bg-surface-card
+                                 border border-border
+                                 text-ink-secondary
                                  focus:outline-none focus:ring-2
-                                 focus:ring-primary-500 transition-colors">
+                                 focus:ring-accent transition-colors">
                     @if (selectedDestinationAccount()) {
                       <div class="flex-1 min-w-0">
                         <p class="text-sm font-medium
-                                   text-slate-900 dark:text-white truncate">
+                                   text-ink-primary truncate">
                           {{ selectedDestinationAccount()!.name }}
                         </p>
-                        <p class="text-xs text-slate-400">
+                        <p class="text-xs text-ink-muted">
                           {{ formatSubType(selectedDestinationAccount()!.subType) }}
                           · {{ selectedDestinationAccount()!.balance | userCurrency }}
                         </p>
                       </div>
                     } @else {
-                      <span class="text-slate-400">
+                      <span class="text-ink-muted">
                         {{ 'transaction.selectDestination' | translate }}
                       </span>
                     }
-                    <svg class="w-4 h-4 text-slate-400 flex-shrink-0 ml-2
+                    <svg class="w-4 h-4 text-ink-muted flex-shrink-0 ml-2
                                 transition-transform"
                          [class.rotate-180]="destinationDropdownOpen()"
                          fill="none" viewBox="0 0 24 24"
@@ -502,38 +503,35 @@
                          (click)="destinationDropdownOpen.set(false)"
                          (keydown.escape)="destinationDropdownOpen.set(false)"></div>
                     <div class="absolute left-0 top-full mt-1 w-full z-50
-                                rounded-xl border border-slate-200
-                                dark:border-slate-700
-                                bg-white dark:bg-slate-800
+                                rounded-md border border-border
+                                bg-surface-card
                                 shadow-lg max-h-48 overflow-y-auto custom-scrollbar">
                       @for (acc of destinationAccounts(); track acc.id) {
                         <button type="button"
                                 (click)="selectDestination(acc.id)"
                                 class="w-full flex items-center justify-between
                                        px-4 py-3 text-left transition-colors
-                                       border-b border-slate-100
-                                       dark:border-slate-700/50 last:border-0"
+                                       border-b border-border-subtle last:border-0"
                                 [class]="acc.id === form.get('toAccountId')?.value
-                                  ? 'bg-primary-50 dark:bg-primary-900/20'
-                                  : 'hover:bg-slate-50 dark:hover:bg-slate-700'">
+                                  ? 'bg-accent/10'
+                                  : 'hover:bg-surface-raised'">
                           <div class="flex-1 min-w-0">
                             <p class="text-sm font-medium
-                                       text-slate-900 dark:text-white truncate">
+                                       text-ink-primary truncate">
                               {{ acc.name }}
                             </p>
-                            <p class="text-xs text-slate-400">
+                            <p class="text-xs text-ink-muted">
                               {{ formatSubType(acc.subType) }}
                             </p>
                           </div>
-                          <span class="text-sm font-mono text-slate-500
-                                        dark:text-slate-400 ml-3 flex-shrink-0
+                          <span class="text-sm font-mono text-ink-muted ml-3 flex-shrink-0
                                         tabular-nums">
                             {{ acc.balance | userCurrency }}
                           </span>
                         </button>
                       }
                       @if (destinationAccounts().length === 0) {
-                        <p class="px-4 py-3 text-sm text-slate-400 text-center">
+                        <p class="px-4 py-3 text-sm text-ink-muted text-center">
                           {{ 'transaction.noAvailableAccounts' | translate }}
                         </p>
                       }
@@ -543,16 +541,16 @@
 
                 @if (destinationCapacityInfo(); as cap) {
                   <div class="mt-2 flex items-center gap-2 flex-wrap
-                              rounded-lg px-3 py-2 text-xs
-                              bg-slate-50 dark:bg-slate-800/50
-                              border border-slate-200 dark:border-slate-700">
-                    <span class="text-slate-400">{{ cap.labelKey | translate }}</span>
-                    <span class="font-mono text-slate-600 dark:text-slate-300">
+                              rounded-md px-3 py-2 text-xs
+                              bg-surface-raised/50
+                              border border-border">
+                    <span class="text-ink-muted">{{ cap.labelKey | translate }}</span>
+                    <span class="font-mono text-ink-secondary">
                       {{ cap.current | currency:'EUR':'symbol':'1.0-0' }}
                       / {{ cap.limit | currency:'EUR':'symbol':'1.0-0' }}
                     </span>
-                    <span class="text-slate-300 dark:text-slate-600">·</span>
-                    <span class="text-slate-400">{{ 'depositWarning.remainingCapacity' | translate }}</span>
+                    <span class="text-ink-muted">·</span>
+                    <span class="text-ink-muted">{{ 'depositWarning.remainingCapacity' | translate }}</span>
                     <span class="font-mono text-emerald-500 font-medium">
                       {{ cap.remaining | currency:'EUR':'symbol':'1.0-0' }}
                     </span>
@@ -566,13 +564,13 @@
                        type="text"
                        maxlength="255"
                        [placeholder]="'transaction.recipientPlaceholder' | translate"
-                       class="w-full px-3 py-2 rounded-lg text-sm
-                              bg-slate-50 dark:bg-slate-900
-                              border border-slate-200 dark:border-slate-600
-                              text-slate-900 dark:text-white
+                       class="w-full px-3 py-2 rounded-md text-sm
+                              bg-surface-page
+                              border border-border
+                              text-ink-primary
                               focus:outline-none focus:ring-2
-                              focus:ring-primary-500"/>
-                <p class="text-xs text-slate-400 mt-1">
+                              focus:ring-accent"/>
+                <p class="text-xs text-ink-muted mt-1">
                   {{ 'transaction.recipientHint' | translate }}
                 </p>
               }
@@ -583,20 +581,20 @@
         <!-- PAYMENT recipient -->
         @if (selectedType() === 'PAYMENT') {
           <div>
-            <label for="paymentBeneficiary" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+            <label for="paymentBeneficiary" class="block text-sm font-medium text-ink-secondary mb-1.5">
               {{ 'transaction.recipientLabel' | translate }}
-              <span class="text-xs text-slate-400 ml-1">{{ 'common.optional' | translate }}</span>
+              <span class="text-xs text-ink-muted ml-1">{{ 'common.optional' | translate }}</span>
             </label>
             <input id="paymentBeneficiary" formControlName="externalAddress"
                    type="text"
                    maxlength="255"
                    [placeholder]="'transaction.paymentPlaceholder' | translate"
-                   class="w-full px-3 py-2 rounded-lg text-sm
-                          bg-slate-50 dark:bg-slate-900
-                          border border-slate-200 dark:border-slate-600
-                          text-slate-900 dark:text-white
+                   class="w-full px-3 py-2 rounded-md text-sm
+                          bg-surface-page
+                          border border-border
+                          text-ink-primary
                           focus:outline-none focus:ring-2
-                          focus:ring-primary-500"/>
+                          focus:ring-accent"/>
           </div>
         }
 
@@ -605,14 +603,13 @@
           <div class="grid grid-cols-2 gap-3">
             <div>
               <div class="flex items-center justify-between mb-1.5">
-                <label for="quantity" class="text-sm font-medium text-slate-700 dark:text-slate-300">
+                <label for="quantity" class="text-sm font-medium text-ink-secondary">
                   {{ 'transaction.quantity' | translate }}
                 </label>
                 @if (selectedType() === 'SELL' && maxSellQuantity() !== null) {
                   <button type="button"
                           (click)="fillMaxQuantity()"
-                          class="text-xs text-primary-500 hover:text-primary-600
-                                 dark:text-primary-400 dark:hover:text-primary-300
+                          class="text-xs text-accent hover:text-accent-hover
                                  font-medium transition-colors cursor-pointer
                                  underline underline-offset-2">
                     {{ 'transaction.max' | translate }}: {{ maxSellQuantity() }}
@@ -622,11 +619,11 @@
               <input id="quantity" formControlName="quantity" type="number" step="1" min="0"
                      [max]="selectedType() === 'SELL' ? maxSellQuantity() : null"
                      placeholder="0"
-                     class="w-full px-3 py-2 rounded-lg text-sm font-mono
-                            bg-slate-50 dark:bg-slate-900
-                            border border-slate-200 dark:border-slate-600
-                            text-slate-900 dark:text-white placeholder:text-slate-400 placeholder:font-sans
-                            focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors"/>
+                     class="w-full px-3 py-2 rounded-md text-sm font-mono
+                            bg-surface-page
+                            border border-border
+                            text-ink-primary placeholder:text-ink-muted placeholder:font-sans
+                            focus:outline-none focus:ring-2 focus:ring-accent transition-colors"/>
               @if (form.get('quantity')?.hasError('max') && selectedType() === 'SELL') {
                 <p class="text-xs text-rose-500 mt-1">
                   {{ 'transaction.cannotSellMore' | translate:{ max: maxSellQuantity() } }}
@@ -634,20 +631,20 @@
               }
             </div>
             <div>
-              <label for="pricePerUnit" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+              <label for="pricePerUnit" class="block text-sm font-medium text-ink-secondary mb-1.5">
                 {{ 'transaction.pricePerUnit' | translate }}
-                <span class="text-slate-400 font-normal text-xs ml-1">({{ transactionCurrency() }})</span>
+                <span class="text-ink-muted font-normal text-xs ml-1">({{ transactionCurrency() }})</span>
               </label>
               <div class="relative">
                 <input id="pricePerUnit" formControlName="pricePerUnit" type="number" step="0.01" min="0"
                        placeholder="0.00"
-                       class="w-full pl-3 pr-16 py-2 rounded-lg text-sm font-mono
-                              bg-slate-50 dark:bg-slate-900
-                              border border-slate-200 dark:border-slate-600
-                              text-slate-900 dark:text-white placeholder:text-slate-400 placeholder:font-sans
-                              focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors"/>
+                       class="w-full pl-3 pr-16 py-2 rounded-md text-sm font-mono
+                              bg-surface-page
+                              border border-border
+                              text-ink-primary placeholder:text-ink-muted placeholder:font-sans
+                              focus:outline-none focus:ring-2 focus:ring-accent transition-colors"/>
                 <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium
-                             text-slate-400 dark:text-slate-500 pointer-events-none">
+                             text-ink-muted pointer-events-none">
                   {{ CURRENCY_SYMBOLS[transactionCurrency()] ?? transactionCurrency() }}
                 </span>
               </div>
@@ -656,11 +653,11 @@
 
           <!-- Auto-computed total including fees (analog of Total amount for BUY/SELL) -->
           @if (computedTotal()) {
-            <div class="rounded-lg bg-slate-50 dark:bg-slate-900
-                        border border-slate-200 dark:border-slate-700 px-3 py-2
+            <div class="rounded-md bg-surface-page
+                        border border-border px-3 py-2
                         flex items-center justify-between">
-              <span class="text-xs text-slate-500 dark:text-slate-400">{{ 'transaction.totalInclFees' | translate }}</span>
-              <span class="text-sm font-medium font-mono text-slate-900 dark:text-white">
+              <span class="text-xs text-ink-secondary">{{ 'transaction.totalInclFees' | translate }}</span>
+              <span class="text-sm font-medium font-mono text-ink-primary">
                 {{ computedTotal() | number:'1.2-2' }} {{ CURRENCY_SYMBOLS[transactionCurrency()] ?? transactionCurrency() }}
               </span>
             </div>
@@ -669,7 +666,7 @@
 
         <!-- PEA forced closure warning (WITHDRAWAL) -->
         @if (peaWithdrawalForcedClosure()) {
-          <div class="rounded-xl bg-amber-50 dark:bg-amber-900/20
+          <div class="rounded-md bg-amber-50 dark:bg-amber-900/20
                       border border-amber-300 dark:border-amber-700
                       px-4 py-3 text-sm">
             <p class="font-semibold text-amber-700 dark:text-amber-300 mb-1">
@@ -684,9 +681,9 @@
         <!-- Total amount (DEPOSIT, WITHDRAWAL, DIVIDEND, INTEREST, PAYMENT, TRANSFER) -->
         @if (!requiresAsset()) {
           <div>
-            <label for="totalAmount" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+            <label for="totalAmount" class="block text-sm font-medium text-ink-secondary mb-1.5">
               {{ 'transaction.amount' | translate }}
-              <span class="text-slate-400 font-normal text-xs ml-1">
+              <span class="text-ink-muted font-normal text-xs ml-1">
                 ({{ transactionCurrency() }})
                 @if (isEurForced() && preferencesService.currency() !== 'EUR') {
                   <span class="text-amber-400 ml-1"
@@ -699,14 +696,14 @@
             <div class="relative">
               <input id="totalAmount" formControlName="totalAmount" type="number" step="0.01" min="0"
                      placeholder="0.00"
-                     class="w-full pl-3 pr-16 py-2 rounded-lg text-sm font-mono
-                            bg-slate-50 dark:bg-slate-900
-                            border border-slate-200 dark:border-slate-600
-                            text-slate-900 dark:text-white placeholder:text-slate-400 placeholder:font-sans
-                            focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors
+                     class="w-full pl-3 pr-16 py-2 rounded-md text-sm font-mono
+                            bg-surface-page
+                            border border-border
+                            text-ink-primary placeholder:text-ink-muted placeholder:font-sans
+                            focus:outline-none focus:ring-2 focus:ring-accent transition-colors
                             disabled:opacity-70 disabled:cursor-not-allowed"/>
               <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium
-                           text-slate-400 dark:text-slate-500 pointer-events-none">
+                           text-ink-muted pointer-events-none">
                 {{ CURRENCY_SYMBOLS[transactionCurrency()] ?? transactionCurrency() }}
               </span>
             </div>
@@ -717,19 +714,19 @@
         @if (showDepositWarning()) {
           @if (peaSummary() && peaSummary()!.hasPea && peaSummary()!.hasPeaPme) {
             <!-- Combined PEA + PEA-PME warning -->
-            <div class="rounded-lg p-3 text-sm space-y-2 border"
+            <div class="rounded-md p-3 text-sm space-y-2 border"
                  [class]="wouldExceedLimit()
                    ? 'bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-800'
                    : isApproachingLimit()
                    ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
-                   : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700'">
+                   : 'bg-surface-raised border-border'">
 
               <div class="flex items-center gap-1.5 font-medium"
                    [class]="wouldExceedLimit()
                      ? 'text-rose-700 dark:text-rose-300'
                      : isApproachingLimit()
                      ? 'text-amber-700 dark:text-amber-300'
-                     : 'text-slate-600 dark:text-slate-400'">
+                     : 'text-ink-secondary'">
                 @if (wouldExceedLimit()) {
                   <span>⛔</span>
                   <span>{{ 'depositWarning.combinedLimitExceeded' | translate }}</span>
@@ -742,7 +739,7 @@
                 }
               </div>
 
-              <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+              <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-ink-secondary">
                 <span>{{ 'depositWarning.peaDeposits' | translate }}</span>
                 <span class="text-right font-mono">
                   {{ peaSummary()!.peaDeposits | currency:'EUR':'symbol':'1.0-0' }}
@@ -765,19 +762,19 @@
             </div>
           } @else {
             <!-- Standard single-account warning -->
-            <div class="rounded-lg p-3 text-sm space-y-1"
+            <div class="rounded-md p-3 text-sm space-y-1"
                  [class]="wouldExceedLimit()
                    ? 'bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800'
                    : isApproachingLimit()
                    ? 'bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800'
-                   : 'bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700'">
+                   : 'bg-surface-raised border border-border'">
 
               <div class="flex items-center gap-1.5 font-medium"
                    [class]="wouldExceedLimit()
                      ? 'text-rose-700 dark:text-rose-300'
                      : isApproachingLimit()
                      ? 'text-amber-700 dark:text-amber-300'
-                     : 'text-slate-600 dark:text-slate-400'">
+                     : 'text-ink-secondary'">
                 @if (wouldExceedLimit()) {
                   <span>⛔</span>
                   <span>{{ 'depositWarning.limitExceeded' | translate }}</span>
@@ -795,7 +792,7 @@
                      ? 'text-rose-600 dark:text-rose-400'
                      : isApproachingLimit()
                      ? 'text-amber-600 dark:text-amber-400'
-                     : 'text-slate-500 dark:text-slate-400'">
+                     : 'text-ink-secondary'">
                 <span>{{ 'depositWarning.legalLimit' | translate }}</span>
                 <span class="text-right font-mono font-medium">
                   {{ depositLimit() | currency:'EUR':'symbol':'1.2-2' }}
@@ -827,8 +824,8 @@
         <!-- Fees (BUY, SELL only) -->
         @if (requiresAsset()) {
           <div>
-            <label for="fees" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-              {{ 'transaction.brokerageFees' | translate }} <span class="text-slate-400 font-normal">{{ 'common.optional' | translate }}</span>
+            <label for="fees" class="block text-sm font-medium text-ink-secondary mb-1.5">
+              {{ 'transaction.brokerageFees' | translate }} <span class="text-ink-muted font-normal">{{ 'common.optional' | translate }}</span>
             </label>
             <div class="relative">
               <input id="fees" formControlName="fees"
@@ -836,13 +833,13 @@
                      placeholder="0.00"
                      (focus)="onFeesFocus()"
                      (blur)="onFeesBlur()"
-                     class="w-full pl-3 pr-16 py-2 rounded-lg text-sm font-mono
-                            bg-slate-50 dark:bg-slate-900
-                            border border-slate-200 dark:border-slate-600
-                            text-slate-900 dark:text-white placeholder:text-slate-400 placeholder:font-sans
-                            focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors"/>
+                     class="w-full pl-3 pr-16 py-2 rounded-md text-sm font-mono
+                            bg-surface-page
+                            border border-border
+                            text-ink-primary placeholder:text-ink-muted placeholder:font-sans
+                            focus:outline-none focus:ring-2 focus:ring-accent transition-colors"/>
               <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium
-                           text-slate-400 dark:text-slate-500 pointer-events-none">
+                           text-ink-muted pointer-events-none">
                 {{ CURRENCY_SYMBOLS[transactionCurrency()] ?? transactionCurrency() }}
               </span>
             </div>
@@ -851,33 +848,33 @@
 
         <!-- Description (optional) -->
         <div>
-          <label for="description" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-            {{ 'transaction.description' | translate }} <span class="text-slate-400 font-normal">{{ 'common.optional' | translate }}</span>
+          <label for="description" class="block text-sm font-medium text-ink-secondary mb-1.5">
+            {{ 'transaction.description' | translate }} <span class="text-ink-muted font-normal">{{ 'common.optional' | translate }}</span>
           </label>
           <input id="description" formControlName="description"
                  type="text"
                  maxlength="255"
                  [placeholder]="'transaction.descriptionPlaceholder' | translate"
-                 class="w-full px-3 py-2 rounded-lg text-sm
-                        bg-slate-50 dark:bg-slate-900
-                        border border-slate-200 dark:border-slate-600
-                        text-slate-900 dark:text-white placeholder:text-slate-400
-                        focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors"/>
+                 class="w-full px-3 py-2 rounded-md text-sm
+                        bg-surface-page
+                        border border-border
+                        text-ink-primary placeholder:text-ink-muted
+                        focus:outline-none focus:ring-2 focus:ring-accent transition-colors"/>
         </div>
 
         <!-- Actions -->
         <div class="flex gap-3 pt-1">
           <button type="button" (click)="onClose()"
-                  class="flex-1 px-4 py-2 rounded-lg text-sm font-medium
-                         border border-slate-200 dark:border-slate-600
-                         text-slate-700 dark:text-slate-300
-                         hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                  class="flex-1 px-4 py-2 rounded-md text-sm font-medium
+                         border border-border
+                         text-ink-secondary
+                         hover:bg-surface-raised transition-colors">
             {{ 'common.cancel' | translate }}
           </button>
           <button type="submit" [disabled]="!isFormValid() || loading()"
-                  class="flex-1 px-4 py-2 rounded-lg text-sm font-medium
-                         bg-primary-500 hover:bg-primary-600
-                         disabled:opacity-50 text-white transition-colors">
+                  class="flex-1 px-4 py-2 rounded-md text-sm font-medium
+                         bg-accent hover:bg-accent-hover
+                         disabled:opacity-50 text-accent-contrast transition-colors">
             @if (loading()) {
               @if (selectedType() === 'TRANSFER') {
                 {{ 'transaction.sending' | translate }}
