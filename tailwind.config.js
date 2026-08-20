@@ -26,6 +26,22 @@ module.exports = {
         },
         gain: 'rgb(var(--gain) / <alpha-value>)',
         loss: 'rgb(var(--loss) / <alpha-value>)',
+
+        // Fixed palette for the public landing page. It is deliberately
+        // theme-independent (the marketing page never follows the toggle),
+        // so it must NOT be built from the --token vars above.
+        marketing: {
+          ground: '#0A0E10',
+          panel:  '#12181B',
+          raised: '#171F22',
+          line:   '#1F282B',
+          ink:    '#EDF1F1',
+          soft:   '#9FADB1',
+          faint:  '#6E7B7F',
+          teal:   '#4FB0A5',
+          deep:   '#2C6F68',
+          amber:  '#D8A657',
+        },
       },
       borderRadius: {
         sm: '4px',
@@ -35,6 +51,8 @@ module.exports = {
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
         mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+        // Landing page display face only — a wide institutional grotesque.
+        display: ['Archivo', 'Inter', 'system-ui', 'sans-serif'],
       },
       animation: {
         'fade-in':  'fadeIn 0.4s ease-out forwards',
