@@ -111,7 +111,7 @@ describe('AnalyticsComponent', () => {
     expect(compiled.textContent).toContain('PEA');
     expect(compiled.textContent).toContain('Crypto');
 
-    const bars = compiled.querySelectorAll('.bg-primary-500');
+    const bars = compiled.querySelectorAll('.bg-accent');
     expect(bars.length).toBeGreaterThan(0);
   });
 
