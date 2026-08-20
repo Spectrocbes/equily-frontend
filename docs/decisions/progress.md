@@ -501,5 +501,17 @@
 - **Removed:** the emoji icon set, the vague stats bar ("100% data privacy"), and the account-type pills the ceiling sheet supersedes
 - Single animation (staggered bar reveal), disabled under `prefers-reduced-motion` — verified in the built CSS, not assumed
 - First spec for the component (6 tests), including a regression guard that the page never re-advertises "Real estate" or "coming soon"
-- Note: a logged-out visitor always sees English — `app.config.ts` pins `lang: 'en'` and the French locale only arrives with an authenticated user's preferences. Pre-existing, out of scope here, worth a public language switcher later
+- Note: a logged-out visitor always sees English — `app.config.ts` pins `lang: 'en'` and the French locale only arrives with an authenticated user's preferences. Pre-existing, out of scope here, worth a public language switcher later *(done in the next entry)*
 - 647/647 tests, coverage 84.0% stmt / 85.5% lines (above the pre-change baseline), lint clean, build 0 errors, en/fr parity 593/593
+
+## 2026-08-20 — feature/ui-redesign: public language picker (complete)
+- Closes the gap logged above: language was only changeable from Settings, behind the login wall, so a French visitor had no way off the English marketing page
+- New `LanguageService` mirroring `ThemeService` (resolve on boot → apply → persist to `localStorage['equily-lang']`). Precedence: explicit choice > `navigator.language` > `'en'`
+- Initial language is resolved **synchronously in `app.config.ts`** (`lang: resolveInitialLang()`) rather than from a component, so a returning French visitor never sees English paint first and swap
+- **Single-owner refactor:** `PreferencesService` now calls `LanguageService.use()` instead of `TranslateService.use()` directly. Two owners of "the current language" would have let the picker's active state disagree with what was rendered once a signed-in user's locale loaded. Bonus: a signed-in user's choice now survives sign-out. Its 3 existing tests assert on `translate.getCurrentLang()` and still pass — that's what proves the refactor behaviour-preserving
+- `LanguageService` applies changes **synchronously, not via `effect()`** (unlike ThemeService) because `PreferencesService` sets the language outside any change-detection pass, where a scheduled effect would not yet have run. Deliberate divergence from house style — noted in the service
+- **A11y defect found while testing:** `index.html` hardcodes `<html lang="en">`, so French copy was announced with an English voice. The service now keeps the attribute in step
+- Endonyms deliberately untranslated ("Français" stays "Français" on the English page — that's what someone on the wrong language scans for). Buttons read EN/FR, announce the full name via `aria-label`, state via `aria-pressed`
+- Storage access guarded: `resolveInitialLang()` runs while providers are being built, where a throw (private mode, storage disabled by policy) would white-screen the app — same class of risk as the `APP_INITIALIZER` warning in CLAUDE.md
+- Verified: instant re-render, survives reload against a French browser default, and carries to `/login` and `/register` — covers the whole logged-out flow, not just `/home`
+- 657/657 tests, coverage 84.1% stmt / 85.6% lines, lint clean, build 0 errors, en/fr parity 594/594
