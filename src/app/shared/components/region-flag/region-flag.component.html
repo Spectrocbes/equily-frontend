@@ -1,0 +1,32 @@
+@if (showFlag()) {
+  <img [src]="flagPath()"
+       [width]="size()" [height]="size()"
+       [style.width.px]="size()" [style.height.px]="size()"
+       loading="lazy" alt="" aria-hidden="true"
+       (error)="failed.set(true)"
+       class="rounded-full object-cover flex-shrink-0
+              ring-1 ring-inset ring-black/10 dark:ring-white/10"/>
+} @else if (isCrypto()) {
+  <span class="rounded-full flex-shrink-0 inline-flex items-center justify-center
+               bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300"
+        [style.width.px]="size()" [style.height.px]="size()"
+        aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         [style.width.px]="size() * 0.6" [style.height.px]="size() * 0.6">
+      <circle cx="12" cy="12" r="8"/>
+      <path stroke-linecap="round" d="M12 8.5v7M10 10.5h3a1.5 1.5 0 010 3h-3M10 13.5h3.2a1.5 1.5 0 010 3H10"/>
+    </svg>
+  </span>
+} @else {
+  <!-- Unknown region: a neutral mark keeps the row aligned with its neighbours. -->
+  <span class="rounded-full flex-shrink-0 inline-flex items-center justify-center
+               bg-surface-raised text-ink-muted"
+        [style.width.px]="size()" [style.height.px]="size()"
+        aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         [style.width.px]="size() * 0.6" [style.height.px]="size() * 0.6">
+      <circle cx="12" cy="12" r="9"/>
+      <path d="M3 12h18M12 3a15 15 0 010 18M12 3a15 15 0 000 18"/>
+    </svg>
+  </span>
+}

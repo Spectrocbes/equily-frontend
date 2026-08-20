@@ -253,8 +253,11 @@
             @for (geo of geoExposure(); track geo.region) {
               <div>
                 <div class="flex items-center justify-between mb-1">
-                  <span class="text-sm text-ink-secondary">
-                    {{ geo.region }}
+                  <span class="flex items-center gap-2 min-w-0">
+                    <app-region-flag [region]="geo.region" [size]="16"/>
+                    <span class="text-sm text-ink-secondary truncate">
+                      {{ geo.region }}
+                    </span>
                   </span>
                   <div class="flex items-center gap-3">
                     <span class="text-sm font-mono text-ink-secondary">

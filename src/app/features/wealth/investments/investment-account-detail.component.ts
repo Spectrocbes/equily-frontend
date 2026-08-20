@@ -26,11 +26,13 @@ import { DeleteAccountModalComponent } from '../shared/delete-account-modal.comp
 import { DonutChartComponent, DonutSlice } from '../../../shared/components/donut-chart/donut-chart.component';
 import { getDonutPalette } from '../../../shared/utils/chart-tokens.util';
 import { ThemeService } from '../../../core/services/theme.service';
+import { RegionFlagComponent } from '../../../shared/components/region-flag/region-flag.component';
 
 @Component({
   selector: 'app-investment-account-detail',
   standalone: true,
   imports: [
+    RegionFlagComponent,
     CurrencyPipe, DatePipe, DecimalPipe, RouterLink,
     AddTransactionModalComponent, EditTransactionModalComponent,
     DeleteTransactionModalComponent,
