@@ -444,3 +444,82 @@
 - Auth guard: waits for Firebase initialization
 - Firebase mock for tests (`jest.mock` `firebase/auth`)
 - 634/634 tests, lint clean, build 0 errors
+
+## 2026-08-20 — feature/ui-redesign: full visual redesign (complete)
+- Per `docs/EQUILY_DESIGN_BRIEF.md`: presentation-only pass, no signal/service/logic changes, no i18n keys touched
+- Design tokens: CSS custom properties (`R G B` triplets) in `src/styles.scss` for surfaces/borders/ink/accent/gain/loss, light + dark, wired into `tailwind.config.js` via `rgb(var(--x) / <alpha-value>)`; deprecated `primary-*` indigo scale deleted once migration was complete
+- Accent: deep petrol teal (`#0F7869` light / `#4FB0A5` dark) replaces the generic indigo — retuned brighter mid-session after live feedback that the original `#0E5C56` read too dark in light mode
+- Gain/loss retuned and tokenized (`--gain`/`--loss`); genuine P&L figures (holdings day-change badges, PEA tax-simulation amounts) route through the tokens, while UI-status rose/emerald (form errors, destructive-action icons, CSV success) stay literal Tailwind colors — brief's rule that gain/loss colors are reserved for financial meaning only
+- Radius scale (`sm`/`md`/`lg` = 4/8/12px) replaces the old ad-hoc `rounded-lg`/`xl`/`2xl` mix
+- Cards use `shadow-sm` with no visible border (not the originally-planned hairline border) — direct feedback that borders-everywhere read heavier than intended; structural dividers (navbar, sidebar) kept `border-border`
+- Sidebar top-level active state: solid `bg-ink-primary text-surface-page` pill (auto-inverts per theme) instead of a translucent accent tint, matching the Xenith inspiration reference instead of a generic SaaS highlight
+- Chart tooltips (`EvolutionChartComponent`, `AddTransactionModal`'s withdrawal-blocked tooltip) fixed-dark (`bg-slate-900`) regardless of theme, matching the same reference
+- New `chart-tokens.util.ts`: D3 evolution chart and donut allocation charts read the CSS tokens (`getChartTokens()`, `getDonutPalette()`) instead of hardcoded hex; evolution chart now re-renders on theme toggle via an `effect()` watching `ThemeService.isDark()` (previously didn't re-color at all)
+- Auth pages (login/register): dropped the `bg-gradient-to-br` + blurred glow-orb visual panel (direct feedback: read as "AI-generated template") for a flat, deliberately-always-dark panel independent of the theme toggle
+- Toast icons: emoji (⛔✅⚠️ℹ️) → SVG, left accent bar instead of filled-background card
+- Overview total-wealth figure is the one signature element: large tabular-nums (`text-5xl md:text-6xl font-mono tabular-nums`), used nowhere else
+- Landing page keeps its own fixed-dark marketing treatment (`bg-slate-900`, independent of the toggle) — only accent/radius tokens changed there
+- Mechanical token substitution scripted (Node codemod) across ~20 remaining templates (wealth list/detail pages, 8 shared modals, date-picker, ticker-autocomplete, analytics, rebalance, settings), then hand-reviewed via repeated grep sweeps for stray/redundant classes
+- 3 spec assertions updated for renamed classes (`bg-primary-50` → `bg-accent/10`, `bg-primary-500` → `bg-accent`)
+- 637/637 tests, lint clean, build 0 errors, coverage 83.6%/64.9%/78.1%/85.2% (stmt/branch/func/line)
+
+## 2026-08-20 — feature/ui-redesign: donut hover + accessibility pass (complete)
+- Donut chart: per-slice hover isolates the hovered slice's color (siblings dim to 0.35 opacity) and swaps the center label to that slice's name/value/%, so slices stay distinguishable when a portfolio has many similarly-colored holdings. First spec added for the component (`donut-chart.component.spec.ts`, 6 tests) — it previously had none.
+- Accessibility: added `aria-label` (via `[attr.aria-label] | translate`) to all 17 icon-only buttons app-wide that had neither visible text nor a tooltip — navbar hamburger, sidebar mobile-close, date-picker's 4 nav buttons, toast dismiss, 4 modal close buttons (add-transaction/edit-transaction/add-account/csv-import), account + transaction 3-dot menus on all 4 wealth detail pages, rebalance's remove-category button, landing's scroll-to-top button
+- `toast-container.component.ts` was missing `TranslatePipe` from its `imports` entirely — added
+- New i18n keys: `common.moreOptions`, `common.remove`, `nav.openMenu`, `datePicker.previousMonth`/`nextMonth`, `landing.scrollToTop`; reused existing `common.close`/`common.back`/`nav.closeSidebar` elsewhere. en/fr key-count parity verified (582/582)
+- 641/641 tests, lint clean, build 0 errors
+
+## 2026-08-20 — feature/ui-redesign: donut i18n/sizing, sidebar auto-close, 3-dot true-centering (complete)
+- Donut chart hover tooltip was rendering the raw untranslated `DonutSlice.label` even though `overview.component.ts` already computed a `labelKey`; added `DonutSlice.labelKey` (optional) and the template now prefers it. Also split the hover text from one "label · pct%" line into three shorter lines — the concatenated line was wider than the donut's hole and touched the ring for longer translated labels (e.g. "Investissements")
+- Sidebar nav links (`<a routerLink>`) never emitted `(closed)`, so the mobile sidebar stayed open after navigating; added `(click)="closed.emit()"` to all 7 nav links (harmless on desktop, where the sidebar ignores open/closed state)
+- Transaction row 3-dot: the prior `items-start` fix matched top edges but the button (24px) is 4px taller than the price line (20px line-height), leaving the button's center ~2px below the price's — fixed with `-mt-0.5` on the button wrapper, verified 0px offset via `getBoundingClientRect` on all 4 detail pages, single- and multi-line rows alike. Also widened the price-to-button gap (`gap-3`→`gap-6`) since it sat much closer to the price (12px) than to the scrollbar (~24px, the row's own edge padding), reading as off-center in that slot
+- 641/641 tests, lint clean, build 0 errors
+
+## 2026-08-20 — feature/ui-redesign: donut hover spacing, transaction 3-dot optical alignment (complete)
+- Donut hover: tightened the gap between the label and percentage lines (y=52%→65% was ~11px; now 52%→61%, ~4px)
+- Transaction 3-dot: the earlier `-mt-0.5` fix matched button-box-center to price-line-box-center exactly (0px measured via `getBoundingClientRect`), but font-mono digits have no descenders so their visible ink sits above the line-height box's geometric center — the icon (truly symmetric) looked lower than the price text once boxes were matched, most visible on crypto's transaction rows. Deepened to `-mt-1`, tuned by eye at 3x zoom against the actual digit ink rather than box metrics. A reminder that box-model math and optical alignment aren't the same thing — worth re-checking visually even after a numerically "exact" fix
+- 641/641 tests, lint clean, build 0 errors
+
+## 2026-08-20 — feature/ui-redesign: transaction row column alignment, then reverted (complete)
+- Tried switching the row from `items-center`/`min-h-[52px]` to `items-start`/`py-4` so every column's first line shares one top edge regardless of neighbors' line counts (ticker+description, a transfer's "⇄ linked account" line, a BUY/SELL's "qty × price" line). Verified 0px offset across all 4 detail pages on 1/2/3-line rows — but this was a misdiagnosis: the actual complaint (dots vs. price misaligned) was already fully fixed by the earlier *local* fix inside the amount+3-dot block (`items-start` + `-mt-1`, scoped to that block only). Forcing the whole row to `items-start` was overreach: it pinned single-line columns (date, badge, a short price) to the row's top edge instead of letting them center in the row's height, which — since content (ticker+description) is 2 lines on nearly every seeded transaction — made short columns look stranded above a large empty gap. Reverted (`064afe3`) once the user flagged rows now looking uncentered; kept the local amount-block fix, which was sufficient on its own
+- Lesson: a fix scoped to the specific mismatched pair (price block vs. its own 3-dot button) is safer than lifting the alignment strategy to the whole row, where it collides with unrelated columns' expectations
+- 641/641 tests, lint clean, build 0 errors
+
+## 2026-08-20 — feature/ui-redesign: 3-dot centers on the breakdown when present (complete)
+- Refined the amount-block fix further: the button should align with the amount line when there's no secondary line, but center across both lines when a breakdown (qty × price, or a foreign-currency native amount) is shown — it was always aligning to just the first line regardless
+- Added `hasAmountBreakdown(tx)` to all 4 detail components (investment/crypto also check `quantity`+`pricePerUnit`; cash/savings only check the currency mismatch, since they never render a qty line) and switch the wrapper between `items-start` (no breakdown, same `-mt-1` optical tuning) and `items-center` (breakdown present, true block-center)
+- Verified via `getBoundingClientRect`: no-breakdown rows still measure -1.75px against the amount line, breakdown rows measure exactly 0px against the 2-line block center
+- 641/641 tests, lint clean, build 0 errors
+
+## 2026-08-20 — feature/ui-redesign: /home rebuilt around the regulatory rules (complete)
+- **Why:** the page genericised the product's only real differentiator. It advertised "Stocks / ETFs / Bonds / Real estate" and "Regulatory compliance" — vocabulary any fintech could print — while never mentioning that Equily knows the French envelope regime. Three claims were also stale: two features marked "Coming soon" (both shipped), "Real estate" listed as supported (`REAL_ESTATE` is in the enum but has no sub-types and no deposit limit), and a security section describing the pre-Firebase custom JWT auth (RS256, 15-min tokens, SHA-256 refresh hashes)
+- **Signature:** the hero opens on the ceiling sheet — the six real deposit ceilings as proportional hairlines. Values are read from `DEPOSIT_LIMITS`, the constants the app enforces, so the marketing page structurally cannot quote a figure the product does not apply. Each group is scaled to its own max (securities vs. passbooks differ by an order of magnitude; a shared scale flattens every Livret into a sliver)
+- **Structure encodes content:** capabilities are a ruled datasheet grid; the rules are a list of provisions with a scope column naming the envelopes each one binds. Security states only what is verifiable in this repo (Firebase Auth, fresh ID token per request, interceptor attaching it to every call, `reset()` on sign-out)
+- **Type:** added Archivo (expanded width) as a landing-only `font-display`, Inter stays for body. Hero `max-w` was measured rather than guessed — at 48px line 2 is 514px in EN and 479px in FR, so it never orphans a word in either language; `text-balance` evens out line 1
+- **Latent bug fixed:** the old page used `bg-accent` — a *theme token* — on a deliberately always-dark page, so its buttons rendered the dark light-mode teal whenever the toggle was set to light. Replaced with a fixed `marketing` palette in `tailwind.config.js`, theme-independent by construction
+- **Removed:** the emoji icon set, the vague stats bar ("100% data privacy"), and the account-type pills the ceiling sheet supersedes
+- Single animation (staggered bar reveal), disabled under `prefers-reduced-motion` — verified in the built CSS, not assumed
+- First spec for the component (6 tests), including a regression guard that the page never re-advertises "Real estate" or "coming soon"
+- Note: a logged-out visitor always sees English — `app.config.ts` pins `lang: 'en'` and the French locale only arrives with an authenticated user's preferences. Pre-existing, out of scope here, worth a public language switcher later *(done in the next entry)*
+- 647/647 tests, coverage 84.0% stmt / 85.5% lines (above the pre-change baseline), lint clean, build 0 errors, en/fr parity 593/593
+
+## 2026-08-20 — feature/ui-redesign: public language picker (complete)
+- Closes the gap logged above: language was only changeable from Settings, behind the login wall, so a French visitor had no way off the English marketing page
+- New `LanguageService` mirroring `ThemeService` (resolve on boot → apply → persist to `localStorage['equily-lang']`). Precedence: explicit choice > `navigator.language` > `'en'`
+- Initial language is resolved **synchronously in `app.config.ts`** (`lang: resolveInitialLang()`) rather than from a component, so a returning French visitor never sees English paint first and swap
+- **Single-owner refactor:** `PreferencesService` now calls `LanguageService.use()` instead of `TranslateService.use()` directly. Two owners of "the current language" would have let the picker's active state disagree with what was rendered once a signed-in user's locale loaded. Bonus: a signed-in user's choice now survives sign-out. Its 3 existing tests assert on `translate.getCurrentLang()` and still pass — that's what proves the refactor behaviour-preserving
+- `LanguageService` applies changes **synchronously, not via `effect()`** (unlike ThemeService) because `PreferencesService` sets the language outside any change-detection pass, where a scheduled effect would not yet have run. Deliberate divergence from house style — noted in the service
+- **A11y defect found while testing:** `index.html` hardcodes `<html lang="en">`, so French copy was announced with an English voice. The service now keeps the attribute in step
+- Endonyms deliberately untranslated ("Français" stays "Français" on the English page — that's what someone on the wrong language scans for). Buttons read EN/FR, announce the full name via `aria-label`, state via `aria-pressed`
+- Storage access guarded: `resolveInitialLang()` runs while providers are being built, where a throw (private mode, storage disabled by policy) would white-screen the app — same class of risk as the `APP_INITIALIZER` warning in CLAUDE.md
+- Verified: instant re-render, survives reload against a French browser default, and carries to `/login` and `/register` — covers the whole logged-out flow, not just `/home`
+- 657/657 tests, coverage 84.1% stmt / 85.6% lines, lint clean, build 0 errors, en/fr parity 594/594
+
+## 2026-08-20 — feature/ui-redesign: landing width + auth panel palette (complete)
+- **Landing width:** content was capped at `max-w-6xl` (1152px), leaving 376px of empty ground each side at 1920. Widened to `max-w-[84rem]` (1344px) → 288px margins, ceiling sheet 532→628px. Safe because every prose block was already bounded; the one that wasn't (security `<dd>`, which would have run ~745px in the wider grid) got `max-w-2xl`
+- **Auth palette:** login/register painted their right panel `bg-slate-950` = `#020617` — a near-black with a strong *blue* cast, which read violet next to the petrol accent. A survivor of the indigo era. Both now use the `marketing` palette from /home (`#0A0E10`, neutral) + a hairline border instead of a hard colour seam, and headings pick up the same `font-display`, so sign-in no longer looks like a different product from the page that linked to it. Last hardcoded `#4FB0A5` literals removed with it
+- **Proportions:** form column was `flex-1 max-w-lg` against an uncapped panel → a 512/1393 split at 1920. Changed to an even half each — then **reverted**: the asymmetry was deliberate, not an oversight. Back to 512px form + panel taking the remainder. The logo-wrapper added alongside the even split went with it (it only existed because a 960px form column stranded the logo; at 512px there is no such problem). Register reverted too — the two share this layout and letting them drift is the exact inconsistency flagged earlier on the wealth pages. **Lesson: "while I'm in here" proportion changes were not asked for; the palette was.**
+- `forgot-password` checked and deliberately left alone — centred single-column on theme tokens, never had the slate panel
+- **Recorded so it isn't chased again:** the browser pane's screenshots cap the rendered width around ~960px, which repeatedly looked like "the page doesn't fill the screen". DOM measurement disproved it (auth panels measure exactly 960 + 960 = 1920). Measure the DOM, don't trust the capture. The landing `max-w` constraint, by contrast, *was* real — same symptom, different cause
+- 657/657 tests, lint clean, build 0 errors, light + dark both checked

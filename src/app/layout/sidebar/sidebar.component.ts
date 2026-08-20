@@ -1,6 +1,7 @@
 import { Component, input, output, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
+import { version } from '../../../../package.json';
 
 @Component({
   selector: 'app-sidebar',
@@ -13,6 +14,7 @@ export class SidebarComponent {
   readonly closed = output<void>();
 
   protected readonly wealthExpanded = signal(true);
+  protected readonly appVersion = version;
 
   protected toggleWealth(): void {
     this.wealthExpanded.update(v => !v);

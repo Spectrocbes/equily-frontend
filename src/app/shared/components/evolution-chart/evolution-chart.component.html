@@ -1,20 +1,19 @@
-<div class="rounded-2xl border border-slate-200 dark:border-slate-700
-            bg-white dark:bg-slate-800/50 p-6 relative">
+<div class="rounded-lg bg-surface-card p-6 relative shadow-sm">
 
   <!-- Header -->
   <div class="flex items-start justify-between mb-4">
     <div>
-      <h3 class="text-sm font-medium text-slate-500 dark:text-slate-400">
+      <h3 class="text-sm font-medium text-ink-muted">
         {{ 'chart.portfolioValue' | translate }}
       </h3>
       @if (!loading() && points().length > 0) {
-        <p class="text-2xl font-bold text-slate-900 dark:text-white mt-0.5"
+        <p class="text-2xl font-semibold text-ink-primary mt-0.5 font-mono tabular-nums"
            #valueDisplay>
           {{ (hoveredPoint()?.value ?? latestValue())
              | currency:currency():'symbol':'1.2-2' }}
         </p>
-        <p class="text-sm mt-0.5"
-           [class]="isPositive() ? 'text-emerald-500' : 'text-rose-500'">
+        <p class="text-sm mt-0.5 font-mono tabular-nums"
+           [class]="isPositive() ? 'text-gain' : 'text-loss'">
           @if (!hoveredPoint()) {
             {{ isPositive() ? '+' : '' }}
             {{ changeValue() | currency:currency():'symbol':'1.2-2' }}
@@ -31,10 +30,10 @@
       @for (p of PERIODS; track p.value) {
         <button type="button"
                 (click)="selectPeriod(p.value)"
-                class="px-2.5 py-1 rounded-lg text-xs font-medium transition-colors"
+                class="px-2.5 py-1 rounded-md text-xs font-medium transition-colors"
                 [class]="selectedPeriod() === p.value
-                  ? 'bg-primary-500 text-white'
-                  : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'">
+                  ? 'bg-accent text-accent-contrast'
+                  : 'text-ink-muted hover:bg-surface-raised hover:text-ink-primary'">
           {{ p.labelKey | translate }}
         </button>
       }
@@ -45,26 +44,25 @@
   @if (loading()) {
     <div class="h-48 flex items-center justify-center">
       <div class="w-6 h-6 rounded-full border-2
-                  border-primary-400 border-t-transparent
+                  border-accent border-t-transparent
                   animate-spin"></div>
     </div>
   } @else if (points().length < 2) {
     <div class="h-48 flex items-center justify-center">
-      <p class="text-sm text-slate-400 dark:text-slate-500">
+      <p class="text-sm text-ink-muted">
         {{ 'chart.notEnoughData' | translate }}
       </p>
     </div>
   } @else {
-    <div #chartContainer class="w-full relative" style="height: 200px"></div>
+    <div #chartContainer class="w-full relative" [style.height.px]="height()"></div>
 
     <!-- Hover tooltip -->
     @if (hoveredPoint()) {
       <div class="absolute pointer-events-none
-                  bg-slate-900 dark:bg-slate-700
-                  text-white text-xs rounded-lg px-3 py-2 shadow-lg z-10"
+                  bg-slate-900 text-white text-xs rounded-md px-3 py-2 shadow-lg z-10"
            [style.left.px]="tooltipX()"
            [style.top.px]="tooltipY()">
-        <p class="font-semibold">
+        <p class="font-semibold font-mono tabular-nums">
           {{ hoveredPoint()!.value | currency:currency():'symbol':'1.2-2' }}
         </p>
         <p class="text-slate-300 mt-0.5">

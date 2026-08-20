@@ -5,9 +5,9 @@
      (keydown.escape)="closed.emit()">
   <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
 
-  <div class="relative w-full max-w-md rounded-2xl
-              bg-white dark:bg-slate-800 shadow-2xl
-              border border-slate-200 dark:border-slate-700 p-6"
+  <div class="relative w-full max-w-md rounded-md
+              bg-surface-card shadow-2xl
+              border border-border p-6"
        tabindex="-1"
        (mousedown)="$event.stopPropagation()"
        (keydown.escape)="closed.emit()">
@@ -25,27 +25,27 @@
         </svg>
       </div>
       <div>
-        <h2 class="text-lg font-semibold text-slate-900 dark:text-white">
+        <h2 class="text-lg font-semibold text-ink-primary">
           {{ 'deleteAccount.title' | translate }}
         </h2>
-        <p class="text-sm text-slate-500 dark:text-slate-400">
+        <p class="text-sm text-ink-secondary">
           {{ 'deleteAccount.subtitle' | translate }}
         </p>
       </div>
     </div>
 
     <!-- Account info -->
-    <div class="rounded-xl bg-slate-50 dark:bg-slate-700/50
-                border border-slate-200 dark:border-slate-600
+    <div class="rounded-md bg-surface-raised
+                border border-border
                 px-4 py-3 mb-4">
-      <p class="text-sm font-semibold text-slate-900 dark:text-white">
+      <p class="text-sm font-semibold text-ink-primary">
         {{ account().name }}
       </p>
-      <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ account().broker }}@if (account().subType) { · {{ 'subType.' + account().subType | translate }} }</p>
+      <p class="text-xs text-ink-secondary mt-0.5">{{ account().broker }}@if (account().subType) { · {{ 'subType.' + account().subType | translate }} }</p>
     </div>
 
     <!-- Warning -->
-    <div class="rounded-xl bg-rose-50 dark:bg-rose-900/20
+    <div class="rounded-md bg-rose-50 dark:bg-rose-900/20
                 border border-rose-200 dark:border-rose-800
                 px-4 py-3 text-sm text-rose-600 dark:text-rose-400 mb-6">
       {{ 'deleteAccount.warning' | translate }}
@@ -55,17 +55,17 @@
     <div class="flex gap-3">
       <button type="button"
               (click)="closed.emit()"
-              class="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium
-                     border border-slate-200 dark:border-slate-600
-                     text-slate-700 dark:text-slate-300
-                     hover:bg-slate-50 dark:hover:bg-slate-700
+              class="flex-1 px-4 py-2.5 rounded-md text-sm font-medium
+                     border border-border
+                     text-ink-secondary
+                     hover:bg-surface-raised
                      transition-colors">
         {{ 'common.cancel' | translate }}
       </button>
       <button type="button"
               (click)="confirmed.emit()"
               [disabled]="loading()"
-              class="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold
+              class="flex-1 px-4 py-2.5 rounded-md text-sm font-semibold
                      bg-rose-500 hover:bg-rose-600
                      disabled:opacity-50 text-white transition-colors">
         @if (loading()) { {{ 'common.deleting' | translate }} } @else { {{ 'deleteAccount.confirm' | translate }} }

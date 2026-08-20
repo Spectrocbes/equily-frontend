@@ -170,6 +170,6 @@ describe('TickerAutocompleteComponent', () => {
 
     const buttons: HTMLElement[] = Array.from(fixture.nativeElement.querySelectorAll('#ticker-option-1'));
     expect(buttons.length).toBe(1);
-    expect(buttons[0].className).toContain('bg-primary-50');
+    expect(buttons[0].className).toContain('bg-accent/10');
   });
 });

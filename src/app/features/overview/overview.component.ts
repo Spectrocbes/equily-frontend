@@ -6,6 +6,7 @@ import { RouterLink } from '@angular/router';
 import { AccountService } from '../../core/services/account.service';
 import { AnalyticsService } from '../../core/services/analytics.service';
 import { PreferencesService } from '../../core/services/preferences.service';
+import { ThemeService } from '../../core/services/theme.service';
 import {
   AccountType, WealthCategory, ACCOUNT_CATEGORY, WEALTH_CATEGORY_LABELS, WEALTH_CATEGORY_ROUTE,
   ChartPeriod, PortfolioHistoryPoint, TopPerformer,
@@ -13,13 +14,9 @@ import {
 import { DonutChartComponent } from '../../shared/components/donut-chart/donut-chart.component';
 import { EvolutionChartComponent } from '../../shared/components/evolution-chart/evolution-chart.component';
 import { AddAccountModalComponent } from '../wealth/shared/add-account-modal.component';
+import { getDonutPalette } from '../../shared/utils/chart-tokens.util';
 
-const DONUT_COLORS: Record<WealthCategory, string> = {
-  investments: '#6366f1',
-  crypto:      '#f59e0b',
-  savings:     '#10b981',
-  cash:        '#64748b',
-};
+const DONUT_CATEGORY_ORDER: WealthCategory[] = ['investments', 'crypto', 'savings', 'cash'];
 
 @Component({
   selector: 'app-overview',
@@ -35,6 +32,7 @@ export class OverviewComponent implements OnInit {
   protected readonly accountService     = inject(AccountService);
   private readonly analyticsService     = inject(AnalyticsService);
   protected readonly preferencesService = inject(PreferencesService);
+  private readonly themeService         = inject(ThemeService);
   protected readonly showModal          = signal(false);
 
   protected readonly historyPoints  = signal<PortfolioHistoryPoint[]>([]);
@@ -72,6 +70,8 @@ export class OverviewComponent implements OnInit {
   });
 
   protected readonly donutData = computed(() => {
+    this.themeService.isDark(); // establish reactivity so palette updates on theme toggle
+    const palette = getDonutPalette();
     const accounts = this.accountService.accounts();
     const totals: Record<WealthCategory, number> = {
       investments: 0, crypto: 0, savings: 0, cash: 0,
@@ -95,7 +95,7 @@ export class OverviewComponent implements OnInit {
         labelKey: 'nav.' + cat,
         route: WEALTH_CATEGORY_ROUTE[cat],
         value,
-        color: DONUT_COLORS[cat],
+        color: palette[DONUT_CATEGORY_ORDER.indexOf(cat)],
       }));
   });
 

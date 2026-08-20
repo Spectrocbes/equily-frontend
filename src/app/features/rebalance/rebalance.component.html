@@ -2,23 +2,23 @@
 
   <!-- Header -->
   <div>
-    <h1 class="text-2xl font-bold text-slate-900 dark:text-white">
+    <h1 class="text-2xl font-bold text-ink-primary">
       {{ 'rebalancing.title' | translate }}
     </h1>
-    <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+    <p class="text-sm text-ink-secondary mt-0.5">
       {{ 'rebalancing.subtitle' | translate }}
     </p>
   </div>
 
   <!-- Account selector -->
-  <div class="rounded-2xl border border-slate-200 dark:border-slate-700
-              bg-white dark:bg-slate-800/50 p-6">
-    <h2 class="text-sm font-semibold text-slate-900 dark:text-white mb-4">
+  <div class="rounded-md border border-border
+              bg-surface-card p-6">
+    <h2 class="text-sm font-semibold text-ink-primary mb-4">
       {{ 'rebalancing.selectAccount' | translate }}
     </h2>
 
     @if (rebalancableAccounts().length === 0) {
-      <p class="text-sm text-slate-400 text-center py-8">
+      <p class="text-sm text-ink-muted text-center py-8">
         {{ 'rebalancing.noAccounts' | translate }}
       </p>
     } @else {
@@ -26,20 +26,19 @@
         @for (account of rebalancableAccounts(); track account.id) {
           <button (click)="selectAccount(account.id)"
                   class="flex items-center justify-between px-4 py-3
-                         rounded-xl border text-left transition-colors"
+                         rounded-md border text-left transition-colors"
                   [class]="selectedAccountId() === account.id
-                    ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                    : 'border-slate-200 dark:border-slate-700
-                       hover:border-primary-300 dark:hover:border-primary-600'">
+                    ? 'border-accent bg-accent/10'
+                    : 'border-border hover:border-accent/40'">
             <div>
-              <p class="text-sm font-semibold text-slate-900 dark:text-white">
+              <p class="text-sm font-semibold text-ink-primary">
                 {{ account.name }}
               </p>
-              <p class="text-xs text-slate-400 mt-0.5">
+              <p class="text-xs text-ink-muted mt-0.5">
                 {{ account.broker }}
               </p>
             </div>
-            <span class="text-sm font-mono font-semibold text-slate-900 dark:text-white">
+            <span class="text-sm font-mono font-semibold text-ink-primary">
               {{ account.balance | userCurrency }}
             </span>
           </button>
@@ -50,16 +49,16 @@
 
   <!-- Target allocation -->
   @if (selectedAccount()) {
-    <div class="rounded-2xl border border-slate-200 dark:border-slate-700
-                bg-white dark:bg-slate-800/50 p-6">
+    <div class="rounded-md border border-border
+                bg-surface-card p-6">
 
       <div class="flex items-center justify-between mb-4">
-        <h2 class="text-sm font-semibold text-slate-900 dark:text-white">
+        <h2 class="text-sm font-semibold text-ink-primary">
           {{ 'rebalancing.targetAllocation' | translate }}
         </h2>
         @if (!editMode()) {
           <button (click)="enterEditMode()"
-                  class="text-xs text-primary-500 hover:text-primary-600 font-medium
+                  class="text-xs text-accent hover:text-accent-hover font-medium
                          transition-colors underline underline-offset-2">
             {{ targetAllocations().length > 0
               ? ('common.edit' | translate)
@@ -75,11 +74,11 @@
             <div class="flex items-center gap-3">
               <select [(ngModel)]="alloc.category"
                       [attr.aria-label]="'rebalancing.addCategory' | translate"
-                      class="flex-1 px-3 py-2 rounded-lg text-sm appearance-none
-                             bg-white dark:bg-slate-800
-                             border border-slate-300 dark:border-slate-500
-                             text-slate-700 dark:text-slate-200
-                             focus:outline-none focus:ring-2 focus:ring-primary-500">
+                      class="flex-1 px-3 py-2 rounded-md text-sm appearance-none
+                             bg-surface-card
+                             border border-border
+                             text-ink-secondary
+                             focus:outline-none focus:ring-2 focus:ring-accent">
                 @if (alloc.category) {
                   <option [value]="alloc.category">{{ alloc.category }}</option>
                 }
@@ -92,16 +91,17 @@
                        [(ngModel)]="alloc.percent"
                        [attr.aria-label]="'rebalancing.total' | translate"
                        min="0" max="100" step="1"
-                       class="w-20 px-3 py-2 rounded-lg text-sm text-right font-mono
-                              bg-white dark:bg-slate-800
-                              border border-slate-300 dark:border-slate-500
-                              text-slate-700 dark:text-slate-200
-                              focus:outline-none focus:ring-2 focus:ring-primary-500"/>
-                <span class="text-sm text-slate-400">%</span>
+                       class="w-20 px-3 py-2 rounded-md text-sm text-right font-mono
+                              bg-surface-card
+                              border border-border
+                              text-ink-secondary
+                              focus:outline-none focus:ring-2 focus:ring-accent"/>
+                <span class="text-sm text-ink-muted">%</span>
               </div>
               <button (click)="removeCategory(i)"
-                      class="w-8 h-8 flex items-center justify-center rounded-lg
-                             text-slate-400 hover:text-rose-500
+                      [attr.aria-label]="'common.remove' | translate"
+                      class="w-8 h-8 flex items-center justify-center rounded-md
+                             text-ink-muted hover:text-rose-500
                              hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24"
                      stroke="currentColor" stroke-width="2">
@@ -114,15 +114,15 @@
 
           <!-- Add category -->
           <button (click)="addCategory()"
-                  class="text-xs text-primary-500 hover:text-primary-600
+                  class="text-xs text-accent hover:text-accent-hover
                          font-medium transition-colors">
             + {{ 'rebalancing.addCategory' | translate }}
           </button>
 
           <!-- Total indicator -->
           <div class="flex items-center justify-between pt-3
-                      border-t border-slate-100 dark:border-slate-700">
-            <span class="text-sm text-slate-500">
+                      border-t border-border-subtle">
+            <span class="text-sm text-ink-muted">
               {{ 'rebalancing.total' | translate }}
             </span>
             <span class="text-sm font-semibold font-mono"
@@ -135,16 +135,16 @@
           <!-- Save/Cancel -->
           <div class="flex gap-3 pt-2">
             <button (click)="cancelEdit()"
-                    class="flex-1 px-4 py-2 rounded-xl text-sm font-medium
-                           border border-slate-200 dark:border-slate-600
-                           text-slate-700 dark:text-slate-300
-                           hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                    class="flex-1 px-4 py-2 rounded-md text-sm font-medium
+                           border border-border
+                           text-ink-secondary
+                           hover:bg-surface-raised transition-colors">
               {{ 'common.cancel' | translate }}
             </button>
             <button (click)="saveAllocations()"
                     [disabled]="Math.abs(editTotal - 100) > 0.01"
-                    class="flex-1 px-4 py-2 rounded-xl text-sm font-semibold
-                           bg-primary-500 hover:bg-primary-600 text-white
+                    class="flex-1 px-4 py-2 rounded-md text-sm font-semibold
+                           bg-accent hover:bg-accent-hover text-accent-contrast
                            transition-colors disabled:opacity-50">
               {{ 'common.save' | translate }}
             </button>
@@ -155,22 +155,22 @@
         <div class="space-y-2">
           @for (alloc of targetAllocations(); track alloc.category) {
             <div class="flex items-center justify-between">
-              <span class="text-sm text-slate-700 dark:text-slate-300">
+              <span class="text-sm text-ink-secondary">
                 {{ alloc.category }}
               </span>
-              <span class="text-sm font-mono font-semibold text-slate-900 dark:text-white">
+              <span class="text-sm font-mono font-semibold text-ink-primary">
                 {{ alloc.targetPercent | number:'1.0-1' }}%
               </span>
             </div>
-            <div class="h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full">
-              <div class="h-full rounded-full bg-primary-500 transition-all duration-500"
+            <div class="h-1.5 bg-surface-raised rounded-full">
+              <div class="h-full rounded-full bg-accent transition-all duration-500"
                    [style.width.%]="alloc.targetPercent">
               </div>
             </div>
           }
         </div>
       } @else {
-        <p class="text-sm text-slate-400 text-center py-6">
+        <p class="text-sm text-ink-muted text-center py-6">
           {{ 'rebalancing.noTargets' | translate }}
         </p>
       }
@@ -178,16 +178,16 @@
 
     <!-- DCA Suggestions -->
     @if (targetAllocations().length > 0) {
-      <div class="rounded-2xl border border-slate-200 dark:border-slate-700
-                  bg-white dark:bg-slate-800/50 p-6">
+      <div class="rounded-md border border-border
+                  bg-surface-card p-6">
 
-        <h2 class="text-sm font-semibold text-slate-900 dark:text-white mb-4">
+        <h2 class="text-sm font-semibold text-ink-primary mb-4">
           {{ 'rebalancing.dcaSuggestions' | translate }}
         </h2>
 
         <!-- DCA amount input -->
         <div class="flex items-center gap-3 mb-4">
-          <label for="dcaAmount" class="text-sm text-slate-500 dark:text-slate-400 flex-shrink-0">
+          <label for="dcaAmount" class="text-sm text-ink-secondary flex-shrink-0">
             {{ 'rebalancing.dcaAmount' | translate }}
           </label>
           <div class="relative flex-1 max-w-xs">
@@ -197,26 +197,26 @@
                    (focus)="onDcaFocus($event)"
                    (blur)="onDcaBlur($event)"
                    min="0" step="50"
-                   class="w-full px-3 py-2 pr-8 rounded-lg text-sm font-mono text-right
-                          bg-white dark:bg-slate-800
-                          border border-slate-300 dark:border-slate-500
-                          text-slate-700 dark:text-slate-200
-                          focus:outline-none focus:ring-2 focus:ring-primary-500"/>
-            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">
+                   class="w-full px-3 py-2 pr-8 rounded-md text-sm font-mono text-right
+                          bg-surface-card
+                          border border-border
+                          text-ink-secondary
+                          focus:outline-none focus:ring-2 focus:ring-accent"/>
+            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ink-muted">
               {{ preferencesService.currencySymbol() }}
             </span>
           </div>
           <button (click)="saveDcaAmount()"
                   [disabled]="dcaAmount() <= 0"
-                  class="text-xs text-slate-400
-                         hover:text-primary-500 transition-colors
+                  class="text-xs text-ink-muted
+                         hover:text-accent transition-colors
                          underline underline-offset-2 flex-shrink-0">
             {{ 'rebalancing.saveDcaDefault' | translate }}
           </button>
           <button (click)="computeSuggestions()"
                   [disabled]="dcaAmount() <= 0 || suggestionsLoading()"
-                  class="px-4 py-2 rounded-xl text-sm font-semibold
-                         bg-primary-500 hover:bg-primary-600 text-white
+                  class="px-4 py-2 rounded-md text-sm font-semibold
+                         bg-accent hover:bg-accent-hover text-accent-contrast
                          transition-colors disabled:opacity-50">
             {{ 'rebalancing.compute' | translate }}
           </button>
@@ -226,31 +226,30 @@
         @if (suggestionsLoading()) {
           <div class="flex justify-center py-8">
             <div class="w-6 h-6 rounded-full border-2
-                        border-primary-400 border-t-transparent animate-spin"></div>
+                        border-accent border-t-transparent animate-spin"></div>
           </div>
         } @else if (suggestions().length > 0) {
           <div class="space-y-3">
             @for (s of suggestions(); track s.category) {
               <div class="flex items-start justify-between px-4 py-3
-                          rounded-xl border border-slate-100
-                          dark:border-slate-700">
+                          rounded-md border border-border-subtle">
                 <div class="flex-1">
                   <p class="text-sm font-semibold
-                             text-slate-900 dark:text-white">
+                             text-ink-primary">
                     {{ s.category }}
                   </p>
                   <!-- Progress: current → after DCA → target -->
                   <div class="flex items-center gap-1.5 mt-1 text-xs">
-                    <span class="text-slate-400">
+                    <span class="text-ink-muted">
                       {{ s.currentPercent | number:'1.1-1' }}%
                     </span>
-                    <span class="text-slate-300 dark:text-slate-600">→</span>
+                    <span class="text-ink-muted">→</span>
                     <span class="font-semibold"
                           [class]="s.afterDcaPercent > s.currentPercent
-                            ? 'text-emerald-500' : 'text-slate-400'">
+                            ? 'text-emerald-500' : 'text-ink-muted'">
                       {{ s.afterDcaPercent | number:'1.1-1' }}%
                     </span>
-                    <span class="text-slate-300 dark:text-slate-600">
+                    <span class="text-ink-muted">
                       ({{ 'rebalancing.target' | translate }}
                        {{ s.targetPercent | number:'1.0-0' }}%)
                     </span>
@@ -262,8 +261,8 @@
                     <div class="flex flex-wrap gap-1 mt-1.5">
                       @for (ticker of s.suggestedTickers; track ticker) {
                         <span class="text-xs px-2 py-0.5 rounded-full
-                                     bg-slate-100 dark:bg-slate-700
-                                     text-slate-500 dark:text-slate-400">
+                                     bg-surface-raised
+                                     text-ink-secondary">
                           {{ ticker }}
                         </span>
                       }
@@ -301,7 +300,7 @@
                       {{ 'rebalancing.reduceOverTime' | translate }}
                     </p>
                   } @else {
-                    <p class="text-sm font-mono text-slate-400">
+                    <p class="text-sm font-mono text-ink-muted">
                       {{ 'rebalancing.onTarget' | translate }}
                     </p>
                   }

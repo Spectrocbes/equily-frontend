@@ -200,6 +200,10 @@ export class SavingsAccountDetailComponent implements OnInit {
     return ['DEPOSIT', 'DIVIDEND', 'INTEREST', 'SELL'].includes(type);
   }
 
+  protected hasAmountBreakdown(tx: Transaction): boolean {
+    return tx.nativeCurrency !== this.preferencesService.currency();
+  }
+
   protected txTypeClass(type: string): string {
     const map: Record<string, string> = {
       DEPOSIT:    'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300',

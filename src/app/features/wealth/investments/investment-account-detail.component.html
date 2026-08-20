@@ -3,8 +3,8 @@
   <!-- Back -->
   <a routerLink="/wealth/investments"
      class="inline-flex items-center gap-2 text-sm
-            text-slate-500 dark:text-slate-400
-            hover:text-slate-900 dark:hover:text-white transition-colors">
+            text-ink-secondary
+            hover:text-ink-primary transition-colors">
     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24"
          stroke="currentColor" stroke-width="2">
       <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
@@ -15,14 +15,14 @@
   <!-- Loading -->
   @if (loading()) {
     <div class="animate-pulse space-y-4">
-      <div class="h-8 bg-slate-200 dark:bg-slate-700 rounded w-1/3"></div>
-      <div class="h-32 bg-slate-200 dark:bg-slate-700 rounded-xl"></div>
+      <div class="h-8 bg-surface-raised rounded w-1/3"></div>
+      <div class="h-32 bg-surface-raised rounded-md"></div>
     </div>
   }
 
   <!-- Error -->
   @if (error()) {
-    <div class="rounded-xl border border-rose-200 dark:border-rose-800
+    <div class="rounded-md border border-rose-200 dark:border-rose-800
                 bg-rose-50 dark:bg-rose-900/20 p-4">
       <p class="text-rose-700 dark:text-rose-400 text-sm">{{ error() }}</p>
     </div>
@@ -35,9 +35,9 @@
       <div>
         <div class="flex items-center gap-2 mb-1 flex-wrap">
           <span class="text-xs font-medium px-2 py-0.5 rounded-full
-                       bg-primary-50 dark:bg-primary-900/30
-                       text-primary-700 dark:text-primary-300">{{ 'subType.' + account()!.accountType | translate }}</span>
-          <span class="text-xs text-slate-400 dark:text-slate-500">{{ account()!.broker }}</span>
+                       bg-accent/10
+                       text-accent">{{ 'subType.' + account()!.accountType | translate }}</span>
+          <span class="text-xs text-ink-muted">{{ account()!.broker }}</span>
           @if (isClosed()) {
             <span class="inline-flex items-center gap-1.5 px-3 py-1
                          rounded-full text-xs font-semibold
@@ -61,7 +61,7 @@
             </div>
           }
         </div>
-        <h1 class="text-2xl font-semibold text-slate-900 dark:text-white">
+        <h1 class="text-2xl font-semibold text-ink-primary">
           {{ account()!.name }}
         </h1>
       </div>
@@ -72,10 +72,10 @@
 
         <!-- Portfolio Value — primary, large -->
         <div class="relative">
-          <p class="text-xs text-slate-500 dark:text-slate-400 mb-1">
+          <p class="text-xs text-ink-secondary mb-1">
             {{ 'account.portfolioValue' | translate }}
           </p>
-          <p class="text-2xl font-bold font-mono text-slate-900 dark:text-white">
+          <p class="text-2xl font-bold font-mono text-ink-primary">
             {{ totalMarketValue() | userCurrency }}
           </p>
           @if (hasSomeLivePrices()) {
@@ -108,14 +108,14 @@
         </div>
 
         <!-- Cash Available — secondary, smaller -->
-        <div class="border-t sm:border-t-0 sm:border-l border-slate-200 dark:border-slate-700 pt-4 sm:pt-0 sm:pl-6 relative">
-          <p class="text-xs text-slate-400 dark:text-slate-500 mb-1">
+        <div class="border-t sm:border-t-0 sm:border-l border-border pt-4 sm:pt-0 sm:pl-6 relative">
+          <p class="text-xs text-ink-muted mb-1">
             {{ 'account.cashAvailable' | translate }}
           </p>
-          <p class="text-lg font-semibold font-mono text-slate-500 dark:text-slate-400">
+          <p class="text-lg font-semibold font-mono text-ink-secondary">
             {{ account()!.balance | userCurrency }}
           </p>
-          <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+          <p class="text-xs text-ink-muted mt-0.5">
             {{ 'account.notInvested' | translate }}
           </p>
           @if (cashDelta() !== null) {
@@ -134,9 +134,10 @@
         <div class="relative flex-shrink-0">
           <button type="button"
                   (click)="accountMenuOpen.set(!accountMenuOpen())"
-                  class="w-8 h-8 rounded-lg flex items-center justify-center
-                         text-slate-400 hover:text-slate-600 dark:hover:text-slate-200
-                         hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                  [attr.aria-label]="'common.moreOptions' | translate"
+                  class="w-8 h-8 rounded-md flex items-center justify-center
+                         text-ink-muted hover:text-ink-primary
+                         hover:bg-surface-raised transition-colors">
             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
               <circle cx="12" cy="5" r="1.5"/>
               <circle cx="12" cy="12" r="1.5"/>
@@ -151,8 +152,8 @@
                  (click)="accountMenuOpen.set(false)"
                  (keydown.escape)="accountMenuOpen.set(false)"></div>
             <div class="absolute right-0 top-full mt-1 w-48 z-20
-                        rounded-xl border border-slate-200 dark:border-slate-700
-                        bg-white dark:bg-slate-800 shadow-lg overflow-hidden">
+                        rounded-md border border-border
+                        bg-surface-card shadow-lg overflow-hidden">
               @if (isPea() && !isClosed()) {
                 <button type="button"
                         (click)="accountMenuOpen.set(false); loadClosureSimulation()"
@@ -162,7 +163,7 @@
                                transition-colors text-left">
                   <span>{{ 'account.closePea' | translate }}</span>
                 </button>
-                <div class="border-t border-slate-100 dark:border-slate-700"></div>
+                <div class="border-t border-border-subtle"></div>
               }
               @if (!isPea()) {
                 <button type="button"
@@ -197,28 +198,28 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
       <!-- Donut allocation -->
-      <div class="rounded-xl border border-slate-200 dark:border-slate-700
-                  bg-white dark:bg-slate-800 p-6">
-        <h2 class="font-medium text-slate-900 dark:text-white mb-4">{{ 'overview.allocation' | translate }}</h2>
+      <div class="rounded-md border border-border
+                  bg-surface-card p-6">
+        <h2 class="font-medium text-ink-primary mb-4">{{ 'overview.allocation' | translate }}</h2>
         @if (donutData().length === 0) {
           <div class="h-32 flex items-center justify-center">
-            <p class="text-slate-400 text-sm">{{ 'holdings.noHoldings' | translate }}</p>
+            <p class="text-ink-muted text-sm">{{ 'holdings.noHoldings' | translate }}</p>
           </div>
         } @else {
           <div class="flex items-center gap-4">
             <app-donut-chart [data]="donutData()" [total]="totalInvested()" [size]="140"/>
-            <div class="space-y-1.5 flex-1 min-w-0 max-h-64 overflow-y-auto custom-scrollbar">
+            <div class="space-y-1.5 flex-1 min-w-0 max-h-64 overflow-y-auto custom-scrollbar pr-2">
               @for (slice of donutData(); track slice.label) {
                 <div class="flex items-center justify-between gap-2">
                   <div class="flex items-center gap-1.5 min-w-0">
                     <span class="w-2 h-2 rounded-full flex-shrink-0"
                           [style.background-color]="slice.color"></span>
                     <span class="text-xs font-mono font-medium
-                                 text-slate-700 dark:text-slate-300 truncate">
+                                 text-ink-secondary truncate">
                       {{ slice.label }}
                     </span>
                   </div>
-                  <span class="text-xs text-slate-500 dark:text-slate-400 flex-shrink-0">
+                  <span class="text-xs text-ink-secondary flex-shrink-0">
                     {{ totalInvested() > 0
                       ? ((slice.value / totalInvested()) * 100 | number:'1.0-1') + '%'
                       : '0%' }}
@@ -231,41 +232,41 @@
       </div>
 
       <!-- Geographical Exposure -->
-      <div class="rounded-2xl border border-slate-200 dark:border-slate-700
-                  bg-white dark:bg-slate-800/50 p-6">
-        <h3 class="text-sm font-semibold text-slate-900 dark:text-white mb-4">
+      <div class="rounded-md border border-border
+                  bg-surface-card p-6">
+        <h3 class="text-sm font-semibold text-ink-primary mb-4">
           {{ 'geo.title' | translate }}
         </h3>
 
         @if (geoLoading()) {
           <div class="flex items-center justify-center h-32">
             <div class="w-5 h-5 rounded-full border-2
-                        border-primary-400 border-t-transparent
+                        border-accent border-t-transparent
                         animate-spin"></div>
           </div>
         } @else if (geoExposure().length === 0) {
-          <p class="text-sm text-slate-400 text-center py-8">
+          <p class="text-sm text-ink-muted text-center py-8">
             {{ 'geo.noData' | translate }}
           </p>
         } @else {
-          <div class="space-y-3 max-h-48 overflow-y-auto custom-scrollbar">
+          <div class="space-y-3 max-h-48 overflow-y-auto custom-scrollbar pr-2">
             @for (geo of geoExposure(); track geo.region) {
               <div>
                 <div class="flex items-center justify-between mb-1">
-                  <span class="text-sm text-slate-700 dark:text-slate-300">
+                  <span class="text-sm text-ink-secondary">
                     {{ geo.region }}
                   </span>
                   <div class="flex items-center gap-3">
-                    <span class="text-sm font-mono text-slate-600 dark:text-slate-400">
+                    <span class="text-sm font-mono text-ink-secondary">
                       {{ geo.value | userCurrency }}
                     </span>
-                    <span class="text-xs font-semibold text-slate-900 dark:text-white w-12 text-right">
+                    <span class="text-xs font-semibold text-ink-primary w-12 text-right">
                       {{ geo.weight | number:'1.1-1' }}%
                     </span>
                   </div>
                 </div>
-                <div class="h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full">
-                  <div class="h-full rounded-full bg-primary-500 transition-all duration-1000 ease-out"
+                <div class="h-1.5 bg-surface-raised rounded-full">
+                  <div class="h-full rounded-full bg-accent transition-all duration-1000 ease-out"
                        [style.width.%]="geo.weight">
                   </div>
                 </div>
@@ -281,16 +282,16 @@
     <!-- Tabs: Holdings / Transactions -->
     <div class="flex items-center justify-between gap-2">
       <div class="overflow-x-auto flex-1">
-      <div class="flex gap-1 border-b border-slate-200 dark:border-slate-700">
+      <div class="flex gap-1 border-b border-border">
         @if (!isClosed()) {
           <button type="button"
                   (click)="activeTab.set('holdings')"
                   [class]="activeTab() === 'holdings'
-                    ? 'px-4 py-2.5 text-sm font-medium text-primary-600 dark:text-primary-400 border-b-2 border-primary-500 -mb-px'
-                    : 'px-4 py-2.5 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors'">
+                    ? 'px-4 py-2.5 text-sm font-medium text-accent border-b-2 border-accent -mb-px'
+                    : 'px-4 py-2.5 text-sm font-medium text-ink-secondary hover:text-ink-primary transition-colors'">
             {{ 'holdings.title' | translate }}
             <span class="ml-1.5 px-1.5 py-0.5 rounded text-xs
-                         bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+                         bg-surface-raised text-ink-secondary">
               {{ enrichedHoldings().length }}
             </span>
           </button>
@@ -298,11 +299,11 @@
         <button type="button"
                 (click)="activeTab.set('transactions')"
                 [class]="activeTab() === 'transactions'
-                  ? 'px-4 py-2.5 text-sm font-medium text-primary-600 dark:text-primary-400 border-b-2 border-primary-500 -mb-px'
-                  : 'px-4 py-2.5 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors'">
+                  ? 'px-4 py-2.5 text-sm font-medium text-accent border-b-2 border-accent -mb-px'
+                  : 'px-4 py-2.5 text-sm font-medium text-ink-secondary hover:text-ink-primary transition-colors'">
           {{ 'holdings.transactions' | translate }}
           <span class="ml-1.5 px-1.5 py-0.5 rounded text-xs
-                       bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+                       bg-surface-raised text-ink-secondary">
             {{ transactions().length }}
           </span>
         </button>
@@ -313,11 +314,11 @@
         <!-- Import CSV button -->
         <button type="button"
                 (click)="showCsvModal.set(true)"
-                class="ml-4 flex items-center gap-1.5 px-3 py-1.5 rounded-lg
+                class="ml-4 flex items-center gap-1.5 px-3 py-1.5 rounded-md
                        text-xs font-medium
-                       border border-slate-200 dark:border-slate-600
-                       text-slate-600 dark:text-slate-400
-                       hover:bg-slate-50 dark:hover:bg-slate-700
+                       border border-border
+                       text-ink-secondary
+                       hover:bg-surface-raised
                        transition-colors flex-shrink-0">
           <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"
                stroke="currentColor" stroke-width="2">
@@ -330,9 +331,9 @@
         <!-- Add Transaction button -->
         <button type="button"
                 (click)="showTransactionModal.set(true)"
-                class="ml-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg
-                       text-xs font-medium bg-primary-500 hover:bg-primary-600
-                       text-white transition-colors flex-shrink-0">
+                class="ml-2 flex items-center gap-1.5 px-3 py-1.5 rounded-md
+                       text-xs font-medium bg-accent hover:bg-accent-hover
+                       text-accent-contrast transition-colors flex-shrink-0">
           <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"
                stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
@@ -348,9 +349,9 @@
       @if (enrichedHoldings().length === 0 && !pricesLoading()) {
         <div class="flex flex-col items-center justify-center py-16 text-center">
           <div class="w-12 h-12 rounded-full
-                      bg-slate-100 dark:bg-slate-700
+                      bg-surface-raised
                       flex items-center justify-center mb-4">
-            <svg class="w-6 h-6 text-slate-400" fill="none"
+            <svg class="w-6 h-6 text-ink-muted" fill="none"
                  viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
               <path stroke-linecap="round" stroke-linejoin="round"
                     d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504
@@ -364,10 +365,10 @@
                        01-1.125-1.125V4.125z"/>
             </svg>
           </div>
-          <p class="text-sm font-medium text-slate-600 dark:text-slate-400">
+          <p class="text-sm font-medium text-ink-secondary">
             {{ 'holdings.noHoldings' | translate }}
           </p>
-          <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">
+          <p class="text-xs text-ink-muted mt-1">
             {{ 'holdings.noHoldingsHint' | translate }}
           </p>
         </div>
@@ -377,9 +378,9 @@
         <!-- Loading indicator -->
         @if (pricesLoading()) {
           <div class="flex items-center gap-2 px-4 py-2
-                      text-xs text-slate-400 dark:text-slate-500
-                      border-b border-slate-100 dark:border-slate-800">
-            <div class="w-3 h-3 rounded-full border border-primary-400
+                      text-xs text-ink-muted
+                      border-b border-border-subtle">
+            <div class="w-3 h-3 rounded-full border border-accent
                         border-t-transparent animate-spin"></div>
             {{ 'holdings.fetchingPrices' | translate }}
           </div>
@@ -387,8 +388,8 @@
 
         <!-- Table header -->
         <div class="grid grid-cols-7 gap-4 px-4 py-2 text-xs font-medium
-                    text-slate-500 dark:text-slate-400 uppercase tracking-wide
-                    border-b border-slate-200 dark:border-slate-700 min-w-[640px]">
+                    text-ink-secondary uppercase tracking-wide
+                    border-b border-border min-w-[640px]">
           <span class="col-span-2">{{ 'holdings.asset' | translate }}</span>
           <span class="text-right">{{ 'holdings.quantityHeader' | translate }}</span>
           <span class="text-right">{{ 'holdings.avgCost' | translate }}</span>
@@ -397,8 +398,8 @@
           <div class="flex justify-end">
             <button (click)="togglePnlMode()"
                     class="text-xs font-medium uppercase tracking-wide
-                           text-slate-500 dark:text-slate-400
-                           hover:text-primary-400 transition-colors
+                           text-ink-secondary
+                           hover:text-accent transition-colors
                            cursor-pointer underline underline-offset-2 decoration-dashed">
               P&L {{ pnlLabel() }}
             </button>
@@ -408,63 +409,59 @@
         <!-- Rows -->
         @for (holding of enrichedHoldings(); track holding.ticker) {
           <div class="grid grid-cols-7 gap-4 px-4 py-3 items-center
-                      border-b border-slate-100 dark:border-slate-800
-                      hover:bg-slate-50 dark:hover:bg-slate-800/50
+                      border-b border-border-subtle
+                      hover:bg-surface-raised
                       transition-colors min-w-[640px]">
 
             <!-- Ticker -->
             <div class="col-span-2">
-              <p class="text-sm font-semibold text-slate-900
-                         dark:text-white font-mono">
+              <p class="text-sm font-semibold text-ink-primary font-mono">
                 {{ holding.ticker }}
               </p>
             </div>
 
             <!-- Quantity -->
-            <p class="text-right text-sm text-slate-600
-                       dark:text-slate-300 font-mono">
+            <p class="text-right text-sm text-ink-secondary font-mono">
               {{ holding.quantity | number:'1.0-4' }}
             </p>
 
             <!-- Avg cost price -->
-            <p class="text-right text-sm text-slate-600
-                       dark:text-slate-300 font-mono">
+            <p class="text-right text-sm text-ink-secondary font-mono">
               {{ holding.averageCostPrice | userCurrency }}
             </p>
 
             <!-- Live price -->
             <div class="text-right">
               @if (holding.priceAvailable) {
-                <p class="text-sm font-medium text-slate-900 dark:text-white font-mono
+                <p class="text-sm font-medium text-ink-primary font-mono
                            flex items-center justify-end gap-2">
                   <span>{{ holding.currentPrice |
                      currency:(holding.currency ?? 'EUR'):'symbol':'1.2-2' }}</span>
                   @if (holding.dayChangePercent !== null) {
                     <span class="text-xs font-mono px-1.5 py-0.5 rounded-md"
                           [class]="holding.dayChangePercent >= 0
-                            ? 'bg-emerald-500/10 text-emerald-500'
-                            : 'bg-rose-500/10 text-rose-500'">
+                            ? 'bg-gain/10 text-gain'
+                            : 'bg-loss/10 text-loss'">
                       {{ holding.dayChangePercent >= 0 ? '+' : '' }}{{ holding.dayChangePercent | number:'1.2-2' }}%
                     </span>
                   }
                 </p>
               } @else {
-                <p class="text-sm text-slate-400 dark:text-slate-500">—</p>
+                <p class="text-sm text-ink-muted">—</p>
               }
             </div>
 
             <!-- Market value -->
             <div class="text-right">
               @if (holding.priceAvailable) {
-                <p class="text-sm font-semibold text-slate-900
-                           dark:text-white font-mono">
+                <p class="text-sm font-semibold text-ink-primary font-mono">
                   {{ holding.marketValue | userCurrency }}
                 </p>
               } @else {
-                <p class="text-sm text-slate-600 dark:text-slate-300 font-mono">
+                <p class="text-sm text-ink-secondary font-mono">
                   {{ holding.totalInvested | userCurrency }}
                 </p>
-                <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+                <p class="text-xs text-ink-muted mt-0.5">
                   {{ 'account.atCost' | translate }}
                 </p>
               }
@@ -488,7 +485,7 @@
                   </p>
                 }
               } @else {
-                <p class="text-sm text-slate-400 dark:text-slate-500">—</p>
+                <p class="text-sm text-ink-muted">—</p>
               }
             </div>
 
@@ -498,16 +495,16 @@
         <!-- Summary footer -->
         @if (enrichedHoldings().length > 0) {
           <div class="grid grid-cols-7 gap-4 px-4 py-3 min-w-[640px]
-                      border-t-2 border-slate-200 dark:border-slate-700
-                      bg-slate-50 dark:bg-slate-800/50">
+                      border-t-2 border-border
+                      bg-surface-raised/50">
             <span class="col-span-2 text-sm font-semibold
-                         text-slate-900 dark:text-white">
+                         text-ink-primary">
               {{ 'transaction.total' | translate }}
             </span>
             <span class="col-span-2"></span>
             <span></span>
             <p class="text-right text-sm font-bold
-                       text-slate-900 dark:text-white font-mono">
+                       text-ink-primary font-mono">
               {{ totalMarketValue() | userCurrency }}
             </p>
             <div class="text-right">
@@ -537,24 +534,24 @@
 
     <!-- Transactions tab -->
     @if (activeTab() === 'transactions') {
-      <div class="rounded-xl border border-slate-200 dark:border-slate-700
-                  bg-white dark:bg-slate-800 overflow-hidden">
+      <div class="rounded-md border border-border
+                  bg-surface-card overflow-hidden">
 
         @if (transactions().length === 0) {
           <div class="p-8 text-center">
-            <p class="text-slate-400 text-sm">{{ 'transaction.noTransactions' | translate }}</p>
+            <p class="text-ink-muted text-sm">{{ 'transaction.noTransactions' | translate }}</p>
           </div>
         } @else {
-          <div class="divide-y divide-slate-200 dark:divide-slate-700
+          <div class="divide-y divide-border-subtle
                       max-h-[32rem] overflow-y-auto custom-scrollbar">
             @for (tx of transactions(); track tx.id) {
               <div class="flex items-center gap-0 min-h-[52px] px-6
-                          hover:bg-slate-100/50 dark:hover:bg-slate-700/30
+                          hover:bg-surface-raised
                           transition-colors group relative">
 
                 <!-- Date -->
                 <div class="w-16 flex-shrink-0 mr-3">
-                  <span class="text-xs text-slate-400 dark:text-slate-500 tabular-nums">
+                  <span class="text-xs text-ink-muted tabular-nums">
                     {{ tx.date | date:'dd/MM/yy' }}
                   </span>
                 </div>
@@ -573,23 +570,23 @@
                 <div class="flex-1 min-w-0 mr-4">
                   @if (tx.ticker) {
                     <p class="text-xs font-mono font-medium
-                               text-slate-700 dark:text-slate-300 truncate">
+                               text-ink-secondary truncate">
                       {{ tx.ticker }}
                     </p>
                   }
                   @if (tx.description) {
-                    <p class="text-xs text-slate-600 dark:text-slate-300 truncate">
+                    <p class="text-xs text-ink-secondary truncate">
                       {{ tx.description }}
                     </p>
                   }
                   @if (tx.type === 'TRANSFER' && tx.linkedAccountId) {
-                    <p class="text-xs text-slate-400 dark:text-slate-500"
+                    <p class="text-xs text-ink-muted"
                        [class.mt-0.5]="tx.description">
                       ⇄ {{ getLinkedAccountName(tx.linkedAccountId) ?? ('account.unknown' | translate) }}
                     </p>
                   }
                   @if ((tx.type === 'TRANSFER' || tx.type === 'PAYMENT') && tx.externalAddress) {
-                    <p class="text-xs text-slate-400 dark:text-slate-500"
+                    <p class="text-xs text-ink-muted"
                        [class.mt-0.5]="tx.description">
                       → {{ tx.externalAddress }}
                     </p>
@@ -597,32 +594,35 @@
                 </div>
 
                 <!-- Amount + 3-dot -->
-                <div class="flex items-center gap-1 flex-shrink-0">
+                <div class="flex gap-6 flex-shrink-0"
+                     [class.items-start]="!hasAmountBreakdown(tx)"
+                     [class.items-center]="hasAmountBreakdown(tx)">
                   <div class="text-right w-[120px]">
                     <p class="text-sm font-semibold font-mono tabular-nums"
-                       [class]="isPositive(tx.type, tx.transferDirection) ? 'text-emerald-500' : 'text-rose-500'">
+                       [class]="isPositive(tx.type, tx.transferDirection) ? 'text-gain' : 'text-loss'">
                       {{ isPositive(tx.type, tx.transferDirection) ? '+' : '-' }}{{ tx.totalAmount | userCurrency }}
                     </p>
                     @if (tx.nativeCurrency !== preferencesService.currency()) {
-                      <p class="text-xs text-slate-400 dark:text-slate-500 font-mono tabular-nums mt-0.5">
+                      <p class="text-xs text-ink-muted font-mono tabular-nums mt-0.5">
                         {{ tx.totalAmountNative | currency:tx.nativeCurrency:'symbol':'1.2-2' }}
                       </p>
                     }
                     @if (tx.quantity && tx.pricePerUnit) {
-                      <p class="text-xs text-slate-400 dark:text-slate-500 font-mono mt-0.5">
+                      <p class="text-xs text-ink-muted font-mono mt-0.5">
                         {{ tx.quantity }} × {{ tx.pricePerUnit | userCurrency }}
                       </p>
                     }
                   </div>
-                  <div class="relative w-6 flex-shrink-0">
+                  <div class="relative w-6 flex-shrink-0"
+                       [class.-mt-1]="!hasAmountBreakdown(tx)">
                     @if (!isClosed()) {
                       <button type="button"
                               (click)="openTxMenu(tx.id, $event)"
-                              class="w-6 h-6 rounded-lg flex items-center justify-center
-                                     text-slate-400 hover:text-slate-600 dark:hover:text-slate-200
-                                     hover:bg-slate-100 dark:hover:bg-slate-700
-                                     transition-all duration-200
-                                     opacity-0 group-hover:opacity-100">
+                              [attr.aria-label]="'common.moreOptions' | translate"
+                              class="w-6 h-6 rounded-md flex items-center justify-center
+                                     text-ink-muted hover:text-ink-primary
+                                     hover:bg-surface-raised
+                                     transition-colors">
                         <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
                           <circle cx="12" cy="5" r="1.5"/>
                           <circle cx="12" cy="12" r="1.5"/>
@@ -636,15 +636,15 @@
                              (click)="txMenuOpenId.set(null); txMenuPosition.set(null)"
                              (keydown.escape)="txMenuOpenId.set(null); txMenuPosition.set(null)"></div>
                         <div class="fixed z-50 w-36
-                                    rounded-xl border border-slate-200 dark:border-slate-700
-                                    bg-white dark:bg-slate-800 shadow-lg overflow-hidden"
+                                    rounded-md border border-border
+                                    bg-surface-card shadow-lg overflow-hidden"
                              [style.top.px]="txMenuPosition()!.top"
                              [style.right.px]="txMenuPosition()!.right">
                           <button type="button"
                                   (click)="onTransactionEditClick(tx); txMenuOpenId.set(null); txMenuPosition.set(null)"
                                   class="w-full flex items-center gap-2 px-3 py-2.5
-                                         text-sm text-slate-700 dark:text-slate-300
-                                         hover:bg-slate-50 dark:hover:bg-slate-700
+                                         text-sm text-ink-secondary
+                                         hover:bg-surface-raised
                                          transition-colors text-left">
                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"
                                  stroke="currentColor" stroke-width="2">
@@ -655,7 +655,7 @@
                             </svg>
                             {{ 'common.edit' | translate }}
                           </button>
-                          <div class="border-t border-slate-100 dark:border-slate-700"></div>
+                          <div class="border-t border-border-subtle"></div>
                           <button type="button"
                                   (click)="requestDeleteTransaction(tx)"
                                   class="w-full flex items-center gap-2 px-3 py-2.5

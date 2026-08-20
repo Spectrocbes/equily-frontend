@@ -1,114 +1,220 @@
-<div class="min-h-screen bg-slate-900 flex flex-col overflow-y-auto custom-scrollbar">
+<div class="min-h-screen bg-marketing-ground font-sans antialiased
+            selection:bg-marketing-teal selection:text-marketing-ground">
 
-  <!-- Navbar -->
-  <header class="sticky top-0 z-50 flex items-center justify-between
-                 px-8 py-4 border-b border-slate-800 bg-slate-900/95
-                 backdrop-blur-sm">
-    <a routerLink="/home" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
-      <div class="w-8 h-8 rounded-lg bg-primary-500
-                  flex items-center justify-center">
-        <span class="text-white font-bold text-sm">E</span>
+  <!-- ─────────────────────────  Header  ───────────────────────── -->
+  <header class="sticky top-0 z-50 border-b border-marketing-line
+                 bg-marketing-ground/90 backdrop-blur-md">
+    <div class="mx-auto max-w-[84rem] px-6 h-16 flex items-center justify-between gap-6">
+
+      <a routerLink="/home"
+         class="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
+        <span class="w-7 h-7 rounded-[5px] bg-marketing-teal
+                     flex items-center justify-center
+                     text-marketing-ground font-display font-bold text-sm">E</span>
+        <span class="font-display text-marketing-ink text-[17px] font-semibold tracking-tight">
+          Equily
+        </span>
+      </a>
+
+      <nav class="hidden lg:flex items-center gap-8">
+        @for (item of [
+          { id: 'ceilings', key: 'landing.navCeilings' },
+          { id: 'product',  key: 'landing.navProduct'  },
+          { id: 'rules',    key: 'landing.navRules'    },
+          { id: 'security', key: 'landing.navSecurity' }
+        ]; track item.id) {
+          <button type="button" (click)="scrollTo(item.id)"
+                  class="text-[13px] text-marketing-soft hover:text-marketing-ink
+                         transition-colors bg-transparent border-0 cursor-pointer">
+            {{ item.key | translate }}
+          </button>
+        }
+      </nav>
+
+      <div class="flex items-center gap-2">
+
+        <!-- Language picker -->
+        <div class="flex items-center rounded-md border border-marketing-line p-0.5"
+             role="group"
+             [attr.aria-label]="'landing.languageGroup' | translate">
+          @for (l of languages; track l.code) {
+            <button type="button" (click)="setLang(l.code)"
+                    [attr.aria-label]="l.name"
+                    [attr.aria-pressed]="currentLang() === l.code"
+                    [class]="currentLang() === l.code
+                      ? 'px-2 py-1 rounded-[5px] text-[11px] font-semibold tracking-wide bg-marketing-raised text-marketing-ink transition-colors'
+                      : 'px-2 py-1 rounded-[5px] text-[11px] font-semibold tracking-wide text-marketing-faint hover:text-marketing-soft transition-colors'">
+              {{ l.short }}
+            </button>
+          }
+        </div>
+
+        <a routerLink="/login"
+           class="hidden sm:inline-block px-3.5 py-2 text-[13px] font-medium text-marketing-soft
+                  hover:text-marketing-ink transition-colors rounded-md
+                  focus-visible:outline-none focus-visible:ring-2
+                  focus-visible:ring-marketing-teal">
+          {{ 'auth.signIn' | translate }}
+        </a>
+        <a routerLink="/register"
+           class="px-4 py-2 rounded-md text-[13px] font-semibold
+                  bg-marketing-teal text-marketing-ground
+                  hover:bg-marketing-ink transition-colors
+                  focus-visible:outline-none focus-visible:ring-2
+                  focus-visible:ring-marketing-teal focus-visible:ring-offset-2
+                  focus-visible:ring-offset-marketing-ground">
+          {{ 'landing.ctaCreate' | translate }}
+        </a>
       </div>
-      <span class="text-white font-semibold text-lg tracking-tight">Equily</span>
-    </a>
-
-    <nav class="hidden md:flex items-center gap-6 text-sm text-slate-400">
-      <button (click)="scrollTo('features')"
-              class="hover:text-white transition-colors bg-transparent border-0
-                     text-slate-400 cursor-pointer text-sm">
-        {{ 'landing.featuresNav' | translate }}
-      </button>
-      <button (click)="scrollTo('accounts')"
-              class="hover:text-white transition-colors bg-transparent border-0
-                     text-slate-400 cursor-pointer text-sm">
-        {{ 'landing.accountTypesNav' | translate }}
-      </button>
-      <button (click)="scrollTo('security')"
-              class="hover:text-white transition-colors bg-transparent border-0
-                     text-slate-400 cursor-pointer text-sm">
-        {{ 'landing.securityNav' | translate }}
-      </button>
-      <button (click)="scrollTo('about')"
-              class="hover:text-white transition-colors bg-transparent border-0
-                     text-slate-400 cursor-pointer text-sm">
-        {{ 'landing.aboutNav' | translate }}
-      </button>
-    </nav>
-
-    <div class="flex items-center gap-3">
-      <a routerLink="/login"
-         class="px-4 py-2 text-sm text-slate-300 hover:text-white transition-colors">
-        {{ 'auth.signIn' | translate }}
-      </a>
-      <a routerLink="/register"
-         class="px-4 py-2 rounded-lg text-sm font-medium
-                bg-primary-500 hover:bg-primary-600 text-white transition-colors">
-        {{ 'auth.getStarted' | translate }}
-      </a>
     </div>
   </header>
 
-  <!-- Hero -->
-  <section class="flex flex-col items-center justify-center text-center
-                  px-6 py-24 max-w-4xl mx-auto w-full">
-    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full
-                bg-primary-500/10 border border-primary-500/20
-                text-primary-400 text-xs font-medium mb-6">
-      <span class="w-1.5 h-1.5 rounded-full bg-primary-400 animate-pulse"></span>
-      {{ 'landing.badge' | translate }}
-    </div>
-    <h1 class="text-5xl sm:text-6xl font-bold text-white tracking-tight
-               mb-5 leading-tight">
-      {{ 'landing.heroTitle' | translate }}<br/>
-      <span class="text-primary-400">{{ 'landing.heroTitleAccent' | translate }}</span>
-    </h1>
-    <p class="text-xl text-slate-400 mb-10 leading-relaxed max-w-xl">
-      {{ 'landing.heroDescription' | translate }}
-    </p>
-    <div class="flex items-center gap-4 flex-wrap justify-center">
-      <a routerLink="/register"
-         class="px-8 py-3.5 rounded-xl text-sm font-semibold
-                bg-primary-500 hover:bg-primary-600 text-white
-                transition-colors shadow-lg shadow-primary-500/20">
-        {{ 'landing.startForFree' | translate }}
-      </a>
-      <a routerLink="/login"
-         class="px-8 py-3.5 rounded-xl text-sm font-medium
-                border border-slate-700 text-slate-300
-                hover:border-slate-500 hover:text-white transition-colors">
-        {{ 'auth.signIn' | translate }}
-      </a>
-    </div>
-  </section>
+  <!-- ─────────────────────────  Hero  ─────────────────────────
+       Asymmetric on purpose: the centred hero is the template answer.
+       The right column carries the page's thesis — the real ceilings. -->
+  <section class="mx-auto max-w-[84rem] px-6 pt-16 pb-20 lg:pt-24 lg:pb-28">
+    <div class="grid xl:grid-cols-12 gap-12 xl:gap-10 items-start">
 
-  <!-- Stats bar -->
-  <section class="border-y border-slate-800 bg-slate-800/30 py-8">
-    <div class="max-w-4xl mx-auto px-6 grid grid-cols-3 gap-8 text-center">
-      @for (stat of stats; track stat.labelKey) {
-        <div>
-          <p class="text-2xl font-bold text-white">{{ stat.value }}</p>
-          <p class="text-sm text-slate-500 mt-0.5">{{ stat.labelKey | translate }}</p>
+      <!-- Statement -->
+      <div class="xl:col-span-6">
+        <p class="text-[11px] uppercase tracking-[0.18em] text-marketing-teal font-semibold mb-6">
+          {{ 'landing.eyebrow' | translate }}
+        </p>
+
+        <!-- max-w is measured, not guessed: at 48px the second line is 514px in
+             English and 479px in French, so it never orphans a word in either. -->
+        <h1 class="font-display text-marketing-ink font-bold max-w-[33rem]
+                   text-[2.4rem] sm:text-5xl text-balance
+                   leading-[1.02] tracking-[-0.02em]
+                   [font-stretch:118%]">
+          {{ 'landing.heroTitleLine1' | translate }}
+          <span class="block text-marketing-teal">
+            {{ 'landing.heroTitleLine2' | translate }}
+          </span>
+        </h1>
+
+        <p class="mt-7 text-[17px] leading-relaxed text-marketing-soft max-w-md">
+          {{ 'landing.heroDescription' | translate }}
+        </p>
+
+        <div class="mt-9 flex flex-wrap items-center gap-3">
+          <a routerLink="/register"
+             class="px-6 py-3 rounded-md text-sm font-semibold
+                    bg-marketing-teal text-marketing-ground
+                    hover:bg-marketing-ink transition-colors
+                    focus-visible:outline-none focus-visible:ring-2
+                    focus-visible:ring-marketing-teal focus-visible:ring-offset-2
+                    focus-visible:ring-offset-marketing-ground">
+            {{ 'landing.ctaCreate' | translate }}
+          </a>
+          <a routerLink="/login"
+             class="px-6 py-3 rounded-md text-sm font-medium
+                    border border-marketing-line text-marketing-soft
+                    hover:border-marketing-faint hover:text-marketing-ink
+                    transition-colors
+                    focus-visible:outline-none focus-visible:ring-2
+                    focus-visible:ring-marketing-teal">
+            {{ 'auth.signIn' | translate }}
+          </a>
         </div>
-      }
+
+        <p class="mt-6 text-[13px] text-marketing-faint">
+          {{ 'landing.heroFootnote' | translate }}
+        </p>
+      </div>
+
+      <!-- ── Signature: the ceiling sheet ── -->
+      <div class="xl:col-span-6">
+        <div id="ceilings"
+             class="rounded-lg border border-marketing-line bg-marketing-panel
+                    overflow-hidden scroll-mt-24">
+
+          <div class="flex items-baseline justify-between gap-4
+                      px-6 py-4 border-b border-marketing-line">
+            <h2 class="font-display text-[13px] uppercase tracking-[0.14em]
+                       text-marketing-ink font-semibold">
+              {{ 'landing.ceilingsTitle' | translate }}
+            </h2>
+            <span class="text-[11px] uppercase tracking-[0.12em] text-marketing-faint">
+              {{ 'landing.ceilingsUnit' | translate }}
+            </span>
+          </div>
+
+          <div class="px-6 py-5 space-y-7">
+
+            @for (group of [
+              { labelKey: 'landing.ceilingsGroupSecurities', rows: securitiesCeilings },
+              { labelKey: 'landing.ceilingsGroupPassbooks',  rows: passbookCeilings  }
+            ]; track group.labelKey) {
+              <div>
+                <p class="text-[10px] uppercase tracking-[0.16em]
+                          text-marketing-faint mb-3.5">
+                  {{ group.labelKey | translate }}
+                </p>
+
+                <div class="space-y-3.5">
+                  @for (row of group.rows; track row.labelKey; let i = $index) {
+                    <div>
+                      <div class="flex items-baseline justify-between gap-4 mb-1.5">
+                        <span class="text-[13px] text-marketing-soft">
+                          {{ row.labelKey | translate }}
+                        </span>
+                        <span class="text-[13px] font-semibold text-marketing-ink
+                                     tabular-nums">
+                          {{ row.amount | currency:'EUR':'symbol':'1.0-0' }}
+                        </span>
+                      </div>
+                      <!-- Hairline, not a chunky bar: this is an instrument reading. -->
+                      <div class="h-px w-full bg-marketing-line">
+                        <div class="h-px bg-marketing-teal
+                                    transition-[width] duration-[900ms] ease-out
+                                    motion-reduce:transition-none"
+                             [style.width.%]="barsReady() ? row.pct : 0"
+                             [style.transition-delay.ms]="i * 80"></div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+
+          <p class="px-6 py-3.5 border-t border-marketing-line
+                    text-[12px] leading-relaxed text-marketing-faint">
+            {{ 'landing.ceilingsFootnote' | translate }}
+          </p>
+        </div>
+      </div>
     </div>
   </section>
 
-  <!-- Features -->
-  <section id="features" class="py-20 px-6">
-    <div class="max-w-5xl mx-auto">
-      <h2 class="text-3xl font-bold text-white text-center mb-3">
-        {{ 'landing.featuresTitle' | translate }}
-      </h2>
-      <p class="text-slate-400 text-center mb-12">
-        {{ 'landing.featuresSubtitle' | translate }}
-      </p>
-      <div class="grid md:grid-cols-3 gap-6">
+  <!-- ─────────────────────  Product / capabilities  ─────────────────────
+       A ruled grid, not floating cards — closer to a spec sheet. -->
+  <section id="product" class="border-t border-marketing-line scroll-mt-16">
+    <div class="mx-auto max-w-[84rem] px-6 py-20 lg:py-24">
+
+      <div class="max-w-2xl mb-12">
+        <p class="text-[11px] uppercase tracking-[0.18em] text-marketing-teal font-semibold mb-4">
+          {{ 'landing.productEyebrow' | translate }}
+        </p>
+        <h2 class="font-display text-marketing-ink font-bold
+                   text-3xl sm:text-4xl tracking-[-0.015em] [font-stretch:112%]">
+          {{ 'landing.featuresTitle' | translate }}
+        </h2>
+        <p class="mt-4 text-marketing-soft leading-relaxed">
+          {{ 'landing.featuresSubtitle' | translate }}
+        </p>
+      </div>
+
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3
+                  border-t border-l border-marketing-line">
         @for (feature of features; track feature.titleKey) {
-          <div class="rounded-2xl border border-slate-800 bg-slate-800/40
-                      p-6 hover:border-slate-700 transition-colors">
-            <div class="text-3xl mb-4">{{ feature.icon }}</div>
-            <h3 class="text-white font-semibold mb-2">{{ feature.titleKey | translate }}</h3>
-            <p class="text-slate-400 text-sm leading-relaxed">
+          <div class="border-r border-b border-marketing-line p-6
+                      hover:bg-marketing-panel transition-colors">
+            <h3 class="text-marketing-ink font-semibold text-[15px] mb-2">
+              {{ feature.titleKey | translate }}
+            </h3>
+            <p class="text-[13.5px] leading-relaxed text-marketing-soft">
               {{ feature.descriptionKey | translate }}
             </p>
           </div>
@@ -117,43 +223,41 @@
     </div>
   </section>
 
-  <!-- Account types -->
-  <section id="accounts" class="py-20 px-6 bg-slate-800/20">
-    <div class="max-w-5xl mx-auto">
-      <h2 class="text-3xl font-bold text-white text-center mb-3">
-        {{ 'landing.accountTypesTitle' | translate }}
-      </h2>
-      <p class="text-slate-400 text-center mb-10">
-        {{ 'landing.accountTypesSubtitle' | translate }}
-      </p>
-      <div class="flex flex-wrap justify-center gap-3">
-        @for (account of accountTypes; track account) {
-          <span class="px-4 py-2 rounded-full text-sm font-medium
-                       bg-slate-800 text-slate-300 border border-slate-700">
-            {{ account | translate }}
-          </span>
-        }
-      </div>
-    </div>
-  </section>
+  <!-- ─────────────────────  Rules  ─────────────────────
+       Set as a list of provisions with a scope column. -->
+  <section id="rules" class="border-t border-marketing-line bg-marketing-panel/40 scroll-mt-16">
+    <div class="mx-auto max-w-[84rem] px-6 py-20 lg:py-24">
 
-  <!-- Security -->
-  <section id="security" class="py-20 px-6">
-    <div class="max-w-5xl mx-auto">
-      <h2 class="text-3xl font-bold text-white text-center mb-3">
-        {{ 'landing.securityTitle' | translate }}
-      </h2>
-      <p class="text-slate-400 text-center mb-12 max-w-xl mx-auto">
-        {{ 'landing.securitySubtitle' | translate }}
-      </p>
-      <div class="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-        @for (item of security; track item.titleKey) {
-          <div class="flex gap-4 p-5 rounded-xl border border-slate-800
-                      bg-slate-800/30">
-            <span class="text-2xl flex-shrink-0">{{ item.icon }}</span>
-            <div>
-              <h3 class="text-white font-medium mb-1">{{ item.titleKey | translate }}</h3>
-              <p class="text-slate-400 text-sm">{{ item.descriptionKey | translate }}</p>
+      <div class="max-w-2xl mb-12">
+        <p class="text-[11px] uppercase tracking-[0.18em] text-marketing-amber font-semibold mb-4">
+          {{ 'landing.rulesEyebrow' | translate }}
+        </p>
+        <h2 class="font-display text-marketing-ink font-bold
+                   text-3xl sm:text-4xl tracking-[-0.015em] [font-stretch:112%]">
+          {{ 'landing.rulesTitle' | translate }}
+        </h2>
+        <p class="mt-4 text-marketing-soft leading-relaxed">
+          {{ 'landing.rulesSubtitle' | translate }}
+        </p>
+      </div>
+
+      <div class="border-t border-marketing-line">
+        @for (rule of rules; track rule.titleKey) {
+          <div class="grid md:grid-cols-12 gap-2 md:gap-8
+                      py-6 border-b border-marketing-line">
+            <div class="md:col-span-3">
+              <span class="text-[11px] uppercase tracking-[0.1em]
+                           text-marketing-amber font-medium">
+                {{ rule.scope }}
+              </span>
+            </div>
+            <div class="md:col-span-9">
+              <h3 class="text-marketing-ink font-semibold text-[15px] mb-1.5">
+                {{ rule.titleKey | translate }}
+              </h3>
+              <p class="text-[13.5px] leading-relaxed text-marketing-soft max-w-2xl">
+                {{ rule.descriptionKey | translate }}
+              </p>
             </div>
           </div>
         }
@@ -161,52 +265,105 @@
     </div>
   </section>
 
-  <!-- About -->
-  <section id="about" class="py-20 px-6 bg-slate-800/20">
-    <div class="max-w-2xl mx-auto text-center">
-      <h2 class="text-3xl font-bold text-white mb-4">{{ 'landing.aboutTitle' | translate }}</h2>
-      <p class="text-slate-400 leading-relaxed mb-8">
-        {{ 'landing.aboutDescription' | translate }}
-      </p>
-      <a routerLink="/register"
-         class="inline-flex px-8 py-3.5 rounded-xl text-sm font-semibold
-                bg-primary-500 hover:bg-primary-600 text-white transition-colors">
-        {{ 'landing.startTrackingWealth' | translate }}
-      </a>
+  <!-- ─────────────────────  Security  ───────────────────── -->
+  <section id="security" class="border-t border-marketing-line scroll-mt-16">
+    <div class="mx-auto max-w-[84rem] px-6 py-20 lg:py-24">
+
+      <div class="grid lg:grid-cols-12 gap-10">
+        <div class="lg:col-span-5">
+          <p class="text-[11px] uppercase tracking-[0.18em] text-marketing-teal font-semibold mb-4">
+            {{ 'landing.securityEyebrow' | translate }}
+          </p>
+          <h2 class="font-display text-marketing-ink font-bold
+                     text-3xl sm:text-4xl tracking-[-0.015em] [font-stretch:112%]">
+            {{ 'landing.securityTitle' | translate }}
+          </h2>
+          <p class="mt-4 text-marketing-soft leading-relaxed max-w-md">
+            {{ 'landing.securitySubtitle' | translate }}
+          </p>
+        </div>
+
+        <div class="lg:col-span-7 lg:pt-2">
+          <dl class="border-t border-marketing-line">
+            @for (item of security; track item.titleKey) {
+              <div class="py-5 border-b border-marketing-line">
+                <dt class="text-marketing-ink font-semibold text-[15px] mb-1.5">
+                  {{ item.titleKey | translate }}
+                </dt>
+                <dd class="text-[13.5px] leading-relaxed text-marketing-soft max-w-2xl">
+                  {{ item.descriptionKey | translate }}
+                </dd>
+              </div>
+            }
+          </dl>
+        </div>
+      </div>
     </div>
   </section>
 
-  <!-- Scroll to top button -->
+  <!-- ─────────────────────  Closing  ───────────────────── -->
+  <section class="border-t border-marketing-line">
+    <div class="mx-auto max-w-[84rem] px-6 py-20 lg:py-24">
+      <div class="max-w-xl">
+        <h2 class="font-display text-marketing-ink font-bold
+                   text-3xl sm:text-4xl tracking-[-0.015em] [font-stretch:112%]">
+          {{ 'landing.closingTitle' | translate }}
+        </h2>
+        <p class="mt-4 text-marketing-soft leading-relaxed">
+          {{ 'landing.closingDescription' | translate }}
+        </p>
+        <a routerLink="/register"
+           class="mt-8 inline-flex px-6 py-3 rounded-md text-sm font-semibold
+                  bg-marketing-teal text-marketing-ground
+                  hover:bg-marketing-ink transition-colors
+                  focus-visible:outline-none focus-visible:ring-2
+                  focus-visible:ring-marketing-teal focus-visible:ring-offset-2
+                  focus-visible:ring-offset-marketing-ground">
+          {{ 'landing.ctaCreate' | translate }}
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────────  Scroll to top  ───────────────────── -->
   @if (showScrollTop()) {
-    <button (click)="scrollToTop()"
-            class="fixed bottom-6 right-6 z-50
-                   w-10 h-10 rounded-full
-                   bg-primary-500 hover:bg-primary-600
-                   text-white shadow-lg shadow-primary-500/30
-                   flex items-center justify-center
-                   transition-all duration-200">
+    <button type="button" (click)="scrollToTop()"
+            [attr.aria-label]="'landing.scrollToTop' | translate"
+            class="fixed bottom-6 right-6 z-50 w-10 h-10 rounded-md
+                   border border-marketing-line bg-marketing-panel
+                   text-marketing-soft hover:text-marketing-ink
+                   hover:border-marketing-faint
+                   flex items-center justify-center transition-colors
+                   focus-visible:outline-none focus-visible:ring-2
+                   focus-visible:ring-marketing-teal">
       <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24"
-           stroke="currentColor" stroke-width="2.5">
-        <path stroke-linecap="round" stroke-linejoin="round"
-              d="M4.5 15.75l7.5-7.5 7.5 7.5"/>
+           stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5"/>
       </svg>
     </button>
   }
 
-  <!-- Footer -->
-  <footer class="border-t border-slate-800 py-8 px-6">
-    <div class="max-w-5xl mx-auto flex items-center justify-between
-                flex-wrap gap-4">
-      <div class="flex items-center gap-2">
-        <div class="w-6 h-6 rounded bg-primary-500
-                    flex items-center justify-center">
-          <span class="text-white font-bold text-xs">E</span>
-        </div>
-        <span class="text-slate-400 text-sm">Equily v0.1.0</span>
+  <!-- ─────────────────────  Footer  ───────────────────── -->
+  <footer class="border-t border-marketing-line">
+    <div class="mx-auto max-w-[84rem] px-6 py-8
+                flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-2.5">
+        <span class="w-5 h-5 rounded-[4px] bg-marketing-deep
+                     flex items-center justify-center
+                     text-marketing-ink font-display font-bold text-[10px]">E</span>
+        <span class="text-[13px] text-marketing-faint tabular-nums">
+          Equily v{{ appVersion }}
+        </span>
       </div>
-      <div class="flex gap-6 text-sm text-slate-500">
-        <a routerLink="/login" class="hover:text-slate-300 transition-colors">{{ 'auth.signIn' | translate }}</a>
-        <a routerLink="/register" class="hover:text-slate-300 transition-colors">{{ 'landing.registerLink' | translate }}</a>
+      <div class="flex gap-6 text-[13px]">
+        <a routerLink="/login"
+           class="text-marketing-faint hover:text-marketing-ink transition-colors">
+          {{ 'auth.signIn' | translate }}
+        </a>
+        <a routerLink="/register"
+           class="text-marketing-faint hover:text-marketing-ink transition-colors">
+          {{ 'landing.registerLink' | translate }}
+        </a>
       </div>
     </div>
   </footer>

@@ -1,12 +1,13 @@
 <nav class="h-16 flex-shrink-0 flex items-center justify-between
-            px-4 lg:px-6 border-b border-slate-200 dark:border-slate-700
-            bg-white dark:bg-slate-900 z-30">
+            px-4 lg:px-6 border-b border-border
+            bg-surface-card z-30">
 
   <!-- Left: hamburger + logo -->
   <div class="flex items-center gap-2">
     <button type="button" (click)="menuToggled.emit()"
-            class="lg:hidden p-2 rounded-lg text-slate-500
-                   hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+            [attr.aria-label]="'nav.openMenu' | translate"
+            class="lg:hidden p-2 rounded-md text-ink-muted
+                   hover:bg-surface-raised hover:text-ink-primary transition-colors">
       <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24"
            stroke="currentColor" stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round"
@@ -15,11 +16,11 @@
     </button>
     <a routerLink="/overview"
        class="flex items-center gap-2 hover:opacity-80 transition-opacity">
-      <div class="w-8 h-8 rounded-xl bg-primary-500
+      <div class="w-8 h-8 rounded-md bg-accent
                   flex items-center justify-center">
-        <span class="text-white font-bold text-sm">E</span>
+        <span class="text-accent-contrast font-semibold text-sm">E</span>
       </div>
-      <span class="hidden sm:block font-semibold text-slate-900 dark:text-white text-lg tracking-tight">
+      <span class="hidden sm:block font-semibold text-ink-primary text-lg tracking-tight">
         Equily
       </span>
     </a>
@@ -31,9 +32,8 @@
     <!-- Theme toggle -->
     <button
       (click)="themeService.toggle()"
-      class="w-9 h-9 rounded-lg flex items-center justify-center
-             text-slate-500 dark:text-slate-400
-             hover:bg-slate-100 dark:hover:bg-slate-800
+      class="w-9 h-9 rounded-md flex items-center justify-center
+             text-ink-muted hover:bg-surface-raised hover:text-ink-primary
              transition-colors duration-150"
       [attr.aria-label]="(themeService.isDark() ? 'nav.switchToLightMode' : 'nav.switchToDarkMode') | translate">
       @if (themeService.isDark()) {
@@ -59,12 +59,12 @@
     <div class="relative">
       <button (click)="userMenuOpen.set(!userMenuOpen())"
               type="button"
-              class="w-8 h-8 rounded-full bg-primary-500
+              class="w-8 h-8 rounded-full bg-accent
                      flex items-center justify-center
-                     text-white text-sm font-semibold
-                     hover:bg-primary-600 transition-colors
+                     text-accent-contrast text-sm font-semibold
+                     hover:bg-accent-hover transition-colors
                      focus:outline-none focus:ring-2
-                     focus:ring-primary-500 focus:ring-offset-2">
+                     focus:ring-accent focus:ring-offset-2 focus:ring-offset-surface-card">
         {{ userInitial() }}
       </button>
 
@@ -77,16 +77,16 @@
 
         <!-- Dropdown -->
         <div class="absolute right-0 top-full mt-2 w-48 z-20
-                    rounded-xl border border-slate-200 dark:border-slate-700
-                    bg-white dark:bg-slate-800 shadow-lg
+                    rounded-lg border border-border
+                    bg-surface-card shadow-sm
                     overflow-hidden">
 
           <!-- User info -->
-          <div class="px-4 py-3 border-b border-slate-100 dark:border-slate-700">
-            <p class="text-sm font-medium text-slate-900 dark:text-white truncate">
+          <div class="px-4 py-3 border-b border-border-subtle">
+            <p class="text-sm font-medium text-ink-primary truncate">
               {{ authService.currentUser()?.displayName ?? authService.currentUser()?.email }}
             </p>
-            <p class="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
+            <p class="text-xs text-ink-muted truncate mt-0.5">
               {{ authService.currentUser()?.email }}
             </p>
           </div>
@@ -96,8 +96,8 @@
             <a routerLink="/settings"
                (click)="userMenuOpen.set(false)"
                class="flex items-center gap-3 px-4 py-2 text-sm
-                      text-slate-700 dark:text-slate-300
-                      hover:bg-slate-50 dark:hover:bg-slate-700
+                      text-ink-secondary
+                      hover:bg-surface-raised hover:text-ink-primary
                       transition-colors">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24"
                    stroke="currentColor" stroke-width="1.5">

@@ -2,28 +2,54 @@
   <svg [attr.viewBox]="'0 0 ' + size() + ' ' + size()"
        [attr.width]="size()" [attr.height]="size()">
     <g [attr.transform]="'translate(' + size()/2 + ',' + size()/2 + ') rotate(-90)'">
-      @for (slice of slices(); track slice.label) {
+      @for (slice of slices(); track slice.label; let i = $index) {
         <circle
           cx="0" cy="0" r="54"
           fill="none"
           [attr.stroke]="slice.color"
-          stroke-width="20"
+          [attr.stroke-width]="hoveredIndex() === i ? 22 : 20"
           [attr.stroke-dasharray]="slice.strokeDasharray"
           [attr.stroke-dashoffset]="slice.strokeDashoffset"
-          stroke-linecap="butt"/>
+          stroke-linecap="butt"
+          class="transition-all duration-150 cursor-pointer"
+          [style.opacity]="hoveredIndex() === null || hoveredIndex() === i ? 1 : 0.35"
+          (mouseenter)="hoveredIndex.set(i)"
+          (mouseleave)="hoveredIndex.set(null)"/>
       }
     </g>
     <!-- Center text -->
-    <text x="50%" y="46%"
-          text-anchor="middle" dominant-baseline="middle"
-          class="fill-slate-900 dark:fill-white"
-          style="font-size: 11px; font-weight: 600; font-family: ui-monospace, monospace;">
-      {{ total() | currency:'EUR':'symbol':'1.0-0' }}
-    </text>
-    <text x="50%" y="58%"
-          text-anchor="middle" dominant-baseline="middle"
-          style="font-size: 9px; fill: #94a3b8;">
-      {{ 'transaction.total' | translate }}
-    </text>
+    @if (hoveredSlice(); as hovered) {
+      <text x="50%" y="38%"
+            text-anchor="middle" dominant-baseline="middle"
+            class="fill-ink-primary"
+            style="font-size: 9px; font-weight: 600; font-family: ui-monospace, monospace;">
+        {{ hovered.value | currency:'EUR':'symbol':'1.0-0' }}
+      </text>
+      <text x="50%" y="52%"
+            text-anchor="middle" dominant-baseline="middle"
+            class="fill-ink-primary"
+            style="font-size: 8px; font-weight: 500;">
+        {{ hovered.labelKey ? (hovered.labelKey | translate) : hovered.label }}
+      </text>
+      <text x="50%" y="61%"
+            text-anchor="middle" dominant-baseline="middle"
+            class="fill-ink-muted"
+            style="font-size: 8px;">
+        {{ hovered.pct * 100 | number:'1.1-1' }}%
+      </text>
+    } @else {
+      <text x="50%" y="46%"
+            text-anchor="middle" dominant-baseline="middle"
+            class="fill-ink-primary"
+            style="font-size: 11px; font-weight: 600; font-family: ui-monospace, monospace;">
+        {{ total() | currency:'EUR':'symbol':'1.0-0' }}
+      </text>
+      <text x="50%" y="58%"
+            text-anchor="middle" dominant-baseline="middle"
+            class="fill-ink-muted"
+            style="font-size: 9px;">
+        {{ 'transaction.total' | translate }}
+      </text>
+    }
   </svg>
 </div>

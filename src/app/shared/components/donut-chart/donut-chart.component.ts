@@ -1,9 +1,10 @@
-import { Component, input, computed } from '@angular/core';
-import { CurrencyPipe } from '@angular/common';
+import { Component, input, computed, signal } from '@angular/core';
+import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { TranslatePipe } from '@ngx-translate/core';
 
 export interface DonutSlice {
   label: string;
+  labelKey?: string;
   value: number;
   color: string;
 }
@@ -11,13 +12,15 @@ export interface DonutSlice {
 @Component({
   selector: 'app-donut-chart',
   standalone: true,
-  imports: [CurrencyPipe, TranslatePipe],
+  imports: [CurrencyPipe, DecimalPipe, TranslatePipe],
   templateUrl: './donut-chart.component.html',
 })
 export class DonutChartComponent {
   data  = input.required<DonutSlice[]>();
   total = input.required<number>();
   size  = input<number>(160);
+
+  protected readonly hoveredIndex = signal<number | null>(null);
 
   protected readonly slices = computed(() => {
     const r = 54;
@@ -35,5 +38,10 @@ export class DonutChartComponent {
 
       return { ...slice, strokeDasharray, strokeDashoffset, pct };
     });
+  });
+
+  protected readonly hoveredSlice = computed(() => {
+    const i = this.hoveredIndex();
+    return i === null ? null : this.slices()[i] ?? null;
   });
 }

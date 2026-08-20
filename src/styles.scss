@@ -1,10 +1,42 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,500..700&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --surface-page: 233 236 237;
+    --surface-card: 255 255 255;
+    --surface-raised: 242 245 245;
+    --border: 219 224 225;
+    --border-subtle: 229 232 233;
+    --ink-primary: 15 23 42;
+    --ink-secondary: 75 90 96;
+    --ink-muted: 100 116 139;
+    --accent: 15 120 105;
+    --accent-hover: 12 98 86;
+    --accent-contrast: 255 255 255;
+    --gain: 15 143 104;
+    --loss: 178 58 46;
+  }
+
+  html.dark {
+    --surface-page: 10 14 16;
+    --surface-card: 18 24 27;
+    --surface-raised: 26 33 36;
+    --border: 35 43 46;
+    --border-subtle: 27 34 37;
+    --ink-primary: 237 241 241;
+    --ink-secondary: 159 173 177;
+    --ink-muted: 110 123 127;
+    --accent: 79 176 165;
+    --accent-hover: 99 190 180;
+    --accent-contrast: 4 33 29;
+    --gain: 63 203 148;
+    --loss: 226 104 92;
+  }
+
   html, body {
     height: 100%;
     margin: 0;
@@ -16,10 +48,7 @@
     html { font-size: 16px; }
   }
   html {
-    @apply bg-white text-slate-900;
-  }
-  html.dark {
-    @apply bg-slate-900 text-slate-100;
+    @apply bg-surface-page text-ink-primary;
   }
 }
 

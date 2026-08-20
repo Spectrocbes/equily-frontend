@@ -3,23 +3,23 @@
   <!-- Header -->
   <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
     <div>
-      <h1 class="text-2xl font-bold text-slate-900 dark:text-white">
+      <h1 class="text-2xl font-bold text-ink-primary">
         {{ 'investments.title' | translate }}
       </h1>
-      <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+      <p class="text-sm text-ink-secondary mt-0.5">
         {{ 'investments.subtitle' | translate }}
       </p>
     </div>
-    <div class="flex items-center gap-4 self-start sm:self-auto">
+    <div class="flex items-start gap-4 self-start sm:self-auto">
       <div class="text-right">
-        <p class="text-xs text-slate-400 dark:text-slate-500 uppercase tracking-wide">
+        <p class="text-xs text-ink-muted uppercase tracking-wide">
           {{ 'transaction.total' | translate }}
         </p>
-        <p class="text-xl font-bold font-mono text-slate-900 dark:text-white">
+        <p class="text-xl font-bold font-mono text-ink-primary">
           {{ totalPortfolioValue() | userCurrency }}
         </p>
         @if (totalCash() > 0) {
-          <p class="text-xs text-slate-400 dark:text-slate-500">
+          <p class="text-xs text-ink-muted">
             + {{ totalCash() | userCurrency:'1.0-0' }} {{ 'account.cash' | translate }}
           </p>
         }
@@ -27,9 +27,9 @@
       <button type="button"
               (click)="showModal.set(true)"
               class="inline-flex items-center gap-2
-                     px-4 py-2 rounded-xl text-sm font-semibold
-                     bg-primary-500 hover:bg-primary-600
-                     text-white transition-colors">
+                     px-4 py-2 rounded-md text-sm font-semibold
+                     bg-accent hover:bg-accent-hover
+                     text-accent-contrast transition-colors">
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24"
              stroke="currentColor" stroke-width="2.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
@@ -59,36 +59,36 @@
   }
 
   <!-- Accounts list -->
-  <div class="rounded-xl border border-slate-200 dark:border-slate-700
-              bg-white dark:bg-slate-800 overflow-hidden">
+  <div class="rounded-md border border-border
+              bg-surface-card overflow-hidden">
 
-    <div class="px-5 py-4 bg-slate-50 dark:bg-slate-800/80
-                border-b border-slate-200 dark:border-slate-700">
-      <h2 class="font-medium text-slate-900 dark:text-white">{{ 'account.accounts' | translate }}</h2>
+    <div class="px-5 py-4 bg-surface-raised
+                border-b border-border">
+      <h2 class="font-medium text-ink-primary">{{ 'account.accounts' | translate }}</h2>
     </div>
 
     @if (accounts().length === 0) {
       <div class="p-8 text-center">
-        <p class="text-slate-400 text-sm">{{ 'investments.noAccounts' | translate }}</p>
+        <p class="text-ink-muted text-sm">{{ 'investments.noAccounts' | translate }}</p>
       </div>
     } @else {
 
       <!-- Tab bar — only when closed accounts exist -->
       @if (closedAccounts().length > 0) {
-        <div class="border-b border-slate-200 dark:border-slate-700 px-6">
+        <div class="border-b border-border px-6">
           <nav class="flex gap-6 -mb-px">
             <button type="button"
                     (click)="activeAccountTab.set('active')"
                     class="flex items-center gap-2 py-3 text-sm font-medium
                            transition-colors border-b-2"
                     [class]="activeAccountTab() === 'active'
-                      ? 'border-primary-500 text-primary-600 dark:text-primary-400'
-                      : 'border-transparent text-slate-500 dark:text-slate-400
-                         hover:text-slate-700 dark:hover:text-slate-300'">
+                      ? 'border-accent text-accent'
+                      : 'border-transparent text-ink-secondary
+                         hover:text-ink-primary'">
               <span>{{ 'account.status.active' | translate }}</span>
               <span class="px-1.5 py-0.5 rounded-full text-xs leading-none
-                           bg-slate-100 dark:bg-slate-700
-                           text-slate-500 dark:text-slate-400">
+                           bg-surface-raised
+                           text-ink-secondary">
                 {{ openAccounts().length }}
               </span>
             </button>
@@ -98,13 +98,13 @@
                            transition-colors border-b-2"
                     [class]="activeAccountTab() === 'closed'
                       ? 'border-rose-500 text-rose-600 dark:text-rose-400'
-                      : 'border-transparent text-slate-500 dark:text-slate-400
-                         hover:text-slate-700 dark:hover:text-slate-300'">
+                      : 'border-transparent text-ink-secondary
+                         hover:text-ink-primary'">
               <span>{{ 'account.status.closed' | translate }}</span>
               <span class="px-1.5 py-0.5 rounded-full text-xs leading-none"
                     [class]="activeAccountTab() === 'closed'
                       ? 'bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400'
-                      : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'">
+                      : 'bg-surface-raised text-ink-secondary'">
                 {{ closedAccounts().length }}
               </span>
             </button>
@@ -114,39 +114,39 @@
 
       <!-- Active accounts tab -->
       @if (activeAccountTab() === 'active') {
-        <div class="divide-y divide-slate-100 dark:divide-slate-700">
+        <div class="divide-y divide-border-subtle">
           @for (account of openAccounts(); track account.id) {
             <a [routerLink]="['/wealth/investments', account.id]"
                class="block px-5 py-4
-                      hover:bg-slate-50 dark:hover:bg-slate-800/30
+                      hover:bg-surface-raised
                       transition-colors cursor-pointer no-underline group">
 
               <div class="flex items-center justify-between">
                 <div>
-                  <p class="text-sm font-semibold text-slate-900 dark:text-white
-                             group-hover:text-primary-600 dark:group-hover:text-primary-400
+                  <p class="text-sm font-semibold text-ink-primary
+                             group-hover:text-accent
                              transition-colors">
                     {{ account.name }}
                   </p>
-                  <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+                  <p class="text-xs text-ink-muted mt-0.5">
                     {{ account.broker }} · {{ 'subType.' + account.accountType | translate }}
                   </p>
                 </div>
 
                 <div class="flex items-center gap-4">
                   <div class="text-right flex-shrink-0">
-                    <p class="text-sm font-semibold text-slate-900 dark:text-white font-mono">
+                    <p class="text-sm font-semibold text-ink-primary font-mono">
                       {{ liveValue(account.id) | userCurrency }}
                     </p>
                     <p class="text-xs mt-0.5"
                        [class]="isPriceAvailable(account.id)
-                         ? 'text-slate-400 dark:text-slate-500'
+                         ? 'text-ink-muted'
                          : 'text-amber-500 dark:text-amber-400'">
                       {{ (isPriceAvailable(account.id) ? 'account.live' : 'account.atCost') | translate }}
                     </p>
                   </div>
-                  <svg class="w-4 h-4 text-slate-300 dark:text-slate-600
-                               group-hover:text-primary-400 transition-colors"
+                  <svg class="w-4 h-4 text-ink-muted
+                               group-hover:text-accent transition-colors"
                        fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
                   </svg>
@@ -155,7 +155,7 @@
 
               @if (account.depositLimit !== null && account.depositLimit! > 0) {
                 <div class="mt-2 w-full">
-                  <div class="h-1.5 bg-slate-200 dark:bg-slate-700
+                  <div class="h-1.5 bg-surface-raised
                               rounded-full overflow-hidden">
                     <div class="h-full rounded-full"
                          [class.transition-all]="animatedProgress()"
@@ -170,12 +170,12 @@
                            ? 'bg-rose-500'
                            : progressPercent(account) >= 90
                            ? 'bg-amber-500'
-                           : 'bg-primary-500'">
+                           : 'bg-accent'">
                     </div>
                   </div>
                   <div class="flex justify-between mt-1">
                     @if (account.subType === 'PEA' || account.subType === 'PEA_PME') {
-                      <span class="text-xs text-slate-400 flex items-center gap-1">
+                      <span class="text-xs text-ink-muted flex items-center gap-1">
                         @if (account.depositNote) {
                           {{ (account.ownDeposits ?? 0) | userCurrency:'1.0-0' }} {{ 'account.deposited' | translate }}
                           <span class="cursor-help" [title]="account.depositNote">ⓘ</span>
@@ -184,12 +184,12 @@
                         }
                       </span>
                     } @else {
-                      <span class="text-xs text-slate-400">
+                      <span class="text-xs text-ink-muted">
                         {{ account.balance | userCurrency:'1.0-0' }} {{ 'account.balance' | translate }}
                       </span>
                     }
                     <span class="text-xs"
-                          [class]="progressPercent(account) >= 90 ? 'text-amber-500' : 'text-slate-400'">
+                          [class]="progressPercent(account) >= 90 ? 'text-amber-500' : 'text-ink-muted'">
                       {{ (account.remainingCapacity ?? 0) | userCurrency:'1.0-0' }} {{ 'account.remaining' | translate }}
                     </span>
                   </div>
@@ -202,12 +202,12 @@
 
         <!-- Total row -->
         <div class="flex items-center justify-between px-5 py-3
-                    bg-primary-50/50 dark:bg-primary-900/10
-                    border-t-2 border-primary-100 dark:border-primary-900/30">
-          <span class="text-sm font-semibold text-primary-600 dark:text-primary-400">
+                    bg-accent/5
+                    border-t-2 border-accent/20">
+          <span class="text-sm font-semibold text-accent">
             {{ 'investments.totalInvestments' | translate }}
           </span>
-          <p class="text-sm font-bold font-mono text-primary-600 dark:text-primary-400">
+          <p class="text-sm font-bold font-mono text-accent">
             {{ totalPortfolioValue() | userCurrency }}
           </p>
         </div>
@@ -218,21 +218,21 @@
         @for (account of closedAccounts(); track account.id) {
           <a [routerLink]="['/wealth/investments', account.id]"
              class="flex items-center justify-between px-6 py-4
-                    border-b border-slate-100 dark:border-slate-800
-                    hover:bg-slate-50 dark:hover:bg-slate-800/30
+                    border-b border-border-subtle
+                    hover:bg-surface-raised
                     transition-colors no-underline group">
             <div>
-              <p class="text-sm font-semibold text-slate-700 dark:text-slate-300">
+              <p class="text-sm font-semibold text-ink-secondary">
                 {{ account.name }}
               </p>
-              <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+              <p class="text-xs text-ink-muted mt-0.5">
                 {{ account.broker }} ·
                 {{ 'subType.' + account.accountType | translate }}
                 · 🔒 {{ 'account.status.closed' | translate }} {{ account.closedAt | date:'mediumDate' }}
               </p>
             </div>
-            <svg class="w-4 h-4 text-slate-300 dark:text-slate-600
-                        group-hover:text-slate-500 transition-colors"
+            <svg class="w-4 h-4 text-ink-muted
+                        group-hover:text-ink-muted transition-colors"
                  fill="none" viewBox="0 0 24 24"
                  stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>

@@ -51,20 +51,18 @@ describe('SettingsComponent', () => {
     return fixture;
   }
 
-  it('renders one nav button per section (4 sections)', () => {
+  it('renders one nav button per section (2 sections)', () => {
     const fixture = createComponent();
     const navButtons = fixture.debugElement.queryAll(By.css('nav button'));
-    expect(navButtons.length).toBe(4);
+    expect(navButtons.length).toBe(2);
     expect(navButtons[0].nativeElement.textContent.trim()).toBe('Currency');
     expect(navButtons[1].nativeElement.textContent.trim()).toBe('Language');
-    expect(navButtons[2].nativeElement.textContent.trim()).toBe('Appearance');
-    expect(navButtons[3].nativeElement.textContent.trim()).toBe('Notifications');
   });
 
   it('switching to language section shows EN/FR buttons', () => {
     const fixture = createComponent();
     const component = fixture.componentInstance as unknown as {
-      activeSection: ReturnType<typeof signal<'currency' | 'language' | 'appearance' | 'notifications'>>;
+      activeSection: ReturnType<typeof signal<'currency' | 'language'>>;
     };
     component.activeSection.set('language');
     fixture.detectChanges();
@@ -75,7 +73,7 @@ describe('SettingsComponent', () => {
   it('setLocale calls preferencesService.update with current currency and new locale', () => {
     const fixture = createComponent();
     const component = fixture.componentInstance as unknown as {
-      activeSection: ReturnType<typeof signal<'currency' | 'language' | 'appearance' | 'notifications'>>;
+      activeSection: ReturnType<typeof signal<'currency' | 'language'>>;
       setLocale: (locale: string) => void;
     };
     component.activeSection.set('language');
@@ -105,29 +103,6 @@ describe('SettingsComponent', () => {
       By.css('div.flex.gap-2 button[type="button"]')
     );
     expect(currencyButtons.length).toBe(4);
-  });
-
-  it('switching to appearance section hides currency pills', () => {
-    const fixture = createComponent();
-    const component = fixture.componentInstance as unknown as {
-      activeSection: ReturnType<typeof signal<'currency' | 'language' | 'appearance' | 'notifications'>>;
-    };
-    component.activeSection.set('appearance');
-    fixture.detectChanges();
-    const currencyPills = fixture.debugElement.queryAll(
-      By.css('div.flex.gap-2 button')
-    );
-    expect(currencyPills.length).toBe(0);
-  });
-
-  it('switching to notifications section shows notifications content', () => {
-    const fixture = createComponent();
-    const component = fixture.componentInstance as unknown as {
-      activeSection: ReturnType<typeof signal<'currency' | 'language' | 'appearance' | 'notifications'>>;
-    };
-    component.activeSection.set('notifications');
-    fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Notification preferences');
   });
 
   it('selectCurrency updates the selectedCurrency signal', () => {

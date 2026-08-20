@@ -22,13 +22,11 @@ export class SettingsComponent {
   protected readonly selectedCurrency = signal(this.preferencesService.currency());
   protected readonly currentLocale = this.preferencesService.locale;
   protected readonly activeSection =
-    signal<'currency' | 'language' | 'appearance' | 'notifications'>('currency');
+    signal<'currency' | 'language'>('currency');
 
   protected readonly sections = [
-    { id: 'currency'      as const, labelKey: 'settings.navCurrency'      },
-    { id: 'language'      as const, labelKey: 'settings.locale'           },
-    { id: 'appearance'    as const, labelKey: 'settings.navAppearance'    },
-    { id: 'notifications' as const, labelKey: 'settings.navNotifications' },
+    { id: 'currency' as const, labelKey: 'settings.navCurrency' },
+    { id: 'language' as const, labelKey: 'settings.locale'      },
   ];
 
   protected selectCurrency(currency: string): void {
