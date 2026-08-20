@@ -1,12 +1,14 @@
 <div class="min-h-screen flex">
 
-  <!-- Left — Form -->
-  <div class="flex-1 flex flex-col bg-surface-card
-              px-8 py-8 max-w-lg">
+  <!-- Left — Form. Equal halves on desktop; the logo shares the form's column
+       so the two stay on one left edge instead of drifting apart. -->
+  <div class="flex-1 lg:flex-none lg:w-1/2 flex flex-col bg-surface-card px-8 py-8">
+
+    <div class="w-full max-w-sm mx-auto flex flex-col flex-1">
 
     <app-auth-header />
 
-    <div class="flex-1 flex flex-col justify-center max-w-sm w-full mx-auto">
+    <div class="flex-1 flex flex-col justify-center">
       <h1 class="text-2xl font-semibold text-ink-primary mb-1">
         {{ 'auth.welcomeBack' | translate }}
       </h1>
@@ -115,33 +117,35 @@
 
       </form>
     </div>
+    </div>
   </div>
 
   <!-- Right — Visual panel (hidden on mobile); deliberately always-dark, independent of the theme toggle -->
-  <div class="hidden lg:flex flex-1 bg-slate-950 flex-col
+  <div class="hidden lg:flex lg:w-1/2 bg-marketing-ground border-l border-marketing-line flex-col
               items-center justify-center p-12">
 
     <div class="max-w-sm">
-      <h2 class="text-3xl font-semibold text-white mb-4 leading-tight">
+      <h2 class="font-display text-3xl font-bold text-marketing-ink mb-4
+                 leading-tight tracking-[-0.015em] [font-stretch:112%]">
         {{ 'auth.heroTitleLogin' | translate }}<br/>
-        <span class="text-[#4FB0A5]">{{ 'auth.heroTitleLoginAccent' | translate }}</span>
+        <span class="text-marketing-teal">{{ 'auth.heroTitleLoginAccent' | translate }}</span>
       </h2>
-      <p class="text-slate-400 text-sm leading-relaxed mb-8">
+      <p class="text-marketing-soft text-sm leading-relaxed mb-8">
         {{ 'auth.heroTagline' | translate }}
       </p>
 
       <div class="space-y-3 text-left">
         @for (item of ('auth.rightPanelItems' | translate); track item) {
           <div class="flex items-center gap-3">
-            <div class="w-5 h-5 rounded-full bg-[#4FB0A5]/15
+            <div class="w-5 h-5 rounded-full bg-marketing-teal/15
                         flex items-center justify-center flex-shrink-0">
-              <svg class="w-3 h-3 text-[#4FB0A5]" fill="none"
+              <svg class="w-3 h-3 text-marketing-teal" fill="none"
                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                 <path stroke-linecap="round" stroke-linejoin="round"
                       d="M4.5 12.75l6 6 9-13.5"/>
               </svg>
             </div>
-            <span class="text-slate-300 text-sm">{{ item }}</span>
+            <span class="text-marketing-soft text-sm">{{ item }}</span>
           </div>
         }
       </div>
