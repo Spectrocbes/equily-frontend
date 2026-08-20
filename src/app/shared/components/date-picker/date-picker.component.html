@@ -1,6 +1,6 @@
 <div class="relative">
   <span class="block text-sm font-medium
-               text-slate-700 dark:text-slate-300 mb-1.5">
+               text-ink-secondary mb-1.5">
     {{ label() }}
   </span>
 
@@ -8,17 +8,17 @@
   <button type="button"
           (click)="open($event)"
           class="w-full flex items-center justify-between
-                 px-3 py-2.5 rounded-lg text-sm text-left
-                 bg-white dark:bg-slate-800
-                 border border-slate-300 dark:border-slate-500
-                 text-slate-700 dark:text-slate-200
-                 hover:border-primary-400
+                 px-3 py-2.5 rounded-md text-sm text-left
+                 bg-surface-card
+                 border border-border
+                 text-ink-secondary
+                 hover:border-accent
                  focus:outline-none focus:ring-2
-                 focus:ring-primary-500 transition-colors">
-    <span [class.text-slate-400]="!selectedDate()">
+                 focus:ring-accent transition-colors">
+    <span [class.text-ink-muted]="!selectedDate()">
       {{ displayValue() || ('datePicker.selectDate' | translate) }}
     </span>
-    <svg class="w-4 h-4 text-slate-400 flex-shrink-0"
+    <svg class="w-4 h-4 text-ink-muted flex-shrink-0"
          fill="none" viewBox="0 0 24 24"
          stroke="currentColor" stroke-width="2">
       <path stroke-linecap="round" stroke-linejoin="round"
@@ -39,9 +39,9 @@
 
     <!-- Calendar panel -->
     <div class="fixed z-50
-                w-72 rounded-2xl shadow-xl
-                bg-white dark:bg-slate-800
-                border border-slate-200 dark:border-slate-700
+                w-72 rounded-md shadow-xl
+                bg-surface-card
+                border border-border
                 overflow-hidden"
          [style.top.px]="calendarPosition()?.top"
          [style.bottom.px]="calendarPosition()?.bottom"
@@ -52,13 +52,13 @@
 
       <!-- Header -->
       <div class="flex items-center justify-between px-4 py-3
-                  border-b border-slate-100 dark:border-slate-700">
+                  border-b border-border-subtle">
 
         @if (headerMode() === 'calendar') {
           <button type="button" (click)="prevMonth()"
                   class="w-8 h-8 flex items-center justify-center
-                         rounded-lg text-slate-400
-                         hover:bg-slate-100 dark:hover:bg-slate-700
+                         rounded-md text-ink-muted
+                         hover:bg-surface-raised
                          transition-colors">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24"
                  stroke="currentColor" stroke-width="2">
@@ -70,11 +70,11 @@
           <button type="button"
                   (click)="switchToYearMode()"
                   class="flex items-center gap-1.5 text-sm font-semibold
-                         text-slate-900 dark:text-white
-                         hover:text-primary-500 dark:hover:text-primary-400
+                         text-ink-primary
+                         hover:text-accent
                          transition-colors">
             {{ MONTHS()[viewMonth()] }} {{ viewYear() }}
-            <svg class="w-3.5 h-3.5 text-slate-400" fill="none"
+            <svg class="w-3.5 h-3.5 text-ink-muted" fill="none"
                  viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round"
                     d="M19 9l-7 7-7-7"/>
@@ -83,8 +83,8 @@
 
           <button type="button" (click)="nextMonth()"
                   class="w-8 h-8 flex items-center justify-center
-                         rounded-lg text-slate-400
-                         hover:bg-slate-100 dark:hover:bg-slate-700
+                         rounded-md text-ink-muted
+                         hover:bg-surface-raised
                          transition-colors">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24"
                  stroke="currentColor" stroke-width="2">
@@ -98,8 +98,8 @@
           <button type="button"
                   (click)="headerMode.set('calendar')"
                   class="w-8 h-8 flex items-center justify-center
-                         rounded-lg text-slate-400
-                         hover:bg-slate-100 dark:hover:bg-slate-700
+                         rounded-md text-ink-muted
+                         hover:bg-surface-raised
                          transition-colors">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24"
                  stroke="currentColor" stroke-width="2">
@@ -107,7 +107,7 @@
                     d="M15 19l-7-7 7-7"/>
             </svg>
           </button>
-          <span class="text-sm font-semibold text-slate-900 dark:text-white">
+          <span class="text-sm font-semibold text-ink-primary">
             {{ 'datePicker.selectYear' | translate }}
           </span>
           <div class="w-8"></div>
@@ -117,8 +117,8 @@
           <button type="button"
                   (click)="goBackToYearMode()"
                   class="w-8 h-8 flex items-center justify-center
-                         rounded-lg text-slate-400
-                         hover:bg-slate-100 dark:hover:bg-slate-700
+                         rounded-md text-ink-muted
+                         hover:bg-surface-raised
                          transition-colors">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24"
                  stroke="currentColor" stroke-width="2">
@@ -126,7 +126,7 @@
                     d="M15 19l-7-7 7-7"/>
             </svg>
           </button>
-          <span class="text-sm font-semibold text-slate-900 dark:text-white">
+          <span class="text-sm font-semibold text-ink-primary">
             {{ 'datePicker.selectMonth' | translate }}
           </span>
           <div class="w-8"></div>
@@ -140,7 +140,7 @@
           @for (day of DAYS(); track day) {
             <div class="h-8 flex items-center justify-center
                          text-xs font-medium
-                         text-slate-400 dark:text-slate-500">
+                         text-ink-muted">
               {{ day }}
             </div>
           }
@@ -153,19 +153,19 @@
                     (click)="selectDate(day)"
                     [disabled]="day.isDisabled"
                     class="h-8 w-full flex items-center justify-center
-                           text-xs rounded-lg transition-colors
+                           text-xs rounded-md transition-colors
                            disabled:cursor-not-allowed"
                     [class]="
                       day.isSelected
-                        ? 'bg-primary-500 text-white font-semibold'
+                        ? 'bg-accent text-accent-contrast font-semibold'
                         : day.isDisabled
-                          ? 'text-slate-300 dark:text-slate-600 cursor-not-allowed'
+                          ? 'text-ink-muted cursor-not-allowed'
                           : day.isToday
-                            ? 'border border-primary-400
-                               text-primary-500 dark:text-primary-400
-                               hover:bg-primary-50 dark:hover:bg-primary-900/20'
-                            : 'text-slate-700 dark:text-slate-200
-                               hover:bg-slate-100 dark:hover:bg-slate-700'
+                            ? 'border border-accent
+                               text-accent
+                               hover:bg-accent/10'
+                            : 'text-ink-secondary
+                               hover:bg-surface-raised'
                     ">
               {{ day.day }}
             </button>
@@ -180,11 +180,11 @@
             <button type="button"
                     [id]="'year-' + year"
                     (click)="selectYear(year)"
-                    class="py-2 rounded-lg text-sm transition-colors"
+                    class="py-2 rounded-md text-sm transition-colors"
                     [class]="year === viewYear()
-                      ? 'bg-primary-500 text-white font-semibold'
-                      : 'text-slate-700 dark:text-slate-200
-                         hover:bg-slate-100 dark:hover:bg-slate-700'">
+                      ? 'bg-accent text-accent-contrast font-semibold'
+                      : 'text-ink-secondary
+                         hover:bg-surface-raised'">
               {{ year }}
             </button>
           }
@@ -196,11 +196,11 @@
           @for (month of MONTHS_SHORT(); track $index) {
             <button type="button"
                     (click)="selectMonth($index)"
-                    class="py-2 rounded-lg text-sm transition-colors"
+                    class="py-2 rounded-md text-sm transition-colors"
                     [class]="$index === viewMonth()
-                      ? 'bg-primary-500 text-white font-semibold'
-                      : 'text-slate-700 dark:text-slate-200
-                         hover:bg-slate-100 dark:hover:bg-slate-700'">
+                      ? 'bg-accent text-accent-contrast font-semibold'
+                      : 'text-ink-secondary
+                         hover:bg-surface-raised'">
               {{ month }}
             </button>
           }
@@ -209,11 +209,11 @@
 
       <!-- Today shortcut — only in calendar mode -->
       @if (headerMode() === 'calendar') {
-        <div class="border-t border-slate-100 dark:border-slate-700
+        <div class="border-t border-border-subtle
                     px-4 py-2.5">
           <button type="button" (click)="selectToday()"
-                  class="text-xs text-primary-500 hover:text-primary-600
-                         dark:text-primary-400 font-medium transition-colors">
+                  class="text-xs text-accent hover:text-accent-hover
+                         font-medium transition-colors">
             {{ 'common.today' | translate }}
           </button>
         </div>

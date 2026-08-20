@@ -324,8 +324,8 @@
                     @if (holding.dayChangePercent !== null) {
                       <span class="text-xs font-mono px-1.5 py-0.5 rounded-md"
                             [class]="holding.dayChangePercent >= 0
-                              ? 'bg-emerald-500/10 text-emerald-500'
-                              : 'bg-rose-500/10 text-rose-500'">
+                              ? 'bg-gain/10 text-gain'
+                              : 'bg-loss/10 text-loss'">
                         {{ holding.dayChangePercent >= 0 ? '+' : '' }}{{ holding.dayChangePercent | number:'1.2-2' }}%
                       </span>
                     }

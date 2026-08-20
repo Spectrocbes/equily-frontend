@@ -414,21 +414,18 @@
 
             <!-- Ticker -->
             <div class="col-span-2">
-              <p class="text-sm font-semibold text-ink-primary
-                         dark:text-white font-mono">
+              <p class="text-sm font-semibold text-ink-primary font-mono">
                 {{ holding.ticker }}
               </p>
             </div>
 
             <!-- Quantity -->
-            <p class="text-right text-sm text-ink-secondary
-                       dark:text-ink-muted font-mono">
+            <p class="text-right text-sm text-ink-secondary font-mono">
               {{ holding.quantity | number:'1.0-4' }}
             </p>
 
             <!-- Avg cost price -->
-            <p class="text-right text-sm text-ink-secondary
-                       dark:text-ink-muted font-mono">
+            <p class="text-right text-sm text-ink-secondary font-mono">
               {{ holding.averageCostPrice | userCurrency }}
             </p>
 
@@ -442,8 +439,8 @@
                   @if (holding.dayChangePercent !== null) {
                     <span class="text-xs font-mono px-1.5 py-0.5 rounded-md"
                           [class]="holding.dayChangePercent >= 0
-                            ? 'bg-emerald-500/10 text-emerald-500'
-                            : 'bg-rose-500/10 text-rose-500'">
+                            ? 'bg-gain/10 text-gain'
+                            : 'bg-loss/10 text-loss'">
                       {{ holding.dayChangePercent >= 0 ? '+' : '' }}{{ holding.dayChangePercent | number:'1.2-2' }}%
                     </span>
                   }
@@ -456,8 +453,7 @@
             <!-- Market value -->
             <div class="text-right">
               @if (holding.priceAvailable) {
-                <p class="text-sm font-semibold text-ink-primary
-                           dark:text-white font-mono">
+                <p class="text-sm font-semibold text-ink-primary font-mono">
                   {{ holding.marketValue | userCurrency }}
                 </p>
               } @else {
