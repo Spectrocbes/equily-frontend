@@ -5,7 +5,7 @@
                  px-8 py-4 border-b border-slate-800 bg-slate-900/95
                  backdrop-blur-sm">
     <a routerLink="/home" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
-      <div class="w-8 h-8 rounded-lg bg-primary-500
+      <div class="w-8 h-8 rounded-md bg-accent
                   flex items-center justify-center">
         <span class="text-white font-bold text-sm">E</span>
       </div>
@@ -41,8 +41,8 @@
         {{ 'auth.signIn' | translate }}
       </a>
       <a routerLink="/register"
-         class="px-4 py-2 rounded-lg text-sm font-medium
-                bg-primary-500 hover:bg-primary-600 text-white transition-colors">
+         class="px-4 py-2 rounded-md text-sm font-medium
+                bg-accent hover:bg-accent-hover text-accent-contrast transition-colors">
         {{ 'auth.getStarted' | translate }}
       </a>
     </div>
@@ -52,28 +52,28 @@
   <section class="flex flex-col items-center justify-center text-center
                   px-6 py-24 max-w-4xl mx-auto w-full">
     <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full
-                bg-primary-500/10 border border-primary-500/20
-                text-primary-400 text-xs font-medium mb-6">
+                bg-accent/10 border border-accent/20
+                text-accent text-xs font-medium mb-6">
       <span class="w-1.5 h-1.5 rounded-full bg-primary-400 animate-pulse"></span>
       {{ 'landing.badge' | translate }}
     </div>
     <h1 class="text-5xl sm:text-6xl font-bold text-white tracking-tight
                mb-5 leading-tight">
       {{ 'landing.heroTitle' | translate }}<br/>
-      <span class="text-primary-400">{{ 'landing.heroTitleAccent' | translate }}</span>
+      <span class="text-accent">{{ 'landing.heroTitleAccent' | translate }}</span>
     </h1>
     <p class="text-xl text-slate-400 mb-10 leading-relaxed max-w-xl">
       {{ 'landing.heroDescription' | translate }}
     </p>
     <div class="flex items-center gap-4 flex-wrap justify-center">
       <a routerLink="/register"
-         class="px-8 py-3.5 rounded-xl text-sm font-semibold
-                bg-primary-500 hover:bg-primary-600 text-white
+         class="px-8 py-3.5 rounded-lg text-sm font-semibold
+                bg-accent hover:bg-accent-hover text-accent-contrast
                 transition-colors shadow-lg shadow-primary-500/20">
         {{ 'landing.startForFree' | translate }}
       </a>
       <a routerLink="/login"
-         class="px-8 py-3.5 rounded-xl text-sm font-medium
+         class="px-8 py-3.5 rounded-lg text-sm font-medium
                 border border-slate-700 text-slate-300
                 hover:border-slate-500 hover:text-white transition-colors">
         {{ 'auth.signIn' | translate }}
@@ -104,7 +104,7 @@
       </p>
       <div class="grid md:grid-cols-3 gap-6">
         @for (feature of features; track feature.titleKey) {
-          <div class="rounded-2xl border border-slate-800 bg-slate-800/40
+          <div class="rounded-lg border border-slate-800 bg-slate-800/40
                       p-6 hover:border-slate-700 transition-colors">
             <div class="text-3xl mb-4">{{ feature.icon }}</div>
             <h3 class="text-white font-semibold mb-2">{{ feature.titleKey | translate }}</h3>
@@ -148,7 +148,7 @@
       </p>
       <div class="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
         @for (item of security; track item.titleKey) {
-          <div class="flex gap-4 p-5 rounded-xl border border-slate-800
+          <div class="flex gap-4 p-5 rounded-lg border border-slate-800
                       bg-slate-800/30">
             <span class="text-2xl flex-shrink-0">{{ item.icon }}</span>
             <div>
@@ -169,8 +169,8 @@
         {{ 'landing.aboutDescription' | translate }}
       </p>
       <a routerLink="/register"
-         class="inline-flex px-8 py-3.5 rounded-xl text-sm font-semibold
-                bg-primary-500 hover:bg-primary-600 text-white transition-colors">
+         class="inline-flex px-8 py-3.5 rounded-lg text-sm font-semibold
+                bg-accent hover:bg-accent-hover text-accent-contrast transition-colors">
         {{ 'landing.startTrackingWealth' | translate }}
       </a>
     </div>
@@ -181,8 +181,8 @@
     <button (click)="scrollToTop()"
             class="fixed bottom-6 right-6 z-50
                    w-10 h-10 rounded-full
-                   bg-primary-500 hover:bg-primary-600
-                   text-white shadow-lg shadow-primary-500/30
+                   bg-accent hover:bg-accent-hover
+                   text-accent-contrast shadow-lg shadow-primary-500/30
                    flex items-center justify-center
                    transition-all duration-200">
       <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24"
@@ -198,9 +198,9 @@
     <div class="max-w-5xl mx-auto flex items-center justify-between
                 flex-wrap gap-4">
       <div class="flex items-center gap-2">
-        <div class="w-6 h-6 rounded bg-primary-500
+        <div class="w-6 h-6 rounded bg-accent
                     flex items-center justify-center">
-          <span class="text-white font-bold text-xs">E</span>
+          <span class="text-accent-contrast font-bold text-xs">E</span>
         </div>
         <span class="text-slate-400 text-sm">Equily v0.1.0</span>
       </div>
