@@ -44,7 +44,8 @@
             @for (currency of preferences().supportedCurrencies; track currency) {
               <button (click)="selectCurrency(currency)"
                       type="button"
-                      class="px-4 py-2 rounded-md text-sm font-medium
+                      class="min-w-[92px] flex items-center justify-center
+                             px-4 py-2 rounded-md text-sm font-medium
                              transition-colors border"
                       [class]="selectedCurrency() === currency
                         ? 'bg-accent border-accent text-accent-contrast'
@@ -52,7 +53,9 @@
                            text-ink-secondary
                            hover:border-accent hover:text-accent'">
                 {{ currency }}
-                <span class="ml-1 opacity-60">{{ CURRENCY_SYMBOLS[currency] ?? currency }}</span>
+                @if (CURRENCY_SYMBOLS[currency] && CURRENCY_SYMBOLS[currency] !== currency) {
+                  <span class="ml-1 opacity-60">{{ CURRENCY_SYMBOLS[currency] }}</span>
+                }
               </button>
             }
           </div>
@@ -86,7 +89,8 @@
             <button (click)="setLocale('en')"
                     type="button"
                     [disabled]="localeLoading()"
-                    class="px-4 py-2 rounded-md text-sm font-medium
+                    class="min-w-[92px] flex items-center justify-center
+                           px-4 py-2 rounded-md text-sm font-medium
                            transition-colors disabled:opacity-50"
                     [class]="currentLocale().startsWith('en')
                       ? 'bg-accent text-accent-contrast'
@@ -98,7 +102,8 @@
             <button (click)="setLocale('fr-FR')"
                     type="button"
                     [disabled]="localeLoading()"
-                    class="px-4 py-2 rounded-md text-sm font-medium
+                    class="min-w-[92px] flex items-center justify-center
+                           px-4 py-2 rounded-md text-sm font-medium
                            transition-colors disabled:opacity-50"
                     [class]="currentLocale().startsWith('fr')
                       ? 'bg-accent text-accent-contrast'
@@ -108,30 +113,6 @@
               Français
             </button>
           </div>
-        </div>
-      }
-
-      @if (activeSection() === 'appearance') {
-        <div class="rounded-md border border-border
-                    bg-surface-card p-6">
-          <h2 class="text-base font-semibold text-ink-primary mb-1">
-            {{ 'settings.navAppearance' | translate }}
-          </h2>
-          <p class="text-sm text-ink-secondary">
-            {{ 'settings.themeComingSoon' | translate }}
-          </p>
-        </div>
-      }
-
-      @if (activeSection() === 'notifications') {
-        <div class="rounded-md border border-border
-                    bg-surface-card p-6">
-          <h2 class="text-base font-semibold text-ink-primary mb-1">
-            {{ 'settings.navNotifications' | translate }}
-          </h2>
-          <p class="text-sm text-ink-secondary">
-            {{ 'settings.notificationsComingSoon' | translate }}
-          </p>
         </div>
       }
 

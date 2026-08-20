@@ -521,13 +521,9 @@
     "saved": "Préférences enregistrées",
     "saveFailed": "Échec de l'enregistrement des préférences",
     "navCurrency": "Devise",
-    "navAppearance": "Apparence",
-    "navNotifications": "Notifications",
     "subtitle": "Gérez les préférences de votre compte",
     "referenceCurrency": "Devise de référence",
-    "currencyHint": "Toutes les valeurs de portefeuille et les P&L seront affichées dans cette devise. Les cours en direct sont convertis automatiquement.",
-    "themeComingSoon": "Thème et options d'affichage — bientôt disponible.",
-    "notificationsComingSoon": "Préférences de notification — bientôt disponible."
+    "currencyHint": "Toutes les valeurs de portefeuille et les P&L seront affichées dans cette devise. Les cours en direct sont convertis automatiquement."
   },
   "investments": {
     "title": "Investissements",

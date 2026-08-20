@@ -521,13 +521,9 @@
     "saved": "Preferences saved",
     "saveFailed": "Failed to save preferences",
     "navCurrency": "Currency",
-    "navAppearance": "Appearance",
-    "navNotifications": "Notifications",
     "subtitle": "Manage your account preferences",
     "referenceCurrency": "Reference currency",
-    "currencyHint": "All portfolio values and P&L will be displayed in this currency. Live prices are converted automatically.",
-    "themeComingSoon": "Theme and display options — coming soon.",
-    "notificationsComingSoon": "Notification preferences — coming soon."
+    "currencyHint": "All portfolio values and P&L will be displayed in this currency. Live prices are converted automatically."
   },
   "investments": {
     "title": "Investments",
