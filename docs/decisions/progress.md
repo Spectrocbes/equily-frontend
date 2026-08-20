@@ -462,3 +462,10 @@
 - Mechanical token substitution scripted (Node codemod) across ~20 remaining templates (wealth list/detail pages, 8 shared modals, date-picker, ticker-autocomplete, analytics, rebalance, settings), then hand-reviewed via repeated grep sweeps for stray/redundant classes
 - 3 spec assertions updated for renamed classes (`bg-primary-50` → `bg-accent/10`, `bg-primary-500` → `bg-accent`)
 - 637/637 tests, lint clean, build 0 errors, coverage 83.6%/64.9%/78.1%/85.2% (stmt/branch/func/line)
+
+## 2026-08-20 — feature/ui-redesign: donut hover + accessibility pass (complete)
+- Donut chart: per-slice hover isolates the hovered slice's color (siblings dim to 0.35 opacity) and swaps the center label to that slice's name/value/%, so slices stay distinguishable when a portfolio has many similarly-colored holdings. First spec added for the component (`donut-chart.component.spec.ts`, 6 tests) — it previously had none.
+- Accessibility: added `aria-label` (via `[attr.aria-label] | translate`) to all 17 icon-only buttons app-wide that had neither visible text nor a tooltip — navbar hamburger, sidebar mobile-close, date-picker's 4 nav buttons, toast dismiss, 4 modal close buttons (add-transaction/edit-transaction/add-account/csv-import), account + transaction 3-dot menus on all 4 wealth detail pages, rebalance's remove-category button, landing's scroll-to-top button
+- `toast-container.component.ts` was missing `TranslatePipe` from its `imports` entirely — added
+- New i18n keys: `common.moreOptions`, `common.remove`, `nav.openMenu`, `datePicker.previousMonth`/`nextMonth`, `landing.scrollToTop`; reused existing `common.close`/`common.back`/`nav.closeSidebar` elsewhere. en/fr key-count parity verified (582/582)
+- 641/641 tests, lint clean, build 0 errors
