@@ -15,10 +15,13 @@ import { DatePickerComponent } from '../../../shared/components/date-picker/date
 import { Broker, getBrokersForAccountType } from '../../../core/constants/brokers';
 import { normalizeTextOrUndefined } from '../../../core/utils/sanitize';
 
+import { BrokerLogoComponent } from '../../../shared/components/broker-logo/broker-logo.component';
+
 @Component({
   selector: 'app-add-account-modal',
   standalone: true,
-  imports: [ReactiveFormsModule, DecimalPipe, DatePipe, DatePickerComponent, TranslatePipe],
+  imports: [
+    BrokerLogoComponent,ReactiveFormsModule, DecimalPipe, DatePipe, DatePickerComponent, TranslatePipe],
   templateUrl: './add-account-modal.component.html',
 })
 export class AddAccountModalComponent implements OnInit {

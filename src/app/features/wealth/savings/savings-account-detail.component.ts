@@ -17,10 +17,13 @@ import { DeleteAccountModalComponent } from '../shared/delete-account-modal.comp
 import { UserCurrencyPipe } from '../../../shared/pipes/user-currency.pipe';
 import { EvolutionChartComponent } from '../../../shared/components/evolution-chart/evolution-chart.component';
 
+import { BrokerLogoComponent } from '../../../shared/components/broker-logo/broker-logo.component';
+
 @Component({
   selector: 'app-savings-account-detail',
   standalone: true,
   imports: [
+    BrokerLogoComponent,
     CurrencyPipe, DatePipe, RouterLink, AddTransactionModalComponent, EditTransactionModalComponent,
     DeleteTransactionModalComponent, DeleteAccountModalComponent, UserCurrencyPipe, EvolutionChartComponent,
     TranslatePipe,

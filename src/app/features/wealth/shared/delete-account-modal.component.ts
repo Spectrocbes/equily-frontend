@@ -2,10 +2,13 @@ import { Component, input, output } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { FinancialAccount } from '../../../core/models/account.model';
 
+import { BrokerLogoComponent } from '../../../shared/components/broker-logo/broker-logo.component';
+
 @Component({
   selector: 'app-delete-account-modal',
   standalone: true,
-  imports: [TranslatePipe],
+  imports: [
+    BrokerLogoComponent,TranslatePipe],
   templateUrl: './delete-account-modal.component.html',
 })
 export class DeleteAccountModalComponent {

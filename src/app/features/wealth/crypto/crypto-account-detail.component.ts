@@ -25,10 +25,13 @@ import { getDonutPalette } from '../../../shared/utils/chart-tokens.util';
 import { ThemeService } from '../../../core/services/theme.service';
 import { EvolutionChartComponent } from '../../../shared/components/evolution-chart/evolution-chart.component';
 
+import { BrokerLogoComponent } from '../../../shared/components/broker-logo/broker-logo.component';
+
 @Component({
   selector: 'app-crypto-account-detail',
   standalone: true,
   imports: [
+    BrokerLogoComponent,
     CurrencyPipe, DatePipe, DecimalPipe, RouterLink,
     AddTransactionModalComponent, EditTransactionModalComponent,
     DeleteTransactionModalComponent, CsvImportModalComponent,

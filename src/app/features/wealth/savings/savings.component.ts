@@ -13,10 +13,13 @@ import {
 import { AddAccountModalComponent } from '../shared/add-account-modal.component';
 import { EvolutionChartComponent } from '../../../shared/components/evolution-chart/evolution-chart.component';
 
+import { BrokerLogoComponent } from '../../../shared/components/broker-logo/broker-logo.component';
+
 @Component({
   selector: 'app-savings',
   standalone: true,
-  imports: [CurrencyPipe, RouterLink, AddAccountModalComponent, UserCurrencyPipe, EvolutionChartComponent, TranslatePipe],
+  imports: [
+    BrokerLogoComponent,CurrencyPipe, RouterLink, AddAccountModalComponent, UserCurrencyPipe, EvolutionChartComponent, TranslatePipe],
   templateUrl: './savings.component.html',
 })
 export class SavingsComponent implements OnInit {

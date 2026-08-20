@@ -38,10 +38,15 @@
     <div class="rounded-md bg-surface-raised
                 border border-border
                 px-4 py-3 mb-4">
-      <p class="text-sm font-semibold text-ink-primary">
-        {{ account().name }}
-      </p>
-      <p class="text-xs text-ink-secondary mt-0.5">{{ account().broker }}@if (account().subType) { · {{ 'subType.' + account().subType | translate }} }</p>
+      <div class="flex items-center gap-3 min-w-0">
+        <app-broker-logo [broker]="account().broker" [size]="32"/>
+        <div class="min-w-0">
+          <p class="text-sm font-semibold text-ink-primary truncate">
+            {{ account().name }}
+          </p>
+          <p class="text-xs text-ink-secondary mt-0.5 truncate">{{ account().broker }}@if (account().subType) { · {{ 'subType.' + account().subType | translate }} }</p>
+        </div>
+      </div>
     </div>
 
     <!-- Warning -->

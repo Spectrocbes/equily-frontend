@@ -1,0 +1,17 @@
+<span class="rounded-full flex-shrink-0 inline-flex items-center justify-center overflow-hidden
+             bg-surface-raised ring-1 ring-inset ring-border"
+      [style.width.px]="size()" [style.height.px]="size()"
+      aria-hidden="true">
+  @if (showLogo()) {
+    <img [src]="logoPath()"
+         [width]="size()" [height]="size()"
+         loading="lazy" alt=""
+         (error)="failed.set(true)"
+         class="w-full h-full object-contain p-[15%]"/>
+  } @else {
+    <span class="font-semibold text-ink-secondary leading-none tracking-tight"
+          [style.font-size.px]="size() * 0.36">
+      {{ initials() }}
+    </span>
+  }
+</span>

@@ -13,10 +13,13 @@ import {
 import { AddAccountModalComponent } from '../shared/add-account-modal.component';
 import { EvolutionChartComponent } from '../../../shared/components/evolution-chart/evolution-chart.component';
 
+import { BrokerLogoComponent } from '../../../shared/components/broker-logo/broker-logo.component';
+
 @Component({
   selector: 'app-investments',
   standalone: true,
   imports: [
+    BrokerLogoComponent,
     CurrencyPipe, DatePipe, RouterLink,
     AddAccountModalComponent, UserCurrencyPipe, EvolutionChartComponent, TranslatePipe,
   ],

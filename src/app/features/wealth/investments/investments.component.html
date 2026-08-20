@@ -121,16 +121,19 @@
                       hover:bg-surface-raised
                       transition-colors cursor-pointer no-underline group">
 
-              <div class="flex items-center justify-between">
-                <div>
-                  <p class="text-sm font-semibold text-ink-primary
-                             group-hover:text-accent
-                             transition-colors">
-                    {{ account.name }}
-                  </p>
-                  <p class="text-xs text-ink-muted mt-0.5">
-                    {{ account.broker }} · {{ 'subType.' + account.accountType | translate }}
-                  </p>
+              <div class="flex items-center justify-between gap-4">
+                <div class="flex items-center gap-3 min-w-0">
+                  <app-broker-logo [broker]="account.broker" [size]="34"/>
+                  <div class="min-w-0">
+                    <p class="text-sm font-semibold text-ink-primary
+                               group-hover:text-accent
+                               transition-colors truncate">
+                      {{ account.name }}
+                    </p>
+                    <p class="text-xs text-ink-muted mt-0.5 truncate">
+                      {{ account.broker }} · {{ 'subType.' + account.accountType | translate }}
+                    </p>
+                  </div>
                 </div>
 
                 <div class="flex items-center gap-4">
