@@ -1,17 +1,15 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
-import { TranslateService } from '@ngx-translate/core';
 import { UserPreferences, CURRENCY_SYMBOLS } from '../models/account.model';
-
-function langFromLocale(locale: string): string {
-  return locale.startsWith('fr') ? 'fr' : 'en';
-}
+import { LanguageService, langFromLocale } from './language.service';
 
 @Injectable({ providedIn: 'root' })
 export class PreferencesService {
   private readonly http = inject(HttpClient);
-  private readonly translate = inject(TranslateService);
+  // Routed through LanguageService rather than TranslateService directly, so a
+  // signed-in user's locale and the public language picker cannot disagree.
+  private readonly language = inject(LanguageService);
   private readonly apiUrl = '/api/v1/preferences';
 
   private readonly defaultPreferences: UserPreferences = {
@@ -35,7 +33,7 @@ export class PreferencesService {
     this.http.get<UserPreferences>(this.apiUrl).subscribe({
       next: (p) => {
         this._preferences.set(p);
-        this.translate.use(langFromLocale(p.locale));
+        this.language.use(langFromLocale(p.locale));
       },
       // eslint-disable-next-line @typescript-eslint/no-empty-function
       error: () => {},
@@ -46,7 +44,7 @@ export class PreferencesService {
     return this.http.put<UserPreferences>(this.apiUrl, { currency, locale }).pipe(
       tap((p) => {
         this._preferences.set(p);
-        this.translate.use(langFromLocale(p.locale));
+        this.language.use(langFromLocale(p.locale));
       })
     );
   }

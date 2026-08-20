@@ -1,8 +1,9 @@
-import { AfterViewInit, Component, HostListener, signal } from '@angular/core';
+import { AfterViewInit, Component, HostListener, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CurrencyPipe } from '@angular/common';
 import { TranslatePipe } from '@ngx-translate/core';
 import { DEPOSIT_LIMITS } from '../../core/models/account.model';
+import { LanguageService, Lang } from '../../core/services/language.service';
 import { version } from '../../../../package.json';
 
 interface CeilingRow {
@@ -19,9 +20,26 @@ interface CeilingRow {
   templateUrl: './landing.component.html',
 })
 export class LandingComponent implements AfterViewInit {
+  private readonly languageService = inject(LanguageService);
+
   protected readonly showScrollTop = signal(false);
   protected readonly barsReady     = signal(false);
   protected readonly appVersion    = version;
+  protected readonly currentLang   = this.languageService.lang;
+
+  /**
+   * Endonyms are deliberately not translated: someone who has landed on the
+   * wrong language needs to recognise their own, so "Français" stays "Français"
+   * on the English page.
+   */
+  protected readonly languages: { code: Lang; short: string; name: string }[] = [
+    { code: 'en', short: 'EN', name: 'English'  },
+    { code: 'fr', short: 'FR', name: 'Français' },
+  ];
+
+  protected setLang(lang: Lang): void {
+    this.languageService.use(lang);
+  }
 
   ngAfterViewInit(): void {
     // One orchestrated reveal: the ceiling bars grow in once, on load.

@@ -222,7 +222,8 @@
     "security4Description": "Accounts, summaries and preferences are wiped from memory the moment you sign out.",
     "closingTitle": "Start with one account.",
     "closingDescription": "Add a PEA or a Livret, import a CSV, and see where you actually stand. It takes a few minutes and costs nothing.",
-    "registerLink": "Register"
+    "registerLink": "Register",
+    "languageGroup": "Language"
   },
   "overview": {
     "title": "Overview",

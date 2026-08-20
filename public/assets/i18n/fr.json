@@ -222,7 +222,8 @@
     "security4Description": "Comptes, synthèses et préférences sont purgés de la mémoire dès la déconnexion.",
     "closingTitle": "Commencez par un seul compte.",
     "closingDescription": "Ajoutez un PEA ou un livret, importez un CSV, et voyez où vous en êtes vraiment. Quelques minutes suffisent, et c’est gratuit.",
-    "registerLink": "S’inscrire"
+    "registerLink": "S’inscrire",
+    "languageGroup": "Langue"
   },
   "overview": {
     "title": "Vue d'ensemble",

@@ -6,13 +6,16 @@ import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { AuthService } from './core/services/auth.service';
+import { resolveInitialLang } from './core/services/language.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
     provideHttpClient(withInterceptors([authInterceptor])),
     provideTranslateService({
-      lang: 'en',
+      // Resolved from localStorage / the browser before the first paint, so a
+      // returning visitor never sees English flash past on their way to French.
+      lang: resolveInitialLang(),
       fallbackLang: 'en',
       // useHttpBackend bypasses all HttpClient interceptors (incl. authInterceptor),
       // breaking the TranslateHttpLoader -> authInterceptor -> AuthService ->

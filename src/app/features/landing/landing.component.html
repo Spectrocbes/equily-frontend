@@ -32,8 +32,25 @@
       </nav>
 
       <div class="flex items-center gap-2">
+
+        <!-- Language picker -->
+        <div class="flex items-center rounded-md border border-marketing-line p-0.5"
+             role="group"
+             [attr.aria-label]="'landing.languageGroup' | translate">
+          @for (l of languages; track l.code) {
+            <button type="button" (click)="setLang(l.code)"
+                    [attr.aria-label]="l.name"
+                    [attr.aria-pressed]="currentLang() === l.code"
+                    [class]="currentLang() === l.code
+                      ? 'px-2 py-1 rounded-[5px] text-[11px] font-semibold tracking-wide bg-marketing-raised text-marketing-ink transition-colors'
+                      : 'px-2 py-1 rounded-[5px] text-[11px] font-semibold tracking-wide text-marketing-faint hover:text-marketing-soft transition-colors'">
+              {{ l.short }}
+            </button>
+          }
+        </div>
+
         <a routerLink="/login"
-           class="px-3.5 py-2 text-[13px] font-medium text-marketing-soft
+           class="hidden sm:inline-block px-3.5 py-2 text-[13px] font-medium text-marketing-soft
                   hover:text-marketing-ink transition-colors rounded-md
                   focus-visible:outline-none focus-visible:ring-2
                   focus-visible:ring-marketing-teal">
