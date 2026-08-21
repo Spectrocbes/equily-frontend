@@ -22,10 +22,48 @@ if (-not (Test-Path $dir)) { Write-Error "not found: $dir"; exit 1 }
 $tolerancePct = 1.5
 $alphaFloor   = 16
 
-$fixed = 0; $skipped = 0
+# The app never draws a logo above 44 px, and the largest framing zoom is 1.2x.
+# 192 px covers that at 4x pixel density with headroom; beyond it the extra
+# bytes can never reach a screen. Sourcing a 2048 px logo is right — shipping
+# it is not.
+$maxEdge = 192
+
+# Files with a LOGO_FRAMING entry were positioned by hand against the artwork as
+# it stands. Auto-centring them afterwards moves the ground under that tuning and
+# the two corrections compound, so manual framing wins. Downscaling is still
+# applied to them: it is proportional and changes nothing about the framing.
+$manifest = Get-Content "src/app/core/constants/broker-logos.ts" -Raw
+$block = $manifest.Substring($manifest.IndexOf('const LOGO_FRAMING'),
+                             $manifest.IndexOf('function normalise') - $manifest.IndexOf('const LOGO_FRAMING'))
+$handFramed = [regex]::Matches($block, "'([\w.-]+\.png)'") | ForEach-Object { $_.Groups[1].Value }
+if ($handFramed) { Write-Host "hand-framed, centring skipped: $($handFramed -join ', ')"; Write-Host "" }
+
+$fixed = 0; $skipped = 0; $shrunk = 0
 
 foreach ($file in Get-ChildItem "$dir/*.png" | Sort-Object Name) {
     $bmp = New-Object System.Drawing.Bitmap $file.FullName
+
+    if ([Math]::Max($bmp.Width, $bmp.Height) -gt $maxEdge) {
+        $was = "$($bmp.Width)px, $([Math]::Round($file.Length/1KB,1)) KB"
+        $ratio = $maxEdge / [Math]::Max($bmp.Width, $bmp.Height)
+        $nw = [int][Math]::Round($bmp.Width * $ratio)
+        $nh = [int][Math]::Round($bmp.Height * $ratio)
+        $small = New-Object System.Drawing.Bitmap $nw, $nh
+        $gr = [System.Drawing.Graphics]::FromImage($small)
+        $gr.CompositingMode    = [System.Drawing.Drawing2D.CompositingMode]::SourceCopy
+        $gr.InterpolationMode  = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+        $gr.PixelOffsetMode    = [System.Drawing.Drawing2D.PixelOffsetMode]::HighQuality
+        $gr.SmoothingMode      = [System.Drawing.Drawing2D.SmoothingMode]::HighQuality
+        $gr.DrawImage($bmp, 0, 0, $nw, $nh)
+        $gr.Dispose(); $bmp.Dispose()
+        $small.Save($file.FullName, [System.Drawing.Imaging.ImageFormat]::Png)
+        $small.Dispose()
+        $now = Get-Item $file.FullName
+        Write-Host ("shrank  {0,-22} {1} -> {2}px, {3} KB" -f $file.BaseName, $was, $maxEdge, [Math]::Round($now.Length/1KB,1))
+        $shrunk++
+        $bmp = New-Object System.Drawing.Bitmap $file.FullName
+    }
+
     $w = $bmp.Width; $h = $bmp.Height
 
     $rect = New-Object System.Drawing.Rectangle 0, 0, $w, $h
@@ -48,6 +86,7 @@ foreach ($file in Get-ChildItem "$dir/*.png" | Sort-Object Name) {
     }
 
     if ($x1 -lt 0) { $bmp.Dispose(); $skipped++; continue }   # fully transparent
+    if ($handFramed -contains $file.Name) { $bmp.Dispose(); $skipped++; continue }
 
     $dx = ((($x0 + $x1 + 1) / 2) - $w / 2) / $w * 100
     $dy = ((($y0 + $y1 + 1) / 2) - $h / 2) / $h * 100
@@ -74,4 +113,5 @@ foreach ($file in Get-ChildItem "$dir/*.png" | Sort-Object Name) {
 }
 
 Write-Host ""
-Write-Host "centred $fixed, already fine $skipped"
+Write-Host "shrank $shrunk, centred $fixed, already fine $skipped"
+Write-Host ("total: {0:N0} KB" -f ((Get-ChildItem "$dir/*.png" | Measure-Object Length -Sum).Sum / 1KB))

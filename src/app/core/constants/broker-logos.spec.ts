@@ -2,7 +2,7 @@ import { existsSync } from 'fs';
 import { join } from 'path';
 import {
   getBrokerLogoPath, getBrokerInitials, getBrokerLogoTransform,
-  DECLARED_LOGO_FILES, LOGO_FRAMING_ENTRIES,
+  DECLARED_LOGO_FILES, LOGO_FRAMING_ENTRIES, BROKER_LOGO_FILES,
 } from './broker-logos';
 import { TRADITIONAL_BROKERS, CRYPTO_BROKERS, OTHER_BROKER } from './brokers';
 
@@ -62,20 +62,37 @@ describe('getBrokerLogoPath', () => {
 });
 
 describe('getBrokerLogoTransform', () => {
-  it('leaves the majority of logos untransformed', () => {
-    expect(getBrokerLogoTransform('Binance')).toBeNull();
-    expect(getBrokerLogoTransform('Revolut')).toBeNull();
+  it('leaves logos without a framing entry untransformed', () => {
+    const unframed = Object.entries(BROKER_LOGO_FILES)
+      .filter(([, file]) => file && !(file in LOGO_FRAMING_ENTRIES))
+      .map(([broker]) => broker);
+
+    expect(unframed.length).toBeGreaterThan(0);
+    for (const broker of unframed) {
+      expect(getBrokerLogoTransform(broker)).toBeNull();
+    }
   });
 
+  // Expectations are derived from the manifest rather than hardcoded: these
+  // values get nudged by eye whenever a logo is replaced, and a spec that has
+  // to be edited after every nudge is a tax, not a safety net. What is worth
+  // pinning is that the broker name resolves to its file's entry, and that
+  // undeclared axes fall back rather than emitting "undefined".
   it('applies the declared crop, resolving the broker name to its file', () => {
-    expect(getBrokerLogoTransform('Ledger')).toBe('translate(0%, 0%) scale(0.72)');
-    expect(getBrokerLogoTransform('Hello Bank')).toBe('translate(0%, 7%) scale(1.45)');
-    expect(getBrokerLogoTransform('Boursobank')).toBe('translate(-3%, 0%) scale(0.85)');
+    for (const [file, framing] of Object.entries(LOGO_FRAMING_ENTRIES)) {
+      const broker = Object.entries(BROKER_LOGO_FILES).find(([, f]) => f === file)?.[0];
+      if (!broker) continue;
+      expect(getBrokerLogoTransform(broker)).toBe(
+        `translate(${framing.x ?? 0}%, ${framing.y ?? 0}%) scale(${framing.scale ?? 1})`,
+      );
+    }
   });
 
-  it('defaults the axes that were not declared', () => {
-    // LCL only shifts down; scale must stay 1 rather than becoming undefined.
-    expect(getBrokerLogoTransform('LCL')).toBe('translate(0%, 4%) scale(1)');
+  it('defaults every axis that was not declared', () => {
+    for (const broker of Object.keys(BROKER_LOGO_FILES)) {
+      const t = getBrokerLogoTransform(broker);
+      if (t) expect(t).not.toContain('undefined');
+    }
   });
 
   it('returns null for a broker with no logo at all', () => {

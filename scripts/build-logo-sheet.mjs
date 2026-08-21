@@ -38,18 +38,22 @@ const transformFor = file => {
   return f ? `translate(${f.x ?? 0}%, ${f.y ?? 0}%) scale(${f.scale ?? 1})` : 'none';
 };
 
-const items = readdirSync(dir).filter(f => f.endsWith('.png')).sort().map(file => {
-  const buf = readFileSync(join(dir, file));
+const items = readdirSync(dir).filter(f => /\.(png|svg)$/.test(f)).sort().map(file => {
+  const buf  = readFileSync(join(dir, file));
+  const slug = file.replace(/\.(png|svg)$/, '');
+  const svg  = file.endsWith('.svg');
   return {
     file,
-    slug: file.replace('.png',''),
-    name: NAMES[file.replace('.png','')] ?? file,
-    w: buf.readUInt32BE(16),
+    slug,
+    name: NAMES[slug] ?? file,
+    // Vectors have no pixel width to report, and never need a better source.
+    w: svg ? Infinity : buf.readUInt32BE(16),
+    svg,
     kb: (buf.length / 1024).toFixed(1),
-    crypto: CRYPTO.has(file.replace('.png','')),
+    crypto: CRYPTO.has(slug),
     framed: !!FRAMING[file],
     transform: transformFor(file),
-    data: `data:image/png;base64,${buf.toString('base64')}`,
+    data: `data:image/${svg ? 'svg+xml' : 'png'};base64,${buf.toString('base64')}`,
   };
 });
 
@@ -66,7 +70,7 @@ const card = i => `
         </div>
         <figcaption>
           <span class="logo__name">${i.name}${i.framed ? ' <span class="framed" title="Framing adjusted in broker-logos.ts">◇</span>' : ''}</span>
-          <span class="logo__meta">${i.w}px · ${i.kb} KB${i.crypto ? ' · crypto' : ''}</span>
+          <span class="logo__meta">${i.svg ? 'vector' : i.w + 'px'} · ${i.kb} KB${i.crypto ? ' · crypto' : ''}</span>
         </figcaption>
       </figure>`;
 

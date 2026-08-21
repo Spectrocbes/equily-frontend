@@ -40,7 +40,7 @@ const BROKER_LOGOS: Readonly<Record<string, string>> = {
   'ing':                  'ing.png',
   'interactive brokers':  'interactive-brokers.png',
   'la banque postale':    'la-banque-postale.png',
-  'lcl':                  'lcl.png',
+  'lcl':                  'lcl.svg',   // vector: sharp at any size, and lighter
   'linxea':               'linxea.png',
   'lydia':                'lydia.png',
   'n26':                  'n26.png',
@@ -90,12 +90,17 @@ export interface LogoFraming {
 }
 
 const LOGO_FRAMING: Readonly<Record<string, LogoFraming>> = {
-  'hello-bank.png':      { scale: 1.45, y: 7 },  // zoom onto the H!, past the bubble tail
-  'saxo-bank.png':       { scale: 0.82 },        // wordmark was clipped by the circle
-  'caisse-depargne.png': { scale: 0.86 },        // mark ran edge to edge
-  'boursobank.png':      { scale: 0.85, x: -3 }, // arrow reads right-heavy at full bleed
-  'lcl.png':             { y: 4 },               // wordmark sits high in its tile
-  'ledger.png':          { scale: 0.72 },        // corner brackets were cropped off
+  'hello-bank.png':      { scale: 0.7, y: 4 },
+  'societe-generale.png':{ scale: 1.1 },
+  'binance.png':         { scale: 0.9 },
+  'bitfinex.png':        { scale: 1.1, x: -3 },
+  'bitstamp.png':        { scale: 1.1, y: 3 },
+  'boursobank.png':      { scale: 0.85, x: -7, y: 2 },
+  'bnp-paribas.png':     { scale: 1.05, y: 1 },
+  'bybit.png':           { scale: 1.15, y: -2 },
+  'lcl.svg':             { scale: 1.2, y: -2 },
+  'saxo-bank.png':       { scale: 1.05, y: 1 },
+  'ledger.png':          { scale: 0.70 },
 };
 
 function normalise(value: string | null | undefined): string {
@@ -139,3 +144,6 @@ export function getBrokerInitials(broker: string | null | undefined): string {
 /** Filenames this manifest points at — used by the spec to check they exist. */
 export const DECLARED_LOGO_FILES: readonly string[] =
   [...new Set(Object.values(BROKER_LOGOS).filter(Boolean))].sort();
+
+/** Broker → filename, exposed so specs can check the two tables line up. */
+export const BROKER_LOGO_FILES: Readonly<Record<string, string>> = BROKER_LOGOS;
