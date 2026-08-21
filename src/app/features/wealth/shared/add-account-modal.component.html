@@ -389,9 +389,12 @@
           }
 
           @if (form.value.broker) {
-            <div class="flex justify-between text-sm">
+            <div class="flex justify-between items-center text-sm gap-3">
               <span class="text-ink-secondary">{{ 'createAccount.summaryBroker' | translate }}</span>
-              <span class="font-medium text-ink-primary">{{ form.value.broker }}</span>
+              <span class="flex items-center gap-2 min-w-0">
+                <app-broker-logo [broker]="form.value.broker" [size]="20"/>
+                <span class="font-medium text-ink-primary truncate">{{ form.value.broker }}</span>
+              </span>
             </div>
           }
 

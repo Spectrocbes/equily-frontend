@@ -5,6 +5,7 @@ import { forkJoin } from 'rxjs';
 import { UserCurrencyPipe } from '../../shared/pipes/user-currency.pipe';
 import { AnalyticsDashboardService } from '../../core/services/analytics-dashboard.service';
 import { PreferencesService } from '../../core/services/preferences.service';
+import { RegionFlagComponent } from '../../shared/components/region-flag/region-flag.component';
 import {
   PerformanceSummary,
   AllocationBreakdown,
@@ -17,6 +18,7 @@ import {
   selector: 'app-analytics',
   standalone: true,
   imports: [
+    RegionFlagComponent,
     TranslatePipe, CurrencyPipe, DecimalPipe,
     PercentPipe, KeyValuePipe, UserCurrencyPipe,
   ],

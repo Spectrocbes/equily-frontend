@@ -44,3 +44,6 @@ Thumbs.db
 
 # Claude
 /.claude
+
+# Generated review page - regenerate with: npm run sheet:logos
+docs/logo-sheet.html

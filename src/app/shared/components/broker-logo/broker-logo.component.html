@@ -1,0 +1,25 @@
+<span class="rounded-full flex-shrink-0 inline-flex items-center justify-center overflow-hidden
+             ring-1 ring-inset ring-border"
+      [class]="showLogo() ? 'bg-white' : 'bg-surface-raised'"
+      [style.width.px]="size()" [style.height.px]="size()"
+      aria-hidden="true">
+  @if (showLogo()) {
+    <!-- Favicons are square and so is this frame, so `cover` crops nothing: it
+         simply lets full-bleed marks reach the edge and be clipped round,
+         instead of floating as a visible square inside the circle.
+         The ground stays white in both themes because brand marks are drawn for
+         light backgrounds — Ledger and Trezor are dark-on-transparent and
+         disappear entirely on a dark chip. -->
+    <img [src]="logoPath()"
+         [width]="size()" [height]="size()"
+         [style.transform]="transform()"
+         loading="lazy" alt=""
+         (error)="failed.set(true)"
+         class="w-full h-full object-cover"/>
+  } @else {
+    <span class="font-semibold text-ink-secondary leading-none tracking-tight"
+          [style.font-size.px]="size() * 0.36">
+      {{ initials() }}
+    </span>
+  }
+</span>

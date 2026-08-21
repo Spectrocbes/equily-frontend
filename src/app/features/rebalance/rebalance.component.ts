@@ -8,6 +8,7 @@ import { RebalancingService } from '../../core/services/rebalancing.service';
 import { PreferencesService } from '../../core/services/preferences.service';
 import { ToastService } from '../../shared/toast/toast.service';
 import { TargetAllocation, RebalancingSuggestion } from '../../core/models/account.model';
+import { RegionFlagComponent } from '../../shared/components/region-flag/region-flag.component';
 
 const REBALANCABLE_ACCOUNT_TYPES = [
   'PEA', 'PEA_PME', 'COMPTE_TITRES', 'PER', 'ASSURANCE_VIE', 'CRYPTO_WALLET',
@@ -17,6 +18,7 @@ const REBALANCABLE_ACCOUNT_TYPES = [
   selector: 'app-rebalance',
   standalone: true,
   imports: [
+    RegionFlagComponent,
     TranslatePipe,
     CurrencyPipe,
     DecimalPipe,

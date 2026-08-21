@@ -32,16 +32,19 @@
 
     <!-- Account header -->
     <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-      <div>
-        <div class="flex items-center gap-2 mb-1">
-          <span class="text-xs font-medium px-2 py-0.5 rounded-full
-                       bg-emerald-50 dark:bg-emerald-900/30
-                       text-emerald-700 dark:text-emerald-300">{{ 'accountType.' + account()!.accountType | translate }}</span>
-          <span class="text-xs text-ink-muted">{{ account()!.broker }}@if (account()!.subType) { · {{ 'subType.' + account()!.subType | translate }} }</span>
+      <div class="flex items-center gap-3 min-w-0">
+        <app-broker-logo [broker]="account()!.broker" [size]="44"/>
+        <div class="min-w-0">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="text-xs font-medium px-2 py-0.5 rounded-full
+                         bg-emerald-50 dark:bg-emerald-900/30
+                         text-emerald-700 dark:text-emerald-300">{{ 'accountType.' + account()!.accountType | translate }}</span>
+            <span class="text-xs text-ink-muted">{{ account()!.broker }}@if (account()!.subType) { · {{ 'subType.' + account()!.subType | translate }} }</span>
+          </div>
+          <h1 class="text-2xl font-semibold text-ink-primary truncate">
+            {{ account()!.name }}
+          </h1>
         </div>
-        <h1 class="text-2xl font-semibold text-ink-primary">
-          {{ account()!.name }}
-        </h1>
       </div>
 
       <div class="flex items-start gap-4 self-start lg:self-auto">

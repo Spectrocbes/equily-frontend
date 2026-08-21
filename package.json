@@ -9,7 +9,9 @@
     "test": "jest --coverage",
     "test:watch": "jest --watch",
     "test:ci": "jest --coverage --ci --coverageReporters=lcov",
-    "lint": "ng lint"
+    "lint": "ng lint",
+    "sync:flags": "node scripts/sync-flag-assets.mjs",
+    "sheet:logos": "node scripts/build-logo-sheet.mjs"
   },
   "private": true,
   "dependencies": {
@@ -44,6 +46,7 @@
     "postcss": "^8.5.15",
     "tailwindcss": "^3.4.19",
     "typescript": "~5.5.2",
-    "typescript-eslint": "8.46.4"
+    "typescript-eslint": "8.46.4",
+    "flag-icons": "^7.5.0"
   }
 }

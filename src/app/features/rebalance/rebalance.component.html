@@ -155,8 +155,14 @@
         <div class="space-y-2">
           @for (alloc of targetAllocations(); track alloc.category) {
             <div class="flex items-center justify-between">
-              <span class="text-sm text-ink-secondary">
-                {{ alloc.category }}
+              <span class="flex items-center gap-2 min-w-0">
+                <!-- Crypto targets are tickers, not regions — no flag applies. -->
+                @if (!isCrypto()) {
+                  <app-region-flag [region]="alloc.category" [size]="16"/>
+                }
+                <span class="text-sm text-ink-secondary truncate">
+                  {{ alloc.category }}
+                </span>
               </span>
               <span class="text-sm font-mono font-semibold text-ink-primary">
                 {{ alloc.targetPercent | number:'1.0-1' }}%
@@ -233,10 +239,13 @@
             @for (s of suggestions(); track s.category) {
               <div class="flex items-start justify-between px-4 py-3
                           rounded-md border border-border-subtle">
-                <div class="flex-1">
-                  <p class="text-sm font-semibold
+                <div class="flex-1 min-w-0">
+                  <p class="flex items-center gap-2 text-sm font-semibold
                              text-ink-primary">
-                    {{ s.category }}
+                    @if (!isCrypto()) {
+                      <app-region-flag [region]="s.category" [size]="16"/>
+                    }
+                    <span class="truncate">{{ s.category }}</span>
                   </p>
                   <!-- Progress: current → after DCA → target -->
                   <div class="flex items-center gap-1.5 mt-1 text-xs">
