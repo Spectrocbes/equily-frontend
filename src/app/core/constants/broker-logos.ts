@@ -66,17 +66,64 @@ const BROKER_LOGOS: Readonly<Record<string, string>> = {
   'trezor':     'trezor.png',
 };
 
+/**
+ * ── Adjust a logo's framing here ──────────────────────────────────────────
+ *
+ * Publishers crop their favicons inconsistently: some bleed to the edge, others
+ * sit in generous padding, a few are simply off-centre. Centring is automated
+ * (scripts/normalize-broker-logos.ps1), but how tightly a mark should be
+ * cropped is a judgement call per brand, so it lives here.
+ *
+ *   scale  >1 zooms in (crops), <1 zooms out (adds margin). Default 1.
+ *   x / y  shift as a percentage of the frame. Positive moves right / down.
+ *
+ * Keyed by filename, not broker name, because several names resolve to the same
+ * file. Anything absent renders untransformed — the common case.
+ *
+ * After editing, run `npm run sheet:logos` to regenerate the contact sheet and
+ * check the result at the sizes the app actually uses.
+ */
+export interface LogoFraming {
+  scale?: number;
+  x?: number;
+  y?: number;
+}
+
+const LOGO_FRAMING: Readonly<Record<string, LogoFraming>> = {
+  'hello-bank.png':      { scale: 1.45, y: 7 },  // zoom onto the H!, past the bubble tail
+  'saxo-bank.png':       { scale: 0.82 },        // wordmark was clipped by the circle
+  'caisse-depargne.png': { scale: 0.86 },        // mark ran edge to edge
+  'boursobank.png':      { scale: 0.85, x: -3 }, // arrow reads right-heavy at full bleed
+  'lcl.png':             { y: 4 },               // wordmark sits high in its tile
+  'ledger.png':          { scale: 0.72 },        // corner brackets were cropped off
+};
+
 function normalise(value: string | null | undefined): string {
   return (value ?? '').trim().toLowerCase();
 }
 
-/** Path to the broker's logo, or null when none is on file (use the initials). */
-export function getBrokerLogoPath(broker: string | null | undefined): string | null {
+function fileFor(broker: string | null | undefined): string | null {
   const key = normalise(broker);
   if (!key || NO_LOGO.has(key)) return null;
-  const file = BROKER_LOGOS[key];
+  return BROKER_LOGOS[key] || null;
+}
+
+/** Path to the broker's logo, or null when none is on file (use the initials). */
+export function getBrokerLogoPath(broker: string | null | undefined): string | null {
+  const file = fileFor(broker);
   return file ? `assets/logos/brokers/${file}` : null;
 }
+
+/** CSS transform for the logo, or null when it needs no adjustment. */
+export function getBrokerLogoTransform(broker: string | null | undefined): string | null {
+  const file = fileFor(broker);
+  const f = file ? LOGO_FRAMING[file] : undefined;
+  if (!f) return null;
+  return `translate(${f.x ?? 0}%, ${f.y ?? 0}%) scale(${f.scale ?? 1})`;
+}
+
+/** Framing entries, so the contact-sheet generator renders exactly what the app does. */
+export const LOGO_FRAMING_ENTRIES = LOGO_FRAMING;
 
 /**
  * Up to two letters standing in for a missing logo: initials of the first two

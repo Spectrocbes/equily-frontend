@@ -1,6 +1,9 @@
 import { existsSync } from 'fs';
 import { join } from 'path';
-import { getBrokerLogoPath, getBrokerInitials, DECLARED_LOGO_FILES } from './broker-logos';
+import {
+  getBrokerLogoPath, getBrokerInitials, getBrokerLogoTransform,
+  DECLARED_LOGO_FILES, LOGO_FRAMING_ENTRIES,
+} from './broker-logos';
 import { TRADITIONAL_BROKERS, CRYPTO_BROKERS, OTHER_BROKER } from './brokers';
 
 const LOGO_DIR = join(process.cwd(), 'public', 'assets', 'logos', 'brokers');
@@ -55,6 +58,37 @@ describe('getBrokerLogoPath', () => {
     expect(getBrokerLogoPath('')).toBeNull();
     expect(getBrokerLogoPath(null)).toBeNull();
     expect(getBrokerLogoPath(undefined)).toBeNull();
+  });
+});
+
+describe('getBrokerLogoTransform', () => {
+  it('leaves the majority of logos untransformed', () => {
+    expect(getBrokerLogoTransform('Binance')).toBeNull();
+    expect(getBrokerLogoTransform('Revolut')).toBeNull();
+  });
+
+  it('applies the declared crop, resolving the broker name to its file', () => {
+    expect(getBrokerLogoTransform('Ledger')).toBe('translate(0%, 0%) scale(0.72)');
+    expect(getBrokerLogoTransform('Hello Bank')).toBe('translate(0%, 7%) scale(1.45)');
+    expect(getBrokerLogoTransform('Boursobank')).toBe('translate(-3%, 0%) scale(0.85)');
+  });
+
+  it('defaults the axes that were not declared', () => {
+    // LCL only shifts down; scale must stay 1 rather than becoming undefined.
+    expect(getBrokerLogoTransform('LCL')).toBe('translate(0%, 4%) scale(1)');
+  });
+
+  it('returns null for a broker with no logo at all', () => {
+    expect(getBrokerLogoTransform('Bourse Direct')).toBeNull();
+    expect(getBrokerLogoTransform(null)).toBeNull();
+  });
+
+  // A framing entry pointing at a file that no longer exists would be silently
+  // dead — the crop would simply never apply.
+  it('only frames files that are actually shipped', () => {
+    const orphans = Object.keys(LOGO_FRAMING_ENTRIES)
+      .filter(f => !DECLARED_LOGO_FILES.includes(f));
+    expect(orphans).toEqual([]);
   });
 });
 

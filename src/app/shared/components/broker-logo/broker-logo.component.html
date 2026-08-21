@@ -12,6 +12,7 @@
          disappear entirely on a dark chip. -->
     <img [src]="logoPath()"
          [width]="size()" [height]="size()"
+         [style.transform]="transform()"
          loading="lazy" alt=""
          (error)="failed.set(true)"
          class="w-full h-full object-cover"/>

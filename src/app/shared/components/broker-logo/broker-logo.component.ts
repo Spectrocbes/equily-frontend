@@ -1,5 +1,7 @@
 import { Component, input, computed, signal, effect } from '@angular/core';
-import { getBrokerLogoPath, getBrokerInitials } from '../../../core/constants/broker-logos';
+import {
+  getBrokerLogoPath, getBrokerInitials, getBrokerLogoTransform,
+} from '../../../core/constants/broker-logos';
 
 /**
  * Broker logo in a round frame, falling back to the broker's initials.
@@ -19,8 +21,10 @@ export class BrokerLogoComponent {
   /** Set when the file 404s or is unreadable, so a bad asset degrades to initials. */
   protected readonly failed = signal(false);
 
-  protected readonly logoPath = computed(() => getBrokerLogoPath(this.broker()));
-  protected readonly initials = computed(() => getBrokerInitials(this.broker()));
+  protected readonly logoPath  = computed(() => getBrokerLogoPath(this.broker()));
+  protected readonly initials  = computed(() => getBrokerInitials(this.broker()));
+  /** Per-brand crop from the manifest; null for the majority that need none. */
+  protected readonly transform = computed(() => getBrokerLogoTransform(this.broker()));
   protected readonly showLogo = computed(() => !!this.logoPath() && !this.failed());
 
   constructor() {

@@ -10,7 +10,8 @@
     "test:watch": "jest --watch",
     "test:ci": "jest --coverage --ci --coverageReporters=lcov",
     "lint": "ng lint",
-    "sync:flags": "node scripts/sync-flag-assets.mjs"
+    "sync:flags": "node scripts/sync-flag-assets.mjs",
+    "sheet:logos": "node scripts/build-logo-sheet.mjs"
   },
   "private": true,
   "dependencies": {
