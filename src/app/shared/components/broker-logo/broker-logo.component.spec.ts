@@ -32,6 +32,25 @@ describe('BrokerLogoComponent', () => {
     expect(el.querySelector('[aria-hidden="true"]')).not.toBeNull();
   });
 
+  // Brand marks are drawn for light backgrounds — Ledger and Trezor are
+  // dark-on-transparent and vanish on a dark chip — but initials are text and
+  // must follow the theme instead.
+  it('grounds a logo on white, and initials on the themed surface', () => {
+    const withLogo = render('Boursobank').querySelector('span')!;
+    expect(withLogo.className).toContain('bg-white');
+
+    const withInitials = render('My Local Credit Union').querySelector('span')!;
+    expect(withInitials.className).toContain('bg-surface-raised');
+  });
+
+  // Favicons are square and so is the frame, so the image must reach the edge
+  // and be clipped round; padding leaves a visible square floating in a circle.
+  it('lets the image fill the round frame rather than inset it', () => {
+    const img = render('Boursobank').querySelector('img')!;
+    expect(img.className).toContain('object-cover');
+    expect(img.className).not.toMatch(/\bp-/);
+  });
+
   it('shows initials when no logo is on file', () => {
     const el = render('My Local Credit Union');
     expect(el.querySelector('img')).toBeNull();
