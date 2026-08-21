@@ -10,7 +10,7 @@
 # Afterwards, check the report: the service answers HTTP 200 with a low-resolution
 # or generic icon rather than failing, so a green "OK" is not proof of a usable logo.
 #
-# Usage:  pwsh scripts/fetch-broker-logos.ps1
+# Usage:  powershell -ExecutionPolicy Bypass -File scripts/fetch-broker-logos.ps1
 
 $ErrorActionPreference = 'Stop'
 $outDir = "public/assets/logos/brokers"
@@ -85,3 +85,7 @@ Write-Host "failed          : $($ko.Count)  $(($ko | ForEach-Object { $_.Broker 
 Write-Host ""
 Write-Host "Low-resolution entries are upscaled and look soft. Replacing them with"
 Write-Host "the brand's official SVG is the only real fix; favicons have no better source."
+
+# Centre any artwork the icon service returned off-centre, so a refresh cannot
+# silently reintroduce the miscentring this fixed.
+& "$PSScriptRoot/normalize-broker-logos.ps1"
